@@ -1,0 +1,261 @@
+﻿<Window x:Class="Terrarium.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Terrarium.WPF"
+        xmlns:viewmodels="clr-namespace:Terrarium.WPF.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:PlantViewModel}"
+        mc:Ignorable="d"
+        Title="My Tiny Terrarium" 
+        
+        Height="650" Width="400"
+        
+        WindowStyle="None"
+        AllowsTransparency="True" 
+        Background="Transparent"  
+        MouseDown="Window_MouseDown" 
+        KeyDown="Window_KeyDown"
+        Topmost="True"
+        
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome 
+        ResizeBorderThickness="6"
+        CaptionHeight="0"
+        CornerRadius="0"
+        GlassFrameThickness="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <Style x:Key="CuteProgressBarStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Foreground" Value="#FF88C0D0"/>
+            <Setter Property="Background" Value="#FFE5E5E5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border Name="PART_Track" 
+                                    CornerRadius="12" 
+                                    Background="{TemplateBinding Background}"/>
+
+                            <Border Name="PART_Indicator" 
+                                    CornerRadius="12" 
+                                    HorizontalAlignment="Left" 
+                                    Background="{TemplateBinding Foreground}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CuteButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FF88C0D0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="20" Background="{TemplateBinding Background}" Padding="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FF81A1C1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FF5E81AC"/>
+                                <Setter TargetName="border" Property="Margin" Value="0,2,0,0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#01FFFFFF">
+
+        <Button HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Width="30" Height="30"
+                Margin="10"
+                Content="✕"
+                Cursor="Hand"
+                Click="CloseButton_Click">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#FFBF616A"/>
+                    <Setter Property="FontSize" Value="18"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+
+                    <Setter Property="Opacity" Value="0"/>
+
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Opacity" Value="1"/>
+                            <Setter Property="Foreground" Value="#FFBF616A"/>
+                            <Setter Property="Background" Value="#10000000"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+
+        <Viewbox Stretch="Uniform">
+
+            <Border Padding="20">
+                <StackPanel VerticalAlignment="Center">
+
+                    <Border Background="White" CornerRadius="15" Padding="15,8" Margin="0,0,0,15" HorizontalAlignment="Center" MinWidth="150">
+                        <TextBlock Text="{Binding CurrentWeatherText}" 
+                                   HorizontalAlignment="Center"
+                                   FontSize="16" 
+                                   Foreground="#FF2E3440" 
+                                   FontFamily="Segoe UI Semibold"/>
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="15" Opacity="0.1" ShadowDepth="3" Color="#FF81A1C1"/>
+                        </Border.Effect>
+                    </Border>
+
+                    <Image Source="{Binding PlantImage}" 
+                       Height="180" 
+                       Width="180" 
+                       Margin="0,0,0,10"
+                       RenderOptions.BitmapScalingMode="HighQuality">
+
+                        <Image.RenderTransform>
+                            <TranslateTransform x:Name="PlantFloater" Y="0"/>
+                        </Image.RenderTransform>
+
+                        <Image.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+
+                                        <DoubleAnimation Storyboard.TargetName="PlantFloater" 
+                                     Storyboard.TargetProperty="Y"
+                                     From="0" To="-6" Duration="0:0:1.5">
+                                            <DoubleAnimation.EasingFunction>
+                                                <SineEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Image.Triggers>
+                    </Image>
+
+                    <TextBlock Text="{Binding StatusMessage}" 
+                               HorizontalAlignment="Center"
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               Foreground="White"
+                               Margin="0,0,0,20">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="Black" 
+                                              BlurRadius="4" 
+                                              ShadowDepth="0" 
+                                              Opacity="0.8"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Width="80">
+                            <TextBlock Text="Water" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="White">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="0" Opacity="0.6"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <ProgressBar Grid.Column="1" 
+                                     Value="{Binding Hydration, Mode=OneWay}" 
+                                     Maximum="100"
+                                     Foreground="#FF88C0D0"
+                                     Style="{StaticResource CuteProgressBarStyle}"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Width="80">
+                            <TextBlock Text="Sun" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="White">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="0" Opacity="0.6"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <ProgressBar Grid.Column="1" 
+                                     Value="{Binding Sunlight, Mode=OneWay}" 
+                                     Maximum="100" 
+                                     Foreground="#FFEBCB8B"
+                                     Style="{StaticResource CuteProgressBarStyle}"/>
+                    </Grid>
+
+                    <Button Command="{Binding WaterCommand}" 
+                            Content="Water Plant" 
+                            HorizontalAlignment="Center"
+                            Width="180"
+                            Height="45" 
+                            Margin="0,20,0,0"
+                            Cursor="Hand"
+                            Style="{StaticResource CuteButtonStyle}">
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="10" Opacity="0.2" ShadowDepth="3" Color="#FF88C0D0"/>
+                        </Button.Effect>
+                    </Button>
+
+                </StackPanel>
+            </Border>
+        </Viewbox>
+
+        <ResizeGrip HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Width="20" Height="20"
+                    Cursor="SizeNWSE"
+                    MouseLeftButtonDown="ResizeGrip_MouseDown">
+            <ResizeGrip.Style>
+                <Style TargetType="ResizeGrip">
+                    <Setter Property="Opacity" Value="0"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ResizeGrip.Style>
+        </ResizeGrip>
+
+    </Grid>
+</Window>

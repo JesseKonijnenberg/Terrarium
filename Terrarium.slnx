@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Terrarium.Avalonia/Terrarium.Avalonia.csproj" Id="2badff80-fffd-4075-bd93-4e29de5c58f4" />
+  <Project Path="Terrarium.Core/Terrarium.Core.csproj" />
+  <Project Path="Terrarium.Data/Terrarium.Data.csproj" />
+  <Project Path="Terrarium.Logic/Terrarium.Logic.csproj" />
+  <Project Path="Terrarium.WPF/Terrarium.WPF.csproj" />
+</Solution>
