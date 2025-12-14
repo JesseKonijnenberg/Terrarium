@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using System;
 using Terrarium.Avalonia.ViewModels;
 using Velopack;
+using Velopack.Sources;
 
 namespace Terrarium.Avalonia.Views
 {
@@ -40,26 +41,28 @@ namespace Terrarium.Avalonia.Views
         {
             try
             {
-                var mgr = new UpdateManager("https://github.com/JesseKonijnenberg/Terrarium");
+
+                // Arguments: Url, AccessToken (null if public), Prerelease (false)
+                var source = new GithubSource("https://github.com/JesseKonijnenberg/Terrarium", null, false);
+                var mgr = new UpdateManager(source);
 
                 if (!mgr.IsInstalled)
                 {
-                    System.Diagnostics.Debug.WriteLine("App is not installed (likely running in Debug). Skipping update check.");
+                    System.Diagnostics.Debug.WriteLine("App is not installed. Skipping check.");
                     return;
                 }
 
-                // Check for new version
+                // Check for updates
                 var newVersion = await mgr.CheckForUpdatesAsync();
                 if (newVersion == null)
-                    return; // No update available
+                    return;
 
-                // Download new version
                 await mgr.DownloadUpdatesAsync(newVersion);
                 mgr.ApplyUpdatesAndRestart(newVersion);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Update failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(ex.Message);
             }
         }
     }
