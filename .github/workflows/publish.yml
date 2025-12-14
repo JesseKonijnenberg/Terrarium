@@ -20,25 +20,30 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x' # Use 8.0 or 9.0 depending on your project
+        dotnet-version: '8.0.x' # Ensure this matches your project (e.g. 10.0.x if you are on preview)
 
     - name: Install Velopack Tool
       run: dotnet tool install -g vpk
 
+    # --- WINDOWS BUILD ---
     - name: Build & Pack (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained -o ./publish
+        # 1. Point explicitly to the Avalonia project (Not the solution!)
+        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -o ./publish
+        
+        # 2. Pack it
         vpk pack -u Terrarium -v ${{ github.ref_name }} -p ./publish -e Terrarium.Avalonia.exe
 
+    # --- LINUX BUILD ---
     - name: Build & Pack (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        # Install Fuse (needed for AppImage creation)
         sudo apt-get install -y libfuse2
         
-        dotnet publish -c Release -r linux-x64 --self-contained -o ./publish
-        # Note: 'vpk' creates an AppImage automatically on Linux
+        # 1. Point explicitly to the Avalonia project here too
+        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r linux-x64 --self-contained -o ./publish
+        
         vpk pack -u Terrarium -v ${{ github.ref_name }} -p ./publish -e Terrarium.Avalonia
 
     - name: Upload Release to GitHub
@@ -47,5 +52,4 @@ jobs:
       with:
         files: |
           Releases/*
-      env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
