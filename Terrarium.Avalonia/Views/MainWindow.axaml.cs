@@ -1,6 +1,7 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using System;
 using Terrarium.Avalonia.ViewModels;
 using Velopack;
 
@@ -37,18 +38,29 @@ namespace Terrarium.Avalonia.Views
 
         private async void UpdateMyApp()
         {
-            var mgr = new UpdateManager("https://github.com/JesseKonijnenberg/Terrarium");
+            try
+            {
+                var mgr = new UpdateManager("https://github.com/JesseKonijnenberg/Terrarium");
 
-            // Check for new version
-            var newVersion = await mgr.CheckForUpdatesAsync();
-            if (newVersion == null)
-                return; // No update available
+                if (!mgr.IsInstalled)
+                {
+                    System.Diagnostics.Debug.WriteLine("App is not installed (likely running in Debug). Skipping update check.");
+                    return;
+                }
 
-            // Download new version
-            await mgr.DownloadUpdatesAsync(newVersion);
+                // Check for new version
+                var newVersion = await mgr.CheckForUpdatesAsync();
+                if (newVersion == null)
+                    return; // No update available
 
-            // Apply update and restart (optional: ask user first)
-            mgr.ApplyUpdatesAndRestart(newVersion);
+                // Download new version
+                await mgr.DownloadUpdatesAsync(newVersion);
+                mgr.ApplyUpdatesAndRestart(newVersion);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Update failed: {ex.Message}");
+            }
         }
     }
 }
