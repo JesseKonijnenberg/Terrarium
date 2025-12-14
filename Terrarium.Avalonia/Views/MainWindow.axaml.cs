@@ -37,7 +37,7 @@ namespace Terrarium.Avalonia.Views
 
         private async void UpdateMyApp()
         {
-            var mgr = new UpdateManager("https://github.com/YOUR_USERNAME/Terrarium"); // <--- REPLACE THIS LATER
+            var mgr = new UpdateManager("https://github.com/JesseKonijnenberg/Terrarium");
 
             // Check for new version
             var newVersion = await mgr.CheckForUpdatesAsync();
