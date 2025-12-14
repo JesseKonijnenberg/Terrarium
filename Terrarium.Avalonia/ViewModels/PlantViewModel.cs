@@ -38,7 +38,7 @@ namespace Terrarium.Avalonia.ViewModels
             _weatherService = weatherService;
             _growthService = growthService;
 
-            _myPlant = new Plant { Name = "Sprout v1.0", Hydration = 50, Sunlight = 50, State = PlantState.Happy };
+            _myPlant = new Plant { Name = "Sprout v1.0.2", Hydration = 50, Sunlight = 50, State = PlantState.Happy };
 
             WaterCommand = new RelayCommand(() => WaterPlant());
 
