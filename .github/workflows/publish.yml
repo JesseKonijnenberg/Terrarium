@@ -3,7 +3,7 @@ name: Publish Release
 on:
   push:
     tags:
-      - 'v*' # Triggers when you push a tag like v1.0.0
+      - 'v*'
 
 jobs:
   build_and_publish:
@@ -20,7 +20,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x' # Ensure this matches your project (e.g. 10.0.x if you are on preview)
+        dotnet-version: '8.0.x' # Keep this matching your project
 
     - name: Install Velopack Tool
       run: dotnet tool install -g vpk
@@ -29,11 +29,15 @@ jobs:
     - name: Build & Pack (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        # 1. Point explicitly to the Avalonia project (Not the solution!)
+        # 1. Clean the version number (Remove 'v' from 'v1.0.0')
+        $ver = $env:GITHUB_REF_NAME.TrimStart('v')
+        Write-Host "Building Version: $ver"
+
+        # 2. Publish (Explicit project path)
         dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -o ./publish
         
-        # 2. Pack it
-        vpk pack -u Terrarium -v ${{ github.ref_name }} -p ./publish -e Terrarium.Avalonia.exe
+        # 3. Pack (Using the clean $ver variable)
+        vpk pack -u Terrarium -v $ver -p ./publish -e Terrarium.Avalonia.exe
 
     # --- LINUX BUILD ---
     - name: Build & Pack (Linux)
@@ -41,10 +45,15 @@ jobs:
       run: |
         sudo apt-get install -y libfuse2
         
-        # 1. Point explicitly to the Avalonia project here too
+        # 1. Clean the version number (Bash syntax to strip 'v')
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "Building Version: $VERSION"
+
+        # 2. Publish (Explicit project path)
         dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r linux-x64 --self-contained -o ./publish
         
-        vpk pack -u Terrarium -v ${{ github.ref_name }} -p ./publish -e Terrarium.Avalonia
+        # 3. Pack (Using the clean $VERSION variable)
+        vpk pack -u Terrarium -v $VERSION -p ./publish -e Terrarium.Avalonia
 
     - name: Upload Release to GitHub
       uses: softprops/action-gh-release@v1
@@ -52,4 +61,3 @@ jobs:
       with:
         files: |
           Releases/*
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
