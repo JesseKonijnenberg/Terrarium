@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaXaml Remove="Assets\AppStyles.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
@@ -46,6 +50,12 @@
     </AvaloniaResource>
     <AvaloniaResource Include="Images\plant_thirsty.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </AvaloniaResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Update="Assets\AppStyles.axaml">
+      <SubType>Designer</SubType>
     </AvaloniaResource>
   </ItemGroup>
 </Project>

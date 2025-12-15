@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <SolidColorBrush x:Key="BgMain" Color="#141312"/>
+    <SolidColorBrush x:Key="BgSidebar" Color="#1e1c1a"/>
+    <SolidColorBrush x:Key="BgCard" Color="#1e1c1a"/>
+    <SolidColorBrush x:Key="BorderColor" Color="#4a4540"/>
+    <SolidColorBrush x:Key="TextMain" Color="#f5ebe0"/>
+    <SolidColorBrush x:Key="TextMuted" Color="#9a928c"/>
+    <SolidColorBrush x:Key="AccentSage" Color="#b5c18e"/>
+    <SolidColorBrush x:Key="AccentRust" Color="#e07e5c"/>
+
+    <Geometry x:Key="IconLayout">M3,3H10V10H3V3ZM14,3H21V10H14V3ZM14,14H21V21H14V14ZM3,14H10V21H3V14Z</Geometry>
+    <Geometry x:Key="IconSearch">M11,19A8,8 0 1,0 3,11 8,8 0 0,0 11,19M21,21L16.65,16.65</Geometry>
+    <Geometry x:Key="IconPlus">M12,5V19M5,12H19</Geometry>
+    <Geometry x:Key="IconMore">M12,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0M19,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0M5,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0</Geometry>
+</ResourceDictionary>

@@ -1,208 +1,86 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        
         xmlns:vm="using:Terrarium.Avalonia.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="650"
+        xmlns:controls="using:Terrarium.Avalonia.Controls"
+        
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="Terrarium.Avalonia.Views.MainWindow"
-        x:DataType="vm:PlantViewModel"
+        x:DataType="vm:KanbanBoardViewModel"
         
-        Title="My Tiny Terrarium"
-        Icon="/Assets/logo.ico"
-        Width="400" Height="650"
-        
-        SystemDecorations="None"
-        Background="Transparent"
-        TransparencyLevelHint="Transparent"
-        
-        WindowStartupLocation="CenterScreen"
-        Topmost="True">
+        Title="Kanban Dashboard"
+        Width="1200" Height="800"
+        Background="{StaticResource BgMain}"
+        FontFamily="Segoe UI, Inter, Sans-Serif"
+        WindowStartupLocation="CenterScreen">
 
-    <Window.Styles>
-        <Style Selector="ProgressBar.Cute">
-            <Setter Property="Height" Value="25"/>
-            <Setter Property="Foreground" Value="#FF88C0D0"/>
-            <Setter Property="Background" Value="#FFE5E5E5"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Grid>
-                        <Border Name="PART_Track" CornerRadius="12" Background="{TemplateBinding Background}"/>
-                        <Border Name="PART_Indicator" CornerRadius="12" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}"/>
-                    </Grid>
-                </ControlTemplate>
-            </Setter>
-        </Style>
+    <Grid ColumnDefinitions="80, *">
+        
+        <controls:SidebarControl Grid.Column="0"/>
 
-        <Style Selector="Button.Cute">
-            <Setter Property="Background" Value="#FF88C0D0"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="CornerRadius" Value="20"/>
-            <Setter Property="Padding" Value="10"/>
+        <Grid Grid.Column="1" RowDefinitions="80, *">
             
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <controls:TopBarControl Grid.Row="0"/>
 
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.Cute:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#FF81A1C1"/>
-        </Style>
-        <Style Selector="Button.Cute:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#FF5E81AC"/>
-        </Style>
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Columns}" Margin="30">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="30"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:KanbanColumnControl/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
-        <Style Selector="Button.Close">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FFBF616A"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        
-        <Style Selector="Window:pointerover Button.Close">
-            <Setter Property="Opacity" Value="0.4"/>
-        </Style>
-        
-        <Style Selector="Button.Close:pointerover">
-            <Setter Property="Opacity" Value="1"/>
-            <Setter Property="Background" Value="#10000000"/>
-        </Style>
+            <Grid Grid.RowSpan="2" HorizontalAlignment="Right" Width="450" 
+                  Background="{StaticResource BgSidebar}"
+                  IsVisible="{Binding IsDetailPanelOpen}">
+                
+                <Grid.Effect>
+                    <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
+                </Grid.Effect>
 
-        <Style Selector="Path.ResizeGrip">
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        
-        <Style Selector="Window:pointerover Path.ResizeGrip">
-            <Setter Property="Opacity" Value="0.5"/>
-        </Style>
-        
-    </Window.Styles>
+                <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+                    <Grid RowDefinitions="80, *, Auto">
+                        <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding SelectedTask.Id, StringFormat='#{0}'}" Foreground="{StaticResource AccentSage}" FontFamily="Georgia" FontStyle="Italic" VerticalAlignment="Center"/>
+                                    <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" Command="{Binding CloseDetails}"/>
+                            </Grid>
+                        </Border>
 
-    <Grid Background="#01FFFFFF" PointerPressed="Window_PointerPressed">
-
-        <Button Classes="Close"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Width="30" Height="30"
-                Margin="10"
-                Content="✕"
-                Cursor="Hand"
-                Click="CloseButton_Click"/>
-
-        <Viewbox Stretch="Uniform">
-            <Border Padding="20">
-                <StackPanel VerticalAlignment="Center">
-
-                    <Border Background="White" CornerRadius="15" Padding="15,8" Margin="0,0,0,15" HorizontalAlignment="Center" MinWidth="150">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="15" Opacity="0.1" OffsetX="3" OffsetY="3" Color="#FF81A1C1"/>
-                        </Border.Effect>
-                        <TextBlock Text="{Binding CurrentWeatherText}" 
-                                   HorizontalAlignment="Center"
-                                   FontSize="16" 
-                                   Foreground="#FF2E3440" 
-                                   FontFamily="Segoe UI Semibold"/>
-                    </Border>
-
-                    <Image Source="{Binding PlantImage}" 
-                           Height="180" Width="180" 
-                           Margin="0,0,0,10"
-                           RenderOptions.BitmapInterpolationMode="HighQuality">
-                        
-                        <Image.RenderTransform>
-                            <TranslateTransform Y="0"/>
-                        </Image.RenderTransform>
-                        
-                        <Image.Styles>
-                            <Style Selector="Image">
-                                <Style.Animations>
-                                    <Animation Duration="0:0:3" IterationCount="Infinite" PlaybackDirection="Alternate"> 
-                                        <KeyFrame Cue="0%">
-                                            <Setter Property="TranslateTransform.Y" Value="0"/>
-                                        </KeyFrame>
-                                        <KeyFrame Cue="100%">
-                                            <Setter Property="TranslateTransform.Y" Value="-6"/>
-                                        </KeyFrame>
-                                    </Animation>
-                                </Style.Animations>
-                            </Style>
-                        </Image.Styles>
-                    </Image>
-
-                    <TextBlock Text="{Binding StatusMessage}" 
-                               HorizontalAlignment="Center"
-                               FontSize="18" FontWeight="Bold" Foreground="White"
-                               Margin="0,0,0,20">
-                        <TextBlock.Effect>
-                            <DropShadowEffect Color="Black" BlurRadius="4" OffsetX="0" OffsetY="0" Opacity="0.8"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
-
-                    <Grid Margin="0,0,0,10" ColumnDefinitions="Auto, *">
-                        <StackPanel Orientation="Horizontal" Width="80">
-                            <TextBlock Text="Water" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="White">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect Color="Black" BlurRadius="3" OffsetX="0" OffsetY="0" Opacity="0.6"/>
-                                </TextBlock.Effect>
-                            </TextBlock>
+                        <StackPanel Grid.Row="1" Margin="30" Spacing="20">
+                            <TextBlock Text="{Binding SelectedTask.Content}" Foreground="{StaticResource TextMain}" FontFamily="Georgia" FontSize="28" TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Spacing="15">
+                                <Border Background="{Binding SelectedTask.TagBgColor}" CornerRadius="10" Padding="12,2">
+                                    <TextBlock Text="{Binding SelectedTask.Tag}" Foreground="{Binding SelectedTask.TagTextColor}" FontWeight="Bold" FontSize="10"/>
+                                </Border>
+                                <TextBlock Text="{Binding SelectedTask.Date, StringFormat='Due {0}'}" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" FontSize="12"/>
+                            </StackPanel>
+                            <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                            <TextBlock Text="This is a placeholder description..." Foreground="#d6ccc2" LineHeight="24" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <ProgressBar Grid.Column="1" Classes="Cute"
-                                     Value="{Binding Hydration}" Maximum="100"
-                                     Foreground="#FF88C0D0"/>
+
+                        <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
+                            <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+                                <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                            </Border>
+                        </Border>
                     </Grid>
-
-                    <Grid Margin="0,0,0,10" ColumnDefinitions="Auto, *">
-                        <StackPanel Orientation="Horizontal" Width="80">
-                            <TextBlock Text="Sun" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="White">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect Color="Black" BlurRadius="3" OffsetX="0" OffsetY="0" Opacity="0.6"/>
-                                </TextBlock.Effect>
-                            </TextBlock>
-                        </StackPanel>
-                        <ProgressBar Grid.Column="1" Classes="Cute"
-                                     Value="{Binding Sunlight}" Maximum="100"
-                                     Foreground="#FFEBCB8B"/>
-                    </Grid>
-
-                    <Button Classes="Cute"
-                            Command="{Binding WaterCommand}" 
-                            Content="Water Plant" 
-                            HorizontalAlignment="Center"
-                            Width="180" Height="45" 
-                            Margin="0,20,0,0"
-                            Cursor="Hand">
-                         <Button.Effect>
-                            <DropShadowEffect BlurRadius="10" Opacity="0.2" OffsetX="3" OffsetY="3" Color="#FF88C0D0"/>
-                        </Button.Effect>
-                    </Button>
-
-                </StackPanel>
-            </Border>
-        </Viewbox>
-
-        <Path Classes="ResizeGrip"
-              HorizontalAlignment="Right" VerticalAlignment="Bottom"
-              Width="15" Height="15" Margin="5"
-              Fill="#80000000"
-              Data="M15,15 L15,5 L5,15 Z"
-              Cursor="BottomRightCorner"
-              PointerPressed="ResizeGrip_PointerPressed"/>
-        
+                </Border>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>
