@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Media;
+using System.Linq;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -34,13 +35,12 @@ namespace Terrarium.Avalonia.ViewModels
 
         private IBrush GetTagBrush(string tag, double opacity)
         {
-            // Logic matches the UPPERCASE tags now
             var colorStr = tag.ToUpper() switch
             {
-                "DESIGN" => "#a65d57",    // Rust
-                "DEV" => "#4a5c6a",       // Slate
-                "MARKETING" => "#cca43b", // Gold
-                "PRODUCT" => "#5e6c5b",   // Sage
+                "DESIGN" => "#a65d57",
+                "DEV" => "#4a5c6a",
+                "MARKETING" => "#cca43b",
+                "PRODUCT" => "#5e6c5b",
                 _ => "#5e6c5b"
             };
 
@@ -56,6 +56,25 @@ namespace Terrarium.Avalonia.ViewModels
         public string Title { get; set; } = "";
         public ObservableCollection<TaskItem> Tasks { get; set; } = new();
         public int TaskCount => Tasks.Count;
+
+        // NEW: Helpers for Drag & Drop
+        public void AddTask(TaskItem task)
+        {
+            if (!Tasks.Contains(task))
+            {
+                Tasks.Add(task);
+                OnPropertyChanged(nameof(TaskCount));
+            }
+        }
+
+        public void RemoveTask(TaskItem task)
+        {
+            if (Tasks.Contains(task))
+            {
+                Tasks.Remove(task);
+                OnPropertyChanged(nameof(TaskCount));
+            }
+        }
     }
 
     public class KanbanBoardViewModel : ViewModelBase
@@ -81,9 +100,17 @@ namespace Terrarium.Avalonia.ViewModels
             LoadData();
         }
 
-        public void CloseDetails()
+        public void CloseDetails() => SelectedTask = null;
+
+        public void MoveTask(TaskItem task, Column targetColumn)
         {
-            SelectedTask = null;
+            var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(task));
+
+            if (sourceColumn != null && sourceColumn != targetColumn)
+            {
+                sourceColumn.RemoveTask(task);
+                targetColumn.AddTask(task);
+            }
         }
 
         private void LoadData()

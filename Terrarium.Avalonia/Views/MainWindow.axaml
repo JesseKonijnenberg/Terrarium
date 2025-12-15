@@ -1,21 +1,81 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        
         xmlns:vm="using:Terrarium.Avalonia.ViewModels"
         xmlns:controls="using:Terrarium.Avalonia.Controls"
-        
+        xmlns:views="using:Terrarium.Avalonia.Views"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="Terrarium.Avalonia.Views.MainWindow"
         x:DataType="vm:KanbanBoardViewModel"
         
         Title="Kanban Dashboard"
         Width="1200" Height="800"
+        WindowStartupLocation="CenterScreen"
         Background="{StaticResource BgMain}"
-        FontFamily="Segoe UI, Inter, Sans-Serif"
-        WindowStartupLocation="CenterScreen">
+        FontFamily="Segoe UI, Inter, Sans-Serif">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="BgMain" Color="#141312"/>
+        <SolidColorBrush x:Key="BgSidebar" Color="#1e1c1a"/>
+        <SolidColorBrush x:Key="BgCard" Color="#1e1c1a"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#4a4540"/>
+        <SolidColorBrush x:Key="TextMain" Color="#f5ebe0"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#9a928c"/>
+        <SolidColorBrush x:Key="AccentSage" Color="#b5c18e"/>
+        <SolidColorBrush x:Key="AccentRust" Color="#e07e5c"/>
+
+        <Geometry x:Key="IconLayout">M3,3H10V10H3V3ZM14,3H21V10H14V3ZM14,14H21V21H14V14ZM3,14H10V21H3V14Z</Geometry>
+        <Geometry x:Key="IconSearch">M11,19A8,8 0 1,0 3,11 8,8 0 0,0 11,19M21,21L16.65,16.65</Geometry>
+        <Geometry x:Key="IconPlus">M12,5V19M5,12H19</Geometry>
+        <Geometry x:Key="IconMore">M12,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0M19,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0M5,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0</Geometry>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.Icon">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid Background="{TemplateBinding Background}">
+                        <Path Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource ObjToGeom}}" 
+                              Stroke="{StaticResource TextMuted}" 
+                              StrokeThickness="2" 
+                              Fill="Transparent"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Width="20" Height="20" Stretch="Uniform"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.Icon:pointerover /template/ Path">
+            <Setter Property="Stroke" Value="{StaticResource TextMain}"/>
+        </Style>
+
+        <Style Selector="Button.TaskCard">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="CardBorder"
+                            Background="{StaticResource BgCard}"
+                            BorderBrush="{StaticResource BorderColor}"
+                            BorderThickness="4,0,0,0"
+                            CornerRadius="8" Padding="20">
+                        <ContentPresenter Content="{TemplateBinding Content}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.TaskCard:pointerover /template/ Border#CardBorder">
+            <Setter Property="Background" Value="#252321"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+        </Style>
+    </Window.Styles>
 
     <Grid ColumnDefinitions="80, *">
         
@@ -41,46 +101,59 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <Grid Grid.RowSpan="2" HorizontalAlignment="Right" Width="450" 
-                  Background="{StaticResource BgSidebar}"
-                  IsVisible="{Binding IsDetailPanelOpen}">
+            <ContentControl Grid.RowSpan="2" HorizontalAlignment="Right" Width="450"
+                            Content="{Binding SelectedTask}"
+                            IsVisible="{Binding IsDetailPanelOpen}">
                 
-                <Grid.Effect>
-                    <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
-                </Grid.Effect>
+                <ContentControl.ContentTemplate>
+                    <DataTemplate DataType="vm:TaskItem">
+                        <Grid Background="{StaticResource BgSidebar}">
+                            <Grid.Effect>
+                                <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
+                            </Grid.Effect>
 
-                <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
-                    <Grid RowDefinitions="80, *, Auto">
-                        <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
-                            <Grid ColumnDefinitions="*, Auto">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock Text="{Binding SelectedTask.Id, StringFormat='#{0}'}" Foreground="{StaticResource AccentSage}" FontFamily="Georgia" FontStyle="Italic" VerticalAlignment="Center"/>
-                                    <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <Button Grid.Column="1" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" Command="{Binding CloseDetails}"/>
-                            </Grid>
-                        </Border>
+                            <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+                                <Grid RowDefinitions="80, *, Auto">
+                                    
+                                    <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="{Binding Id, StringFormat='#{0}'}" Foreground="{StaticResource AccentSage}" FontFamily="Georgia" FontStyle="Italic" VerticalAlignment="Center"/>
+                                                <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            
+                                            <Button Grid.Column="1" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
+                                                    Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
+                                        </Grid>
+                                    </Border>
 
-                        <StackPanel Grid.Row="1" Margin="30" Spacing="20">
-                            <TextBlock Text="{Binding SelectedTask.Content}" Foreground="{StaticResource TextMain}" FontFamily="Georgia" FontSize="28" TextWrapping="Wrap"/>
-                            <StackPanel Orientation="Horizontal" Spacing="15">
-                                <Border Background="{Binding SelectedTask.TagBgColor}" CornerRadius="10" Padding="12,2">
-                                    <TextBlock Text="{Binding SelectedTask.Tag}" Foreground="{Binding SelectedTask.TagTextColor}" FontWeight="Bold" FontSize="10"/>
-                                </Border>
-                                <TextBlock Text="{Binding SelectedTask.Date, StringFormat='Due {0}'}" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" FontSize="12"/>
-                            </StackPanel>
-                            <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                            <TextBlock Text="This is a placeholder description..." Foreground="#d6ccc2" LineHeight="24" TextWrapping="Wrap"/>
-                        </StackPanel>
+                                    <StackPanel Grid.Row="1" Margin="30" Spacing="20">
+                                        <TextBlock Text="{Binding Content}" Foreground="{StaticResource TextMain}" FontFamily="Georgia" FontSize="28" TextWrapping="Wrap"/>
+                                        
+                                        <StackPanel Orientation="Horizontal" Spacing="15">
+                                            <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
+                                                <TextBlock Text="{Binding Tag}" Foreground="{Binding TagTextColor}" FontWeight="Bold" FontSize="10"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding Date, StringFormat='Due {0}'}" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" FontSize="12"/>
+                                        </StackPanel>
 
-                        <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
-                            <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
-                                <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                                        <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                                        <TextBlock Text="This is a placeholder description for the selected task. The typography is cleaner and more spacious to reflect the mid-century editorial style."
+                                                   Foreground="#d6ccc2" LineHeight="24" TextWrapping="Wrap"/>
+                                    </StackPanel>
+
+                                    <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
+                                        <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+                                            <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                                        </Border>
+                                    </Border>
+                                </Grid>
                             </Border>
-                        </Border>
-                    </Grid>
-                </Border>
-            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
         </Grid>
     </Grid>
 </Window>
