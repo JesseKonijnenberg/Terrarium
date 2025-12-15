@@ -115,6 +115,7 @@ namespace Terrarium.Avalonia.ViewModels
     public class KanbanBoardViewModel : ViewModelBase
     {
         public ICommand AddItemCommand { get; }
+        public ICommand DeleteTaskCommand { get; }
         public ObservableCollection<Column> Columns { get; set; } = new();
 
         private TaskItem? _selectedTask;
@@ -135,6 +136,7 @@ namespace Terrarium.Avalonia.ViewModels
         {
             LoadData();
             AddItemCommand = new RelayCommand(ExecuteAddItem);
+            DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
         }
 
         public void CloseDetails() => SelectedTask = null;
@@ -148,6 +150,26 @@ namespace Terrarium.Avalonia.ViewModels
                 sourceColumn.RemoveTask(task);
                 targetColumn.AddTask(task);
             }
+        }
+
+        private void ExecuteDeleteTask(object? parameter)
+        {
+            if (SelectedTask is TaskItem taskToDelete)
+            {
+                var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(taskToDelete));
+
+                if (sourceColumn != null)
+                {
+                    sourceColumn.RemoveTask(taskToDelete);
+
+                    SelectedTask = null;
+                }
+            }
+        }
+
+        private bool CanExecuteDeleteTask(object? parameter)
+        {
+            return SelectedTask != null;
         }
 
         private void ExecuteAddItem(object? parameter)

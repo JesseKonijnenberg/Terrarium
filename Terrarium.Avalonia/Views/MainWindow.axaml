@@ -116,31 +116,73 @@
                                 <Grid RowDefinitions="80, *, Auto">
                                     
                                     <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
-                                        <Grid ColumnDefinitions="*, Auto">
+                                        <Grid ColumnDefinitions="*, Auto, Auto">
                                             <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <TextBlock Text="{Binding Id, StringFormat='#{0}'}" Foreground="{StaticResource AccentSage}" FontFamily="Georgia" FontStyle="Italic" VerticalAlignment="Center"/>
                                                 <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                             
-                                            <Button Grid.Column="1" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
+                                            <Button Grid.Column="1" Content="🗑" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
+                                                    Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
+                                            
+                                            <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
                                                     Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
                                         </Grid>
                                     </Border>
 
-                                    <StackPanel Grid.Row="1" Margin="30" Spacing="20">
-                                        <TextBlock Text="{Binding Content}" Foreground="{StaticResource TextMain}" FontFamily="Georgia" FontSize="28" TextWrapping="Wrap"/>
-                                        
-                                        <StackPanel Orientation="Horizontal" Spacing="15">
-                                            <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
-                                                <TextBlock Text="{Binding Tag}" Foreground="{Binding TagTextColor}" FontWeight="Bold" FontSize="10"/>
-                                            </Border>
-                                            <TextBlock Text="{Binding Date, StringFormat='Due {0}'}" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" FontSize="12"/>
-                                        </StackPanel>
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
+                                        <StackPanel Spacing="20">
+                                            
+                                            <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding Content}" 
+                                                     Foreground="{StaticResource TextMain}" 
+                                                     Background="Transparent" 
+                                                     BorderBrush="{StaticResource BorderColor}"
+                                                     BorderThickness="0,0,0,1"
+                                                     FontSize="28" 
+                                                     FontFamily="Georgia" 
+                                                     TextWrapping="Wrap"
+                                                     AcceptsReturn="False"/>
 
-                                        <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                        <TextBlock Text="This is a placeholder description for the selected task. The typography is cleaner and more spacious to reflect the mid-century editorial style."
-                                                   Foreground="#d6ccc2" LineHeight="24" TextWrapping="Wrap"/>
-                                    </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,10,0,0">
+                                                <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
+                                                    <TextBox Text="{Binding Tag}" 
+                                                             Foreground="{Binding TagTextColor}" 
+                                                             Background="Transparent" 
+                                                             BorderThickness="0"
+                                                             FontWeight="Bold" FontSize="10" Width="60"/>
+                                                </Border>
+                                                
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
+                                                     <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+                                                     <TextBox Text="{Binding Date}" 
+                                                              Foreground="{StaticResource TextMain}" 
+                                                              Background="Transparent" 
+                                                              BorderBrush="{StaticResource BorderColor}"
+                                                              BorderThickness="0,0,0,1"
+                                                              FontSize="12" Width="60"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Priority}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+
+
+                                            <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                                            <TextBox Text="This is a placeholder description for the selected task. You can now edit this description directly."
+                                                       Foreground="#d6ccc2" 
+                                                       Background="{StaticResource BgMain}" 
+                                                       BorderBrush="{StaticResource BorderColor}"
+                                                       BorderThickness="1"
+                                                       Padding="10"
+                                                       MinHeight="100"
+                                                       TextWrapping="Wrap"
+                                                       AcceptsReturn="True"/>
+
+                                        </StackPanel>
+                                    </ScrollViewer>
 
                                     <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
                                         <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
