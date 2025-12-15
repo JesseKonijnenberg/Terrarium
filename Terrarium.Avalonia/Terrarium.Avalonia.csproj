@@ -42,18 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Images\plant_happy.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Images\plant_sad.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Images\plant_thirsty.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </AvaloniaResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <AvaloniaResource Update="Assets\AppStyles.axaml">
       <SubType>Designer</SubType>
     </AvaloniaResource>
