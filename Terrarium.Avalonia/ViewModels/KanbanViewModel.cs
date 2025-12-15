@@ -1,11 +1,30 @@
-﻿using System.Collections.ObjectModel;
+﻿using Avalonia.Media;
+using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Avalonia.Media;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace Terrarium.Avalonia.ViewModels
 {
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object?> _execute;
+        private readonly Func<object?, bool>? _canExecute;
+
+        public event EventHandler? CanExecuteChanged;
+
+        public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object? parameter) => _canExecute == null || _canExecute(parameter);
+        public void Execute(object? parameter) => _execute(parameter);
+    }
+
     public class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -95,6 +114,7 @@ namespace Terrarium.Avalonia.ViewModels
 
     public class KanbanBoardViewModel : ViewModelBase
     {
+        public ICommand AddItemCommand { get; }
         public ObservableCollection<Column> Columns { get; set; } = new();
 
         private TaskItem? _selectedTask;
@@ -114,6 +134,7 @@ namespace Terrarium.Avalonia.ViewModels
         public KanbanBoardViewModel()
         {
             LoadData();
+            AddItemCommand = new RelayCommand(ExecuteAddItem);
         }
 
         public void CloseDetails() => SelectedTask = null;
@@ -129,6 +150,25 @@ namespace Terrarium.Avalonia.ViewModels
             }
         }
 
+        private void ExecuteAddItem(object? parameter)
+        {
+            if (parameter is Column targetColumn)
+            {
+                var newId = (Columns.SelectMany(c => c.Tasks).Max(t => int.Parse(t.Id)) + 1).ToString();
+
+                var newTask = new TaskItem
+                {
+                    Id = newId,
+                    Content = "New Task - Click to Edit",
+                    Tag = "New",
+                    Priority = "Low",
+                    Date = "Today"
+                };
+
+                targetColumn.Tasks.Insert(0, newTask);
+                SelectedTask = newTask;
+            }
+        }
 
         private void LoadData()
         {

@@ -29,10 +29,14 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <Button Grid.Row="2" Margin="0,15,0,0" Height="45" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Stretch">
+            <Button Grid.Row="2" Margin="0,15,0,0" Height="45" Background="Transparent" 
+                    BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Stretch"
+                    
+                    Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).AddItemCommand}"
+                    CommandParameter="{Binding .}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                    <Path Data="{StaticResource IconPlus}" Stroke="{StaticResource TextMuted}" StrokeThickness="2" Width="17" Height="22.5"/>
-                    <TextBlock Text="Add Item" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+                    <Path Data="{StaticResource IconPlus}" Stroke="{StaticResource TextMuted}" StrokeThickness="2" Width="12" Height="22.5"/>
+                    <TextBlock Text="Add Item" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="10,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </Grid>
