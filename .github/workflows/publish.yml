@@ -39,7 +39,7 @@ jobs:
         dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -o ./publish
         
         # 3. Pack (Using the clean $ver variable)
-        vpk pack -u Terrarium -v $ver -p ./publish -e Terrarium.Avalonia.exe
+        vpk pack -u Terrarium -v $ver -p ./publish -e Terrarium.Avalonia.exe -i ./Terrarium.Avalonia/Assets/logo.ico
 
     # --- LINUX BUILD ---
     - name: Build & Pack (Linux)
@@ -55,7 +55,7 @@ jobs:
         dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r linux-x64 --self-contained -o ./publish
         
         # 3. Pack (Using the clean $VERSION variable)
-        vpk pack -u Terrarium -v $VERSION -p ./publish -e Terrarium.Avalonia
+        vpk pack -u Terrarium -v $VERSION -p ./publish -e Terrarium.Avalonia -i ./Terrarium.Avalonia/Assets/logo.png
 
     - name: Upload Release to GitHub
       uses: softprops/action-gh-release@v1
