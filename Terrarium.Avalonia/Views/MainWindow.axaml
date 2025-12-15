@@ -8,6 +8,7 @@
         x:DataType="vm:PlantViewModel"
         
         Title="My Tiny Terrarium"
+        Icon="/Assets/logo.ico"
         Width="400" Height="650"
         
         SystemDecorations="None"
