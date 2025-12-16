@@ -2,14 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              x:Class="Terrarium.Avalonia.Controls.UpdateStatusControl"
-             x:DataType="vm:KanbanBoardViewModel">
+             x:DataType="vm:UpdateViewModel">
 
     <UserControl.Resources>
         <Geometry x:Key="IconDownload">M12,16 L12,8 M9,11 L12,14 L15,11 M5,18 L19,18</Geometry>
         <Geometry x:Key="IconCancel">M18,6 L6,18 M6,6 L18,18</Geometry>
         <Geometry x:Key="IconRestart">M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z</Geometry>
     </UserControl.Resources>
-
+    
     <UserControl.Styles>
         <Style Selector="Button.Icon">
             <Setter Property="Background" Value="Transparent"/>
@@ -51,7 +51,8 @@
             <Setter Property="Padding" Value="0"/>
         </Style>
         <Style Selector="Button.RestartBtn:pointerover Path">
-            <Setter Property="Stroke" Value="#81C784"/> </Style>
+            <Setter Property="Stroke" Value="#81C784"/>
+        </Style>
         <Style Selector="Button.RestartBtn:pointerover TextBlock">
             <Setter Property="Foreground" Value="#81C784"/>
         </Style>
@@ -59,18 +60,10 @@
 
     <Panel>
         <Button Classes="UpdateBtn"
-                IsVisible="{Binding IsUpdateAvailable}"
-                IsEnabled="{Binding !IsUpdating}"
+                IsVisible="{Binding ShowStartButton}" 
                 Command="{Binding UpdateCommand}">
             
             <StackPanel Spacing="5">
-                <StackPanel.IsVisible>
-                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                        <Binding Path="!IsUpdating"/>
-                        <Binding Path="!IsRestartPending"/>
-                    </MultiBinding>
-                </StackPanel.IsVisible>
-
                 <Grid HorizontalAlignment="Center">
                     <Path Data="{StaticResource IconDownload}" 
                           Stroke="{StaticResource TextMuted}" StrokeThickness="2" 
@@ -85,8 +78,8 @@
             </StackPanel>
         </Button>
 
-        <StackPanel Spacing="5" IsVisible="{Binding IsUpdating}">
-            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+        <StackPanel Spacing="5" IsVisible="{Binding ShowProgressPanel}">
+             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
                 <ProgressBar Theme="{DynamicResource FluentProgressBar}"
                                 Minimum="0" Maximum="100"
                                 Value="{Binding UpdateProgress}"
@@ -112,8 +105,7 @@
         <Button Classes="RestartBtn"
                 IsVisible="{Binding IsRestartPending}"
                 Command="{Binding RestartCommand}">
-            
-            <StackPanel Spacing="5">
+             <StackPanel Spacing="5">
                 <Grid HorizontalAlignment="Center">
                     <Path Data="{StaticResource IconRestart}" 
                           Stroke="{StaticResource TextMuted}" StrokeThickness="2" 
@@ -128,5 +120,12 @@
             </StackPanel>
         </Button>
 
+        <TextBlock Text="{Binding UpdateButtonText}"
+                   IsVisible="{Binding IsCancelling}"
+                   Foreground="{StaticResource TextMuted}"
+                   FontSize="9" FontWeight="Bold"
+                   TextAlignment="Center" TextWrapping="Wrap"
+                   MaxWidth="60" HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
     </Panel>
 </UserControl>

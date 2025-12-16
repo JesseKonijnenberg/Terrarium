@@ -2,8 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              xmlns:controls="using:Terrarium.Avalonia.Controls"
+             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              x:Class="Terrarium.Avalonia.Controls.KanbanColumnControl"
-             x:DataType="vm:Column">
+             x:DataType="models:Column">
 
     <Border Width="320" Background="Transparent"
             DragDrop.AllowDrop="True"

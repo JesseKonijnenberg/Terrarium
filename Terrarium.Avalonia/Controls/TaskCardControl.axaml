@@ -1,8 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              x:Class="Terrarium.Avalonia.Controls.TaskCardControl"
-             x:DataType="vm:TaskItem">
+             x:DataType="models:TaskItem">
 
     <UserControl.Styles>
         <Style Selector="Border.TaskCard">

@@ -1,92 +1,18 @@
-﻿using Avalonia.Media;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using Terrarium.Logic.Services;
+using Terrarium.Avalonia.ViewModels.Core;
+using Terrarium.Avalonia.ViewModels.Models;
 
 namespace Terrarium.Avalonia.ViewModels
 {
-    public class RelayCommand : ICommand
-    {
-        private readonly Action<object?> _execute;
-        private readonly Func<object?, bool>? _canExecute;
-        public event EventHandler? CanExecuteChanged;
-        public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-        public bool CanExecute(object? parameter) => _canExecute == null || _canExecute(parameter);
-        public void Execute(object? parameter) => _execute(parameter);
-    }
-
-    public class ViewModelBase : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
-
-    public static class ObservableCollectionExtensions
-    {
-        public static void Move<T>(this ObservableCollection<T> collection, int oldIndex, int newIndex)
-        {
-            if (oldIndex < 0 || newIndex < 0 || oldIndex >= collection.Count || newIndex >= collection.Count) return;
-            if (oldIndex == newIndex) return;
-            var item = collection[oldIndex];
-            collection.RemoveAt(oldIndex);
-            collection.Insert(newIndex, item);
-        }
-    }
-
-    public class TaskItem : ViewModelBase
-    {
-        public string Id { get; set; } = "";
-        public string Content { get; set; } = "";
-        private string _tag = "";
-        public string Tag { get => _tag; set => _tag = value.ToUpper(); }
-        public string Priority { get; set; } = "";
-        public string Date { get; set; } = "";
-        public IBrush TagBgColor => GetTagBrush(Tag, 0.3);
-        public IBrush TagTextColor => GetTagBrush(Tag, 1.0);
-        public IBrush TagBorderColor => GetTagBrush(Tag, 0.5);
-        public bool IsHighPriority => Priority == "High";
-
-        private IBrush GetTagBrush(string tag, double opacity)
-        {
-            var colorStr = tag.ToUpper() switch { "DESIGN" => "#a65d57", "DEV" => "#4a5c6a", "MARKETING" => "#cca43b", "PRODUCT" => "#5e6c5b", _ => "#5e6c5b" };
-            var color = Color.Parse(colorStr);
-            var finalColor = new Color((byte)(255 * opacity), color.R, color.G, color.B);
-            return new SolidColorBrush(finalColor);
-        }
-    }
-
-    public class Column : ViewModelBase
-    {
-        public string Id { get; set; } = "";
-        public string Title { get; set; } = "";
-        public ObservableCollection<TaskItem> Tasks { get; set; } = new();
-        public int TaskCount => Tasks.Count;
-        public void AddTask(TaskItem task) { if (!Tasks.Contains(task)) { Tasks.Add(task); OnPropertyChanged(nameof(TaskCount)); } }
-        public void RemoveTask(TaskItem task) { if (Tasks.Contains(task)) { Tasks.Remove(task); OnPropertyChanged(nameof(TaskCount)); } }
-    }
-
     public class KanbanBoardViewModel : ViewModelBase
     {
-        private readonly IUpdateService _updateService;
-        private CancellationTokenSource? _updateCts;
-        private string _foundVersion = "";
+        public UpdateViewModel Updater { get; } = new UpdateViewModel();
 
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
-        public ICommand UpdateCommand { get; }
-        public ICommand CancelUpdateCommand { get; }
-        public ICommand RestartCommand { get; }
 
         public ObservableCollection<Column> Columns { get; set; } = new();
 
@@ -94,103 +20,20 @@ namespace Terrarium.Avalonia.ViewModels
         public TaskItem? SelectedTask
         {
             get => _selectedTask;
-            set { _selectedTask = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsDetailPanelOpen)); }
+            set
+            {
+                _selectedTask = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsDetailPanelOpen));
+            }
         }
         public bool IsDetailPanelOpen => SelectedTask != null;
 
-        private bool _isUpdateAvailable;
-        public bool IsUpdateAvailable { get => _isUpdateAvailable; set { _isUpdateAvailable = value; OnPropertyChanged(); } }
-
-        private string _updateButtonText = "Check for Updates";
-        public string UpdateButtonText { get => _updateButtonText; set { _updateButtonText = value; OnPropertyChanged(); } }
-
-        private bool _isUpdating;
-        public bool IsUpdating { get => _isUpdating; set { _isUpdating = value; OnPropertyChanged(); } }
-
-        private int _updateProgress;
-        public int UpdateProgress { get => _updateProgress; set { _updateProgress = value; OnPropertyChanged(); } }
-
-        private bool _isRestartPending;
-        public bool IsRestartPending
-        {
-            get => _isRestartPending;
-            set { _isRestartPending = value; OnPropertyChanged(); }
-        }
-
         public KanbanBoardViewModel()
         {
-            _updateService = new FakeUpdateService();
             LoadData();
-
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
-            UpdateCommand = new RelayCommand(ExecuteUpdate);
-            CancelUpdateCommand = new RelayCommand(ExecuteCancelUpdate);
-            RestartCommand = new RelayCommand(ExecuteRestart);
-
-            Task.Run(CheckForUpdates);
-        }
-
-        private async void ExecuteUpdate(object? param)
-        {
-            if (!IsUpdateAvailable) return;
-
-            IsUpdating = true;
-            UpdateButtonText = "Downloading...";
-            _updateCts = new CancellationTokenSource();
-
-            try
-            {
-                await _updateService.DownloadUpdatesAsync((progress) =>
-                {
-                    UpdateProgress = progress;
-                    UpdateButtonText = $"Downloading {progress}%";
-                }, _updateCts.Token);
-
-                IsUpdating = false;
-                IsRestartPending = true;
-                UpdateButtonText = "Restart Required";
-            }
-            catch (OperationCanceledException)
-            {
-                UpdateButtonText = "Cancelled";
-                IsUpdating = false;
-                UpdateProgress = 0;
-                await Task.Delay(1000);
-                UpdateButtonText = $"Update to {_foundVersion}";
-            }
-            catch (Exception ex)
-            {
-                IsUpdating = false;
-                UpdateButtonText = "Failed";
-                System.Diagnostics.Debug.WriteLine($"Update Failed: {ex}");
-            }
-            finally
-            {
-                _updateCts?.Dispose();
-                _updateCts = null;
-            }
-        }
-
-        private void ExecuteCancelUpdate(object? param)
-        {
-            _updateCts?.Cancel();
-        }
-
-        private void ExecuteRestart(object? param)
-        {
-            _updateService.ApplyUpdatesAndRestart();
-        }
-
-        private async Task CheckForUpdates()
-        {
-            string? newVersion = await _updateService.CheckForUpdatesAsync();
-            if (!string.IsNullOrEmpty(newVersion))
-            {
-                _foundVersion = newVersion;
-                IsUpdateAvailable = true;
-                UpdateButtonText = $"Update to {newVersion}";
-            }
         }
 
         public void CloseDetails() => SelectedTask = null;
@@ -224,7 +67,10 @@ namespace Terrarium.Avalonia.ViewModels
                 if (Columns.Any(c => c.Tasks.Any()))
                 {
                     var allTasks = Columns.SelectMany(c => c.Tasks);
-                    if (allTasks.Any()) nextId = allTasks.Max(t => int.TryParse(t.Id, out int id) ? id : 0) + 1;
+                    if (allTasks.Any())
+                    {
+                        nextId = allTasks.Max(t => int.TryParse(t.Id, out int id) ? id : 0) + 1;
+                    }
                 }
                 var newTask = new TaskItem { Id = nextId.ToString(), Content = "New Task", Tag = "New", Priority = "Low", Date = "Today" };
                 targetColumn.Tasks.Insert(0, newTask);
