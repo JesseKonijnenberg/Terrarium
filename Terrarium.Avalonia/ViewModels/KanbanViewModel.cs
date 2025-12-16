@@ -78,16 +78,15 @@ namespace Terrarium.Avalonia.ViewModels
 
     public class KanbanBoardViewModel : ViewModelBase
     {
-        private readonly UpdateService _updateService;
+        private readonly IUpdateService _updateService;
         private CancellationTokenSource? _updateCts;
-
-        // FIX 1: Store the found version string here so we can use it after cancelling
-        private string _foundVersion = "v9.9.9 (Test)";
+        private string _foundVersion = "";
 
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand UpdateCommand { get; }
         public ICommand CancelUpdateCommand { get; }
+        public ICommand RestartCommand { get; }
 
         public ObservableCollection<Column> Columns { get; set; } = new();
 
@@ -111,19 +110,87 @@ namespace Terrarium.Avalonia.ViewModels
         private int _updateProgress;
         public int UpdateProgress { get => _updateProgress; set { _updateProgress = value; OnPropertyChanged(); } }
 
+        private bool _isRestartPending;
+        public bool IsRestartPending
+        {
+            get => _isRestartPending;
+            set { _isRestartPending = value; OnPropertyChanged(); }
+        }
+
         public KanbanBoardViewModel()
         {
-            _updateService = new UpdateService();
+            _updateService = new FakeUpdateService();
             LoadData();
 
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
-            UpdateCommand = new RelayCommand(ExecuteFakeUpdate); // Kept your fake update
+            UpdateCommand = new RelayCommand(ExecuteUpdate);
             CancelUpdateCommand = new RelayCommand(ExecuteCancelUpdate);
+            RestartCommand = new RelayCommand(ExecuteRestart);
 
-            // Default Test State
-            IsUpdateAvailable = true;
-            UpdateButtonText = $"Update to {_foundVersion}";
+            Task.Run(CheckForUpdates);
+        }
+
+        private async void ExecuteUpdate(object? param)
+        {
+            if (!IsUpdateAvailable) return;
+
+            IsUpdating = true;
+            UpdateButtonText = "Downloading...";
+            _updateCts = new CancellationTokenSource();
+
+            try
+            {
+                await _updateService.DownloadUpdatesAsync((progress) =>
+                {
+                    UpdateProgress = progress;
+                    UpdateButtonText = $"Downloading {progress}%";
+                }, _updateCts.Token);
+
+                IsUpdating = false;
+                IsRestartPending = true;
+                UpdateButtonText = "Restart Required";
+            }
+            catch (OperationCanceledException)
+            {
+                UpdateButtonText = "Cancelled";
+                IsUpdating = false;
+                UpdateProgress = 0;
+                await Task.Delay(1000);
+                UpdateButtonText = $"Update to {_foundVersion}";
+            }
+            catch (Exception ex)
+            {
+                IsUpdating = false;
+                UpdateButtonText = "Failed";
+                System.Diagnostics.Debug.WriteLine($"Update Failed: {ex}");
+            }
+            finally
+            {
+                _updateCts?.Dispose();
+                _updateCts = null;
+            }
+        }
+
+        private void ExecuteCancelUpdate(object? param)
+        {
+            _updateCts?.Cancel();
+        }
+
+        private void ExecuteRestart(object? param)
+        {
+            _updateService.ApplyUpdatesAndRestart();
+        }
+
+        private async Task CheckForUpdates()
+        {
+            string? newVersion = await _updateService.CheckForUpdatesAsync();
+            if (!string.IsNullOrEmpty(newVersion))
+            {
+                _foundVersion = newVersion;
+                IsUpdateAvailable = true;
+                UpdateButtonText = $"Update to {newVersion}";
+            }
         }
 
         public void CloseDetails() => SelectedTask = null;
@@ -136,63 +203,6 @@ namespace Terrarium.Avalonia.ViewModels
                 sourceColumn.RemoveTask(task);
                 targetColumn.AddTask(task);
             }
-        }
-
-        private async Task CheckForUpdates()
-        {
-            string? newVersion = await _updateService.CheckForUpdatesAsync();
-            if (!string.IsNullOrEmpty(newVersion))
-            {
-                _foundVersion = newVersion; // Store it
-                IsUpdateAvailable = true;
-                UpdateButtonText = $"Update to {newVersion}";
-            }
-        }
-
-        // FIX 2: Updated Fake Update to respect cancellation
-        private async void ExecuteFakeUpdate(object? param)
-        {
-            IsUpdating = true;
-            _updateCts = new CancellationTokenSource();
-
-            try
-            {
-                for (int i = 0; i <= 100; i++)
-                {
-                    // Check if user clicked cancel
-                    if (_updateCts.Token.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException();
-                    }
-
-                    UpdateProgress = i;
-                    UpdateButtonText = $"Downloading {i}%";
-                    await Task.Delay(50, _updateCts.Token); // Pass token to delay
-                }
-
-                // Success
-                IsUpdating = false;
-                IsUpdateAvailable = false;
-                UpdateButtonText = "Done";
-            }
-            catch (OperationCanceledException)
-            {
-                UpdateButtonText = "Cancelled";
-                IsUpdating = false;
-                UpdateProgress = 0;
-                await Task.Delay(1000);
-                UpdateButtonText = $"Update to {_foundVersion}";
-            }
-            catch
-            {
-                IsUpdating = false;
-                UpdateButtonText = "Failed";
-            }
-        }
-
-        private void ExecuteCancelUpdate(object? param)
-        {
-            _updateCts?.Cancel();
         }
 
         private void ExecuteDeleteTask(object? parameter)

@@ -5,7 +5,7 @@ using Velopack.Sources;
 
 namespace Terrarium.Logic.Services
 {
-    public class UpdateService
+    public class UpdateService : IUpdateService
     {
         private readonly UpdateManager _manager;
 
@@ -17,11 +17,6 @@ namespace Terrarium.Logic.Services
             _manager = new UpdateManager(source);
         }
 
-        /// <summary>
-        /// Checks for updates.
-        /// Returns the Version String (e.g. "1.2.0") if an update is found.
-        /// Returns NULL if no update is found.
-        /// </summary>
         public async Task<string?> CheckForUpdatesAsync()
         {
             try
@@ -38,19 +33,17 @@ namespace Terrarium.Logic.Services
             }
         }
 
-        /// <summary>
-        /// Downloads the update found in CheckForUpdatesAsync and restarts.
-        /// </summary>
-        public async Task DownloadAndRestartAsync(Action<int> progress, CancellationToken token)
+        public async Task DownloadUpdatesAsync(Action<int> progress, CancellationToken token)
         {
             if (_cachedUpdateInfo == null) return;
 
             await _manager.DownloadUpdatesAsync(_cachedUpdateInfo, progress, cancelToken: token);
+        }
 
-            if (!token.IsCancellationRequested)
-            {
-                _manager.ApplyUpdatesAndRestart(_cachedUpdateInfo);
-            }
+        public void ApplyUpdatesAndRestart()
+        {
+            if (_cachedUpdateInfo == null) return;
+            _manager.ApplyUpdatesAndRestart(_cachedUpdateInfo);
         }
     }
 }
