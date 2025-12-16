@@ -41,12 +41,16 @@ namespace Terrarium.Logic.Services
         /// <summary>
         /// Downloads the update found in CheckForUpdatesAsync and restarts.
         /// </summary>
-        public async Task DownloadAndRestartAsync(Action<int> progress)
+        public async Task DownloadAndRestartAsync(Action<int> progress, CancellationToken token)
         {
             if (_cachedUpdateInfo == null) return;
 
-            await _manager.DownloadUpdatesAsync(_cachedUpdateInfo, progress);
-            _manager.ApplyUpdatesAndRestart(_cachedUpdateInfo);
+            await _manager.DownloadUpdatesAsync(_cachedUpdateInfo, progress, cancelToken: token);
+
+            if (!token.IsCancellationRequested)
+            {
+                _manager.ApplyUpdatesAndRestart(_cachedUpdateInfo);
+            }
         }
     }
 }

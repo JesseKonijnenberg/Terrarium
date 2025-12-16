@@ -1,12 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             xmlns:c="using:Terrarium.Avalonia.Controls"
              x:Class="Terrarium.Avalonia.Controls.SidebarControl">
     
-    <UserControl.Resources>
-        <Geometry x:Key="IconDownload">M12,16 L12,8 M9,11 L12,14 L15,11 M5,18 L19,18</Geometry>
-    </UserControl.Resources>
-
     <UserControl.Styles>
         <Style Selector="Button.Icon">
             <Setter Property="Background" Value="Transparent"/>
@@ -33,19 +30,6 @@
         <Style Selector="Button.Icon:pointerover /template/ Path">
             <Setter Property="Stroke" Value="{StaticResource TextMain}"/>
         </Style>
-        
-        <Style Selector="Button.UpdateBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="0"/>
-        </Style>
-        <Style Selector="Button.UpdateBtn:pointerover Path">
-            <Setter Property="Stroke" Value="{StaticResource AccentSage}"/>
-        </Style>
-        <Style Selector="Button.UpdateBtn:pointerover TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
-        </Style>
     </UserControl.Styles>
 
     <Border Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
@@ -65,48 +49,7 @@
             </StackPanel>
 
             <StackPanel Grid.Row="2" Margin="0,0,0,20" HorizontalAlignment="Center">
-                
-                <Button Classes="UpdateBtn"
-                        IsVisible="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdateAvailable}"
-                        IsHitTestVisible="{Binding !$parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdating}"
-                        Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).UpdateCommand}">
-                    
-                    <StackPanel Spacing="5">
-                        
-                        <Grid HorizontalAlignment="Center">
-                            <Path Data="{StaticResource IconDownload}" 
-                                  Stroke="{StaticResource TextMuted}" 
-                                  StrokeThickness="2" 
-                                  Width="20" Height="20"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"
-                                  IsVisible="{Binding !$parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdating}"/>
-                        
-                            <ProgressBar Theme="{DynamicResource FluentProgressBar}"
-                                         Minimum="0" Maximum="100"
-                                         Value="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).UpdateProgress}"
-                                         Width="32" Height="16"
-                                         MinWidth="16" MinHeight="16"
-                                         MaxWidth="32" MaxHeight="32"
-                                         Margin="0" Padding="0"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"
-                                         IsIndeterminate="False"
-                                         ShowProgressText="False"
-                                         Foreground="{StaticResource AccentSage}"
-                                         IsVisible="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdating}"/>
-                        </Grid>
-
-                        <TextBlock Text="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).UpdateButtonText}"
-                                   Foreground="{StaticResource TextMuted}"
-                                   FontSize="9"
-                                   FontWeight="Bold"
-                                   TextAlignment="Center"
-                                   TextWrapping="Wrap"
-                                   MaxWidth="60"
-                                   HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+                <c:UpdateStatusControl />
             </StackPanel>
             
         </Grid>
