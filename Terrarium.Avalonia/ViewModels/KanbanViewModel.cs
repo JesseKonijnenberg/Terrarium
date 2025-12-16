@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Terrarium.Logic.Services;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -36,11 +38,8 @@ namespace Terrarium.Avalonia.ViewModels
     {
         public static void Move<T>(this ObservableCollection<T> collection, int oldIndex, int newIndex)
         {
-            if (oldIndex < 0 || newIndex < 0 || oldIndex >= collection.Count || newIndex >= collection.Count)
-                return;
-
-            if (oldIndex == newIndex)
-                return;
+            if (oldIndex < 0 || newIndex < 0 || oldIndex >= collection.Count || newIndex >= collection.Count) return;
+            if (oldIndex == newIndex) return;
 
             var item = collection[oldIndex];
             collection.RemoveAt(oldIndex);
@@ -92,7 +91,6 @@ namespace Terrarium.Avalonia.ViewModels
         public ObservableCollection<TaskItem> Tasks { get; set; } = new();
         public int TaskCount => Tasks.Count;
 
-        // NEW: Helpers for Drag & Drop
         public void AddTask(TaskItem task)
         {
             if (!Tasks.Contains(task))
@@ -114,8 +112,12 @@ namespace Terrarium.Avalonia.ViewModels
 
     public class KanbanBoardViewModel : ViewModelBase
     {
+        private readonly UpdateService _updateService;
+
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
+        public ICommand UpdateCommand { get; }
+
         public ObservableCollection<Column> Columns { get; set; } = new();
 
         private TaskItem? _selectedTask;
@@ -132,11 +134,62 @@ namespace Terrarium.Avalonia.ViewModels
 
         public bool IsDetailPanelOpen => SelectedTask != null;
 
+        private bool _isUpdateAvailable;
+        public bool IsUpdateAvailable
+        {
+            get => _isUpdateAvailable;
+            set
+            {
+                _isUpdateAvailable = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _updateButtonText = "Check for Updates";
+        public string UpdateButtonText
+        {
+            get => _updateButtonText;
+            set
+            {
+                _updateButtonText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _isUpdating;
+        public bool IsUpdating
+        {
+            get => _isUpdating;
+            set
+            {
+                _isUpdating = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private int _updateProgress;
+        public int UpdateProgress
+        {
+            get => _updateProgress;
+            set
+            {
+                _updateProgress = value;
+                OnPropertyChanged();
+            }
+        }
+
         public KanbanBoardViewModel()
         {
+            _updateService = new UpdateService();
             LoadData();
+
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
+            UpdateCommand = new RelayCommand(ExecuteFaleUpdate);
+
+            //Task.Run(CheckForUpdates);
+            IsUpdateAvailable = true;
+            UpdateButtonText = "Update to v9.9.9 (Test)";
         }
 
         public void CloseDetails() => SelectedTask = null;
@@ -152,6 +205,57 @@ namespace Terrarium.Avalonia.ViewModels
             }
         }
 
+        private async Task CheckForUpdates()
+        {
+            string? newVersion = await _updateService.CheckForUpdatesAsync();
+
+            if (!string.IsNullOrEmpty(newVersion))
+            {
+                IsUpdateAvailable = true;
+                UpdateButtonText = $"Update to {newVersion}";
+            }
+        }
+
+        private async void ExecuteFaleUpdate(object? param)
+        {
+            // --- TEST MODE: FAKE DOWNLOAD ---
+            IsUpdating = true;
+
+            for (int i = 0; i <= 100; i++)
+            {
+                UpdateProgress = i;
+                UpdateButtonText = $"Downloading {i}%";
+                await Task.Delay(50); // Simulate network speed
+            }
+
+            IsUpdating = false;
+            IsUpdateAvailable = false; // Hide button after "install"
+            UpdateButtonText = "Done";
+            // --------------------------------
+        }
+
+        private async void ExecuteUpdate(object? param)
+        {
+            if (!IsUpdateAvailable) return;
+
+            IsUpdating = true;
+            UpdateButtonText = "Downloading...";
+
+            try
+            {
+                await _updateService.DownloadAndRestartAsync((progress) =>
+                {
+                    UpdateProgress = progress;
+                    UpdateButtonText = $"Downloading {progress}%";
+                });
+            }
+            catch
+            {
+                UpdateButtonText = "Update Failed";
+                IsUpdating = false;
+            }
+        }
+
         private void ExecuteDeleteTask(object? parameter)
         {
             if (SelectedTask is TaskItem taskToDelete)
@@ -161,7 +265,6 @@ namespace Terrarium.Avalonia.ViewModels
                 if (sourceColumn != null)
                 {
                     sourceColumn.RemoveTask(taskToDelete);
-
                     SelectedTask = null;
                 }
             }
@@ -176,11 +279,19 @@ namespace Terrarium.Avalonia.ViewModels
         {
             if (parameter is Column targetColumn)
             {
-                var newId = (Columns.SelectMany(c => c.Tasks).Max(t => int.Parse(t.Id)) + 1).ToString();
+                int nextId = 1;
+                if (Columns.Any(c => c.Tasks.Any()))
+                {
+                    var allTasks = Columns.SelectMany(c => c.Tasks);
+                    if (allTasks.Any())
+                    {
+                        nextId = allTasks.Max(t => int.TryParse(t.Id, out int id) ? id : 0) + 1;
+                    }
+                }
 
                 var newTask = new TaskItem
                 {
-                    Id = newId,
+                    Id = nextId.ToString(),
                     Content = "New Task - Click to Edit",
                     Tag = "New",
                     Priority = "Low",

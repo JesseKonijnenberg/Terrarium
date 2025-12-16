@@ -1,13 +1,19 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              x:Class="Terrarium.Avalonia.Controls.SidebarControl">
     
+    <UserControl.Resources>
+        <Geometry x:Key="IconDownload">M12,16 L12,8 M9,11 L12,14 L15,11 M5,18 L19,18</Geometry>
+    </UserControl.Resources>
+
     <UserControl.Styles>
         <Style Selector="Button.Icon">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="10"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="Template">
                 <ControlTemplate>
                     <Grid Background="{TemplateBinding Background}">
@@ -27,21 +33,82 @@
         <Style Selector="Button.Icon:pointerover /template/ Path">
             <Setter Property="Stroke" Value="{StaticResource TextMain}"/>
         </Style>
+        
+        <Style Selector="Button.UpdateBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="Button.UpdateBtn:pointerover Path">
+            <Setter Property="Stroke" Value="{StaticResource AccentSage}"/>
+        </Style>
+        <Style Selector="Button.UpdateBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
+        </Style>
     </UserControl.Styles>
 
     <Border Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
-        <StackPanel Margin="0,30,0,0" HorizontalAlignment="Center">
+        
+        <Grid RowDefinitions="Auto, *, Auto">
             
-            <Border Width="40" Height="40" CornerRadius="12" Background="{StaticResource AccentSage}" Margin="0,0,0,40">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" Opacity="0.3" Color="Black"/>
-                </Border.Effect>
-                <Ellipse Width="20" Height="20" Fill="{StaticResource BgMain}"/>
-            </Border>
+            <StackPanel Grid.Row="0" Margin="0,30,0,0" HorizontalAlignment="Center">
+                <Border Width="40" Height="40" CornerRadius="12" Background="{StaticResource AccentSage}" Margin="0,0,0,40" HorizontalAlignment="Center">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" Opacity="0.3" Color="Black"/>
+                    </Border.Effect>
+                    <Ellipse Width="20" Height="20" Fill="{StaticResource BgMain}"/>
+                </Border>
 
-            <Button Classes="Icon" Content="{StaticResource IconLayout}" Margin="10,0,0,20"/>
-            <Button Classes="Icon" Content="{StaticResource IconSearch}" Margin="10,0,0,20"/>
+                <Button Classes="Icon" Content="{StaticResource IconLayout}" Margin="0,0,0,20"/>
+                <Button Classes="Icon" Content="{StaticResource IconSearch}" Margin="0,0,0,20"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Margin="0,0,0,20" HorizontalAlignment="Center">
+                
+                <Button Classes="UpdateBtn"
+                        IsVisible="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdateAvailable}"
+                        IsHitTestVisible="{Binding !$parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdating}"
+                        Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).UpdateCommand}">
+                    
+                    <StackPanel Spacing="5">
+                        
+                        <Grid HorizontalAlignment="Center">
+                            <Path Data="{StaticResource IconDownload}" 
+                                  Stroke="{StaticResource TextMuted}" 
+                                  StrokeThickness="2" 
+                                  Width="20" Height="20"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  IsVisible="{Binding !$parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdating}"/>
+                        
+                            <ProgressBar Theme="{DynamicResource FluentProgressBar}"
+                                         Minimum="0" Maximum="100"
+                                         Value="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).UpdateProgress}"
+                                         Width="32" Height="16"
+                                         MinWidth="16" MinHeight="16"
+                                         MaxWidth="32" MaxHeight="32"
+                                         Margin="0" Padding="0"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         IsIndeterminate="False"
+                                         ShowProgressText="False"
+                                         Foreground="{StaticResource AccentSage}"
+                                         IsVisible="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).IsUpdating}"/>
+                        </Grid>
+
+                        <TextBlock Text="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).UpdateButtonText}"
+                                   Foreground="{StaticResource TextMuted}"
+                                   FontSize="9"
+                                   FontWeight="Bold"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="60"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
             
-        </StackPanel>
+        </Grid>
     </Border>
 </UserControl>
