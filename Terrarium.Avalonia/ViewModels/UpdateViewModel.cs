@@ -84,7 +84,7 @@ namespace Terrarium.Avalonia.ViewModels
 
         public UpdateViewModel()
         {
-            _updateService = new FakeUpdateService();
+            _updateService = new UpdateService();
 
             UpdateCommand = new RelayCommand(ExecuteUpdate);
             CancelUpdateCommand = new RelayCommand(ExecuteCancelUpdate);
