@@ -1,21 +1,28 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Avalonia.ViewModels.Models;
+using Terrarium.Logic.Services;
 
 namespace Terrarium.Avalonia.ViewModels
 {
     public class KanbanBoardViewModel : ViewModelBase
     {
+        // --- CHILD VIEWMODEL ---
         public UpdateViewModel Updater { get; } = new UpdateViewModel();
 
+        // --- COMMANDS ---
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
+        public ICommand SelectTaskCommand { get; } // <--- NEW
 
+        // --- DATA ---
         public ObservableCollection<Column> Columns { get; set; } = new();
 
+        // --- SELECTION ---
         private TaskItem? _selectedTask;
         public TaskItem? SelectedTask
         {
@@ -34,6 +41,15 @@ namespace Terrarium.Avalonia.ViewModels
             LoadData();
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
+            SelectTaskCommand = new RelayCommand(ExecuteSelectTask); // <--- NEW
+        }
+
+        private void ExecuteSelectTask(object? parameter)
+        {
+            if (parameter is TaskItem task)
+            {
+                SelectedTask = task;
+            }
         }
 
         public void CloseDetails() => SelectedTask = null;

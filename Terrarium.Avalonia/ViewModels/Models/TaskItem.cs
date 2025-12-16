@@ -5,23 +5,81 @@ namespace Terrarium.Avalonia.ViewModels.Models
 {
     public class TaskItem : ViewModelBase
     {
-        public string Id { get; set; } = "";
-        public string Content { get; set; } = "";
+        private string _id = "";
+        public string Id
+        {
+            get => _id;
+            set
+            {
+                _id = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _content = "";
+        public string Content
+        {
+            get => _content;
+            set
+            {
+                if (_content != value)
+                {
+                    _content = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         private string _tag = "";
         public string Tag
         {
             get => _tag;
-            set => _tag = value.ToUpper();
+            set
+            {
+                if (_tag != value)
+                {
+                    _tag = value.ToUpper();
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(TagBgColor));
+                    OnPropertyChanged(nameof(TagTextColor));
+                    OnPropertyChanged(nameof(TagBorderColor));
+                }
+            }
         }
 
-        public string Priority { get; set; } = "";
-        public string Date { get; set; } = "";
+        private string _priority = "";
+        public string Priority
+        {
+            get => _priority;
+            set
+            {
+                if (_priority != value)
+                {
+                    _priority = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsHighPriority));
+                }
+            }
+        }
+
+        private string _date = "";
+        public string Date
+        {
+            get => _date;
+            set
+            {
+                if (_date != value)
+                {
+                    _date = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        public bool IsHighPriority => Priority == "High";
 
         public IBrush TagBgColor => GetTagBrush(Tag, 0.3);
         public IBrush TagTextColor => GetTagBrush(Tag, 1.0);
         public IBrush TagBorderColor => GetTagBrush(Tag, 0.5);
-        public bool IsHighPriority => Priority == "High";
 
         private IBrush GetTagBrush(string tag, double opacity)
         {

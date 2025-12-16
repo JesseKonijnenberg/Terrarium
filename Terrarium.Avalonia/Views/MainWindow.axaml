@@ -123,7 +123,7 @@
                                                 <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                             
-                                            <Button Grid.Column="1" Content="🗑" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
+                                            <Button Grid.Column="1" Content="Delete" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
                                                     Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
                                             
                                             <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 

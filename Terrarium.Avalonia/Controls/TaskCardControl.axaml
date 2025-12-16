@@ -25,6 +25,7 @@
 
     <Border Classes="TaskCard"
             PointerPressed="OnPointerPressed"
+            PointerMoved="OnPointerMoved"
             Tapped="OnTapped">
         
         <Grid RowDefinitions="Auto, Auto, Auto">
