@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Velopack" Version="0.0.1298" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Terrarium.Core\Terrarium.Core.csproj" />
   </ItemGroup>
 

@@ -3,5 +3,4 @@
   <Project Path="Terrarium.Core/Terrarium.Core.csproj" />
   <Project Path="Terrarium.Data/Terrarium.Data.csproj" />
   <Project Path="Terrarium.Logic/Terrarium.Logic.csproj" />
-  <Project Path="Terrarium.WPF/Terrarium.WPF.csproj" />
 </Solution>

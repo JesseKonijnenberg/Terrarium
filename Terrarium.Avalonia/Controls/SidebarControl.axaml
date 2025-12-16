@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             xmlns:c="using:Terrarium.Avalonia.Controls"
+             x:Class="Terrarium.Avalonia.Controls.SidebarControl"
+             x:DataType="vm:KanbanBoardViewModel">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.Icon">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid Background="{TemplateBinding Background}">
+                        <Path Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource ObjToGeom}}" 
+                              Stroke="{StaticResource TextMuted}" 
+                              StrokeThickness="2" 
+                              Fill="Transparent"
+                              Margin="2" 
+                              HorizontalAlignment="Center" 
+                              VerticalAlignment="Center" 
+                              Width="20" Height="20" 
+                              Stretch="Uniform"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.Icon:pointerover /template/ Path">
+            <Setter Property="Stroke" Value="{StaticResource TextMain}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
+        
+        <Grid RowDefinitions="Auto, *, Auto">
+            
+            <StackPanel Grid.Row="0" Margin="0,30,0,0" HorizontalAlignment="Center">
+                <Border Width="40" Height="40" CornerRadius="12" Background="{StaticResource AccentSage}" Margin="0,0,0,40" HorizontalAlignment="Center">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" Opacity="0.3" Color="Black"/>
+                    </Border.Effect>
+                    <Ellipse Width="20" Height="20" Fill="{StaticResource BgMain}"/>
+                </Border>
+
+                <Button Classes="Icon" Content="{StaticResource IconLayout}" Margin="0,0,0,20"/>
+                <Button Classes="Icon" Content="{StaticResource IconSearch}" Margin="0,0,0,20"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Margin="0,0,0,20" HorizontalAlignment="Center">
+                <c:UpdateStatusControl DataContext="{Binding Updater}" />
+            </StackPanel>
+            
+        </Grid>
+    </Border>
+</UserControl>

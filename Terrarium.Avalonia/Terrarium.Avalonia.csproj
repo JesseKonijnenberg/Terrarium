@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaXaml Remove="Assets\AppStyles.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
@@ -29,7 +33,6 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.1" />
-    <PackageReference Include="Velopack" Version="0.0.1298" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,14 +41,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Images\plant_happy.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Images\plant_sad.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Images\plant_thirsty.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <AvaloniaResource Update="Assets\AppStyles.axaml">
+      <SubType>Designer</SubType>
     </AvaloniaResource>
   </ItemGroup>
 </Project>

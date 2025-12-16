@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
+             xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             x:Class="Terrarium.Avalonia.Controls.TaskCardControl"
+             x:DataType="models:TaskItem">
+
+    <UserControl.Styles>
+        <Style Selector="Border.TaskCard">
+            <Setter Property="Background" Value="{StaticResource BgCard}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="4,0,0,0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+
+        <Style Selector="Border.TaskCard:pointerover">
+            <Setter Property="Background" Value="#252321"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="TaskCard"
+            PointerPressed="OnPointerPressed"
+            PointerMoved="OnPointerMoved"
+            Tapped="OnTapped">
+        
+        <Grid RowDefinitions="Auto, Auto, Auto">
+            <Border HorizontalAlignment="Left" Background="{Binding TagBgColor}" BorderBrush="{Binding TagBorderColor}" BorderThickness="1" CornerRadius="10" Padding="12,2" Margin="0,0,0,12">
+                <TextBlock Text="{Binding Tag}" Foreground="{Binding TagTextColor}" FontSize="10" FontWeight="Bold"/>
+            </Border>
+            
+            <TextBlock Grid.Row="1" Text="{Binding Content}" Foreground="#d6ccc2" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,16"/>
+            
+            <Grid Grid.Row="2" ColumnDefinitions="Auto, *">
+                <TextBlock Text="{Binding Date}" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                <Ellipse Grid.Column="1" HorizontalAlignment="Right" Width="8" Height="8" Fill="{StaticResource AccentRust}" IsVisible="{Binding IsHighPriority}"/>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>
