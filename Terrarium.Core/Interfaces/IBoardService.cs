@@ -4,8 +4,10 @@ namespace Terrarium.Core.Interfaces
 {
     public interface IBoardService
     {
-        void AddTaskToColumn(ColumnEntity column, TaskEntity task);
-        void RemoveTaskFromColumn(ColumnEntity column, TaskEntity task);
         List<ColumnEntity> GetFullBoard();
+
+        Task MoveTaskAsync(TaskEntity task, string toColumnId, int index);
+        Task AddTaskAsync(TaskEntity task, string toColumnId);
+        Task DeleteTaskAsync(TaskEntity task);
     }
 }

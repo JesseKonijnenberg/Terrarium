@@ -16,8 +16,6 @@ namespace Terrarium.Avalonia.ViewModels.Models
             _entity = entity ?? throw new ArgumentNullException(nameof(entity));
         }
 
-        
-
         public string Id => _entity.Id;
 
         public string Content

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Avalonia.ViewModels.Models;
-using Terrarium.Core.Enums; // Ensure you have this namespace for TaskPriority if needed
+using Terrarium.Core.Enums;
 using Terrarium.Core.Interfaces;
 using Terrarium.Core.Models;
 using Terrarium.Logic.Services;
@@ -45,50 +45,24 @@ namespace Terrarium.Avalonia.ViewModels
             LoadData();
         }
 
-        // --- FIXED MOVE TASK METHOD ---
-        // 1. Added 'int index' so we can drop items in specific spots
-        // 2. Combined the Logic (Service) and UI updates into ONE method
-        public void MoveTask(TaskItem task, Column targetColumn, int index = -1)
+        public async void MoveTask(TaskItem task, Column targetColumn, int index = -1)
         {
             var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(task));
 
             if (sourceColumn != null)
             {
-                // Case A: Reordering within the SAME column
-                if (sourceColumn == targetColumn)
+                sourceColumn.Tasks.Remove(task);
+
+                if (index == -1 || index > targetColumn.Tasks.Count)
                 {
-                    var oldIndex = sourceColumn.Tasks.IndexOf(task);
-
-                    // If index is -1 (append) or invalid, put it at the end
-                    if (index == -1 || index >= sourceColumn.Tasks.Count)
-                        index = sourceColumn.Tasks.Count - 1;
-
-                    if (oldIndex != index)
-                    {
-                        sourceColumn.Tasks.Move(oldIndex, index);
-                        // Optional: Call _boardService.ReorderTask(...) if your backend supports it
-                    }
+                    targetColumn.Tasks.Add(task);
                 }
-                // Case B: Moving to DIFFERENT column
                 else
                 {
-                    // 1. Update UI
-                    sourceColumn.Tasks.Remove(task);
-
-                    if (index == -1 || index > targetColumn.Tasks.Count)
-                    {
-                        targetColumn.Tasks.Add(task);
-                    }
-                    else
-                    {
-                        targetColumn.Tasks.Insert(index, task);
-                    }
-
-                    // 2. Update Backend (Service)
-                    // Note: Your Service implementation might need to support index/insertions later
-                    _boardService.RemoveTaskFromColumn(sourceColumn.Entity, task.Entity);
-                    _boardService.AddTaskToColumn(targetColumn.Entity, task.Entity);
+                    targetColumn.Tasks.Insert(index, task);
                 }
+
+                await _boardService.MoveTaskAsync(task.Entity, targetColumn.Id, index);
             }
         }
 
@@ -99,7 +73,7 @@ namespace Terrarium.Avalonia.ViewModels
 
         public void CloseDetails() => SelectedTask = null;
 
-        private void ExecuteDeleteTask(object? parameter)
+        private async void ExecuteDeleteTask(object? parameter)
         {
             if (SelectedTask is TaskItem taskToDelete)
             {
@@ -108,14 +82,15 @@ namespace Terrarium.Avalonia.ViewModels
                 {
                     sourceColumn.Tasks.Remove(taskToDelete);
                     SelectedTask = null;
-                    _boardService.RemoveTaskFromColumn(sourceColumn.Entity, taskToDelete.Entity);
+
+                    await _boardService.DeleteTaskAsync(taskToDelete.Entity);
                 }
             }
         }
 
         private bool CanExecuteDeleteTask(object? parameter) => SelectedTask != null;
 
-        private void ExecuteAddItem(object? parameter)
+        private async void ExecuteAddItem(object? parameter)
         {
             if (parameter is Column targetColumn)
             {
@@ -142,7 +117,7 @@ namespace Terrarium.Avalonia.ViewModels
                 targetColumn.Tasks.Insert(0, newTask);
                 SelectedTask = newTask;
 
-                _boardService.AddTaskToColumn(targetColumn.Entity, newEntity);
+                await _boardService.AddTaskAsync(newEntity, targetColumn.Id);
             }
         }
 
