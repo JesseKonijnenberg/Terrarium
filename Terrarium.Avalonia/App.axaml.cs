@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
 
 namespace Terrarium.Avalonia
@@ -16,7 +17,10 @@ namespace Terrarium.Avalonia
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow();
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = new MainWindowViewModel()
+                };
             }
 
             base.OnFrameworkInitializationCompleted();

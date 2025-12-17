@@ -1,31 +1,17 @@
-﻿using Avalonia.Controls;
-using Avalonia.Data.Converters;
-using Avalonia.Media;
-using System;
-using System.Globalization;
-using Terrarium.Avalonia.ViewModels;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 
-namespace Terrarium.Avalonia.Views
+namespace Terrarium.Avalonia.Views;
+
+public partial class MainWindow : Window
 {
-    public partial class MainWindow : Window
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = new KanbanBoardViewModel();
-        }
+        InitializeComponent();
     }
-
-    public class ObjectToGeometryConverter : IValueConverter
+    private void InitializeComponent()
     {
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            return value as Geometry;
-        }
-
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        AvaloniaXamlLoader.Load(this);
     }
 }

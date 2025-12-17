@@ -55,8 +55,9 @@ namespace Terrarium.Avalonia.Behaviors
             if (taskToMove == null || targetColumn == null) return;
 
             // Find ViewModel
-            var window = control.FindAncestorOfType<Window>();
-            var mainVm = window?.DataContext as KanbanBoardViewModel;
+            var boardView = control.FindAncestorOfType<Terrarium.Avalonia.Views.KanbanBoardView>();
+            var mainVm = boardView?.DataContext as KanbanBoardViewModel;
+
             if (mainVm == null) return;
 
             // Calculate Insertion Index

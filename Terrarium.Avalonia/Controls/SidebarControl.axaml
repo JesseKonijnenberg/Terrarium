@@ -3,7 +3,7 @@
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              xmlns:c="using:Terrarium.Avalonia.Controls"
              x:Class="Terrarium.Avalonia.Controls.SidebarControl"
-             x:DataType="vm:KanbanBoardViewModel">
+             x:DataType="vm:MainWindowViewModel">
     
     <UserControl.Styles>
         <Style Selector="Button.Icon">
@@ -45,12 +45,21 @@
                     <Ellipse Width="20" Height="20" Fill="{StaticResource BgMain}"/>
                 </Border>
 
-                <Button Classes="Icon" Content="{StaticResource IconLayout}" Margin="0,0,0,20"/>
-                <Button Classes="Icon" Content="{StaticResource IconSearch}" Margin="0,0,0,20"/>
+                <Button Classes="Icon" 
+                        Content="{StaticResource IconLayout}" 
+                        Command="{Binding GoToBoardCommand}"
+                        ToolTip.Tip="Work Board"
+                        Margin="0,0,0,20"/>
+
+                <Button Classes="Icon" 
+                        Content="{StaticResource IconLeaf}" 
+                        Command="{Binding GoToGardenCommand}"
+                        ToolTip.Tip="Garden Sanctuary"
+                        Margin="0,0,0,20"/>
             </StackPanel>
 
             <StackPanel Grid.Row="2" Margin="0,0,0,20" HorizontalAlignment="Center">
-                <c:UpdateStatusControl DataContext="{Binding Updater}" />
+                <c:UpdateStatusControl DataContext="{Binding BoardVm.Updater}" />
             </StackPanel>
             
         </Grid>

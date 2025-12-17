@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             xmlns:views="using:Terrarium.Avalonia.Views"
              xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
              x:Class="Terrarium.Avalonia.Controls.TaskCardControl"
              x:DataType="models:TaskItem">
-
     <UserControl.Styles>
         <Style Selector="Border.TaskCard">
             <Setter Property="Background" Value="{StaticResource BgCard}"/>
@@ -17,16 +17,14 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
         </Style>
-
         <Style Selector="Border.TaskCard:pointerover">
             <Setter Property="Background" Value="#252321"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
         </Style>
     </UserControl.Styles>
-
     <Border Classes="TaskCard"
             behaviors:KanbanDragHandler.IsDraggable="True"
-            behaviors:KanbanDragHandler.Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).SelectTaskCommand}"
+            behaviors:KanbanDragHandler.Command="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).SelectTaskCommand}"
             behaviors:KanbanDragHandler.CommandParameter="{Binding .}">
         
         <Grid RowDefinitions="Auto, Auto, Auto">

@@ -4,6 +4,7 @@
              xmlns:controls="using:Terrarium.Avalonia.Controls"
              xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
+             xmlns:views="using:Terrarium.Avalonia.Views"
              x:Class="Terrarium.Avalonia.Controls.KanbanColumnControl"
              x:DataType="models:Column">
 
@@ -31,8 +32,7 @@
 
             <Button Grid.Row="2" Margin="0,15,0,0" Height="45" Background="Transparent" 
                     BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Stretch"
-                    
-                    Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).AddItemCommand}"
+                    Command="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).AddItemCommand}"
                     CommandParameter="{Binding .}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
                     <Path Data="{StaticResource IconPlus}" Stroke="{StaticResource TextMuted}" StrokeThickness="2" Width="12" Height="22.5"/>

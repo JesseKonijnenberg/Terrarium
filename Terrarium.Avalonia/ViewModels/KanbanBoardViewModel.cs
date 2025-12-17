@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Avalonia.ViewModels.Models;
@@ -14,6 +13,7 @@ namespace Terrarium.Avalonia.ViewModels
 {
     public class KanbanBoardViewModel : ViewModelBase
     {
+
         private readonly IBoardService _boardService;
 
         public UpdateViewModel Updater { get; } = new UpdateViewModel();

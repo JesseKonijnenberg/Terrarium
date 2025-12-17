@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terrarium.Avalonia.Views.GardenView"
+             x:DataType="vm:GardenViewModel">
+
+    <Border Background="#14261d" Padding="20">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+            <PathIcon Data="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"
+                      Foreground="#b5c18e"
+                      Width="50" Height="50"/>
+            
+            <TextBlock Text="{Binding Title}" 
+                       FontSize="30" 
+                       Foreground="#b5c18e" 
+                       HorizontalAlignment="Center"/>
+            
+            <TextBlock Text="Your plants will grow here." 
+                       Foreground="#8fa396" 
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Border>
+
+</UserControl>

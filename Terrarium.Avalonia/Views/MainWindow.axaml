@@ -1,16 +1,14 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
         xmlns:vm="using:Terrarium.Avalonia.ViewModels"
         xmlns:controls="using:Terrarium.Avalonia.Controls"
         xmlns:views="using:Terrarium.Avalonia.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="Terrarium.Avalonia.Views.MainWindow"
-        x:DataType="vm:KanbanBoardViewModel"
-        
-        Title="Kanban Dashboard"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Terrarium"
         Width="1200" Height="800"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BgMain}"
@@ -28,175 +26,26 @@
 
         <Geometry x:Key="IconLayout">M3,3H10V10H3V3ZM14,3H21V10H14V3ZM14,14H21V21H14V14ZM3,14H10V21H3V14Z</Geometry>
         <Geometry x:Key="IconSearch">M11,19A8,8 0 1,0 3,11 8,8 0 0,0 11,19M21,21L16.65,16.65</Geometry>
-        <Geometry x:Key="IconPlus">M12,5V19M5,12H19</Geometry>
-        <Geometry x:Key="IconMore">M12,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0M19,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0M5,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0</Geometry>
+        <Geometry x:Key="IconLeaf">M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z</Geometry>
     </Window.Resources>
-
-    <Window.Styles>
-        <Style Selector="Button.Icon">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Grid Background="{TemplateBinding Background}">
-                        <Path Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource ObjToGeom}}" 
-                              Stroke="{StaticResource TextMuted}" 
-                              StrokeThickness="2" 
-                              Fill="Transparent"
-                              HorizontalAlignment="Center" VerticalAlignment="Center"
-                              Width="20" Height="20" Stretch="Uniform"/>
-                    </Grid>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.Icon:pointerover /template/ Path">
-            <Setter Property="Stroke" Value="{StaticResource TextMain}"/>
-        </Style>
-
-        <Style Selector="Button.TaskCard">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border Name="CardBorder"
-                            Background="{StaticResource BgCard}"
-                            BorderBrush="{StaticResource BorderColor}"
-                            BorderThickness="4,0,0,0"
-                            CornerRadius="8" Padding="20">
-                        <ContentPresenter Content="{TemplateBinding Content}"/>
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.TaskCard:pointerover /template/ Border#CardBorder">
-            <Setter Property="Background" Value="#252321"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
-        </Style>
-    </Window.Styles>
 
     <Grid ColumnDefinitions="80, *">
         
-        <controls:SidebarControl Grid.Column="0"/>
+        <controls:SidebarControl Grid.Column="0" DataContext="{Binding .}"/>
 
-        <Grid Grid.Column="1" RowDefinitions="80, *">
-            
-            <controls:TopBarControl Grid.Row="0"/>
-
-            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Columns}" Margin="30">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="30"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <controls:KanbanColumnControl/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-
-            <ContentControl Grid.RowSpan="2" HorizontalAlignment="Right" Width="450"
-                            Content="{Binding SelectedTask}"
-                            IsVisible="{Binding IsDetailPanelOpen}">
+        <ContentControl Grid.Column="1" Content="{Binding CurrentPage}">
+            <ContentControl.DataTemplates>
                 
-                <ContentControl.ContentTemplate>
-                    <DataTemplate DataType="models:TaskItem">
-                        <Grid Background="{StaticResource BgSidebar}">
-                            <Grid.Effect>
-                                <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
-                            </Grid.Effect>
+                <DataTemplate DataType="{x:Type vm:KanbanBoardViewModel}">
+                    <views:KanbanBoardView/>
+                </DataTemplate>
 
-                            <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
-                                <Grid RowDefinitions="80, *, Auto">
-                                    
-                                    <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
-                                        <Grid ColumnDefinitions="*, Auto, Auto">
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <TextBlock Text="{Binding Id, StringFormat='#{0}'}" Foreground="{StaticResource AccentSage}" FontFamily="Georgia" FontStyle="Italic" VerticalAlignment="Center"/>
-                                                <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            
-                                            <Button Grid.Column="1" Content="Delete" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
-                                                    Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
-                                            
-                                            <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
-                                                    Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
-                                        </Grid>
-                                    </Border>
+                <DataTemplate DataType="{x:Type vm:GardenViewModel}">
+                    <views:GardenView/>
+                </DataTemplate>
 
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
-                                        <StackPanel Spacing="20">
-                                            
-                                            <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
-                                            <TextBox Text="{Binding Content}" 
-                                                     Foreground="{StaticResource TextMain}" 
-                                                     Background="Transparent" 
-                                                     BorderBrush="{StaticResource BorderColor}"
-                                                     BorderThickness="0,0,0,1"
-                                                     FontSize="28" 
-                                                     FontFamily="Georgia" 
-                                                     TextWrapping="Wrap"
-                                                     AcceptsReturn="False"/>
-
-                                            <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,10,0,0">
-                                                <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
-                                                    <TextBox Text="{Binding Tag}" 
-                                                             Foreground="{Binding TagTextColor}" 
-                                                             Background="Transparent" 
-                                                             BorderThickness="0"
-                                                             FontWeight="Bold" FontSize="10" Width="60"/>
-                                                </Border>
-                                                
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
-                                                     <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
-                                                     <TextBox Text="{Binding Date}" 
-                                                              Foreground="{StaticResource TextMain}" 
-                                                              Background="Transparent" 
-                                                              BorderBrush="{StaticResource BorderColor}"
-                                                              BorderThickness="0,0,0,1"
-                                                              FontSize="12" Width="60"/>
-                                                </StackPanel>
-                                            </StackPanel>
-
-                                            <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Priority}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-
-
-                                            <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                            <TextBox Text="This is a placeholder description for the selected task. You can now edit this description directly."
-                                                       Foreground="#d6ccc2" 
-                                                       Background="{StaticResource BgMain}" 
-                                                       BorderBrush="{StaticResource BorderColor}"
-                                                       BorderThickness="1"
-                                                       Padding="10"
-                                                       MinHeight="100"
-                                                       TextWrapping="Wrap"
-                                                       AcceptsReturn="True"/>
-
-                                        </StackPanel>
-                                    </ScrollViewer>
-
-                                    <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
-                                        <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
-                                            <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
-                                        </Border>
-                                    </Border>
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </DataTemplate>
-                </ContentControl.ContentTemplate>
-            </ContentControl>
-
-        </Grid>
+            </ContentControl.DataTemplates>
+        </ContentControl>
+        
     </Grid>
 </Window>
