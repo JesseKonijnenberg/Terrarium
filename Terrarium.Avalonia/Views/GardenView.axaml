@@ -1,27 +1,117 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.GardenView"
              x:DataType="vm:GardenViewModel">
 
-    <Border Background="#14261d" Padding="20">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
-            <PathIcon Data="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"
-                      Foreground="#b5c18e"
-                      Width="50" Height="50"/>
-            
-            <TextBlock Text="{Binding Title}" 
-                       FontSize="30" 
-                       Foreground="#b5c18e" 
-                       HorizontalAlignment="Center"/>
-            
-            <TextBlock Text="Your plants will grow here." 
-                       Foreground="#8fa396" 
-                       HorizontalAlignment="Center"/>
-        </StackPanel>
-    </Border>
+    <UserControl.Styles>
+        <Style Selector="Border.PlantSlot">
+            <Setter Property="Width" Value="140"/>
+            <Setter Property="Height" Value="160"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.5"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.PlantSlot:pointerover">
+            <Setter Property="Background" Value="#10ffffff"/> 
+            <Setter Property="RenderTransform" Value="scale(1.05)"/>
+            <Setter Property="ZIndex" Value="9999"/> 
+        </Style>
 
+        <Style Selector="Button.WaterBtn">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.PlantSlot:pointerover Button.WaterBtn">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="80, *">
+        
+        <Border Grid.Row="0" Background="#141312" BorderBrush="#3e3e42" BorderThickness="0,0,0,1" Padding="20,0">
+            <Grid ColumnDefinitions="*, Auto">
+                
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource IconLeaf}" Foreground="#66bb6a" Width="20" Height="20"/>
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="16" Foreground="White"/>
+                </StackPanel>
+
+                <Border Grid.Column="1" Background="#333333" CornerRadius="15" Padding="15,6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="💧" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding WaterBalance}" Foreground="#4fc3f7" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            
+            <ItemsControl ItemsSource="{Binding Plants}" Width="1000" Height="600">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas Background="Transparent" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                
+                <ItemsControl.Styles>
+                    <Style Selector="ContentPresenter" x:DataType="models:PlantUiModel">
+                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                        <Setter Property="ZIndex" Value="{Binding ZIndex}"/>
+                    </Style>
+                </ItemsControl.Styles>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="models:PlantUiModel">
+                        
+                        <Border Classes="PlantSlot">
+                            <Grid>
+                                <Ellipse Width="100" Height="40" Fill="#0a0a0a" VerticalAlignment="Bottom" Margin="0,0,0,20" Opacity="0.6"/>
+                                
+                                <Viewbox Width="80" Height="80" VerticalAlignment="Center" Margin="0,0,0,10">
+                                    <TextBlock Text="🌱" /> 
+                                </Viewbox>
+                                
+                                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,15,0,0">
+                                    <TextBlock Text="{Binding Type}" Foreground="#a1887f" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Stage}" Foreground="#6d4c41" FontSize="10" HorizontalAlignment="Center"/>
+                                </StackPanel>
+
+                                <ProgressBar Value="{Binding GrowthProgress}" Maximum="100" 
+                                             Height="4" Width="60" 
+                                             VerticalAlignment="Bottom" Margin="0,0,0,10"
+                                             Foreground="#66bb6a" Background="#333"
+                                             BorderThickness="0"/>
+
+                                <Button Classes="WaterBtn"
+                                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Width="40" Height="40" CornerRadius="20"
+                                        Background="#0277bd" Foreground="White"
+                                        Command="{Binding $parent[UserControl].((vm:GardenViewModel)DataContext).WaterPlantCommand}"
+                                        CommandParameter="{Binding .}"
+                                        ToolTip.Tip="Water (Cost: 5)">
+                                    <TextBlock Text="💧" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

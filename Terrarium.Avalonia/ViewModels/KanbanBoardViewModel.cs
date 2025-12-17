@@ -15,6 +15,7 @@ namespace Terrarium.Avalonia.ViewModels
     {
 
         private readonly IBoardService _boardService;
+        private readonly IGardenEconomyService _gardenEconomyService;
 
         public UpdateViewModel Updater { get; } = new UpdateViewModel();
         public ICommand AddItemCommand { get; }
@@ -39,6 +40,7 @@ namespace Terrarium.Avalonia.ViewModels
         public KanbanBoardViewModel()
         {
             _boardService = new BoardService();
+            _gardenEconomyService = GardenEconomyService.Instance;
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
             SelectTaskCommand = new RelayCommand(ExecuteSelectTask);
@@ -60,6 +62,10 @@ namespace Terrarium.Avalonia.ViewModels
                 else
                 {
                     targetColumn.Tasks.Insert(index, task);
+                }
+                if (targetColumn.Title == "Complete" || targetColumn.Title == "Done")
+                {
+                    _gardenEconomyService.EarnWater(20);
                 }
 
                 await _boardService.MoveTaskAsync(task.Entity, targetColumn.Id, index);
