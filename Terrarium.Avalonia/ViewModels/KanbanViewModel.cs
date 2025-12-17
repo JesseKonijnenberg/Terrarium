@@ -5,24 +5,24 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Avalonia.ViewModels.Models;
+using Terrarium.Core.Enums; // Ensure you have this namespace for TaskPriority if needed
+using Terrarium.Core.Interfaces;
+using Terrarium.Core.Models;
 using Terrarium.Logic.Services;
 
 namespace Terrarium.Avalonia.ViewModels
 {
     public class KanbanBoardViewModel : ViewModelBase
     {
-        // --- CHILD VIEWMODEL ---
-        public UpdateViewModel Updater { get; } = new UpdateViewModel();
+        private readonly IBoardService _boardService;
 
-        // --- COMMANDS ---
+        public UpdateViewModel Updater { get; } = new UpdateViewModel();
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
-        public ICommand SelectTaskCommand { get; } // <--- NEW
+        public ICommand SelectTaskCommand { get; }
 
-        // --- DATA ---
         public ObservableCollection<Column> Columns { get; set; } = new();
 
-        // --- SELECTION ---
         private TaskItem? _selectedTask;
         public TaskItem? SelectedTask
         {
@@ -38,38 +38,78 @@ namespace Terrarium.Avalonia.ViewModels
 
         public KanbanBoardViewModel()
         {
-            LoadData();
+            _boardService = new BoardService();
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
-            SelectTaskCommand = new RelayCommand(ExecuteSelectTask); // <--- NEW
+            SelectTaskCommand = new RelayCommand(ExecuteSelectTask);
+            LoadData();
+        }
+
+        // --- FIXED MOVE TASK METHOD ---
+        // 1. Added 'int index' so we can drop items in specific spots
+        // 2. Combined the Logic (Service) and UI updates into ONE method
+        public void MoveTask(TaskItem task, Column targetColumn, int index = -1)
+        {
+            var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(task));
+
+            if (sourceColumn != null)
+            {
+                // Case A: Reordering within the SAME column
+                if (sourceColumn == targetColumn)
+                {
+                    var oldIndex = sourceColumn.Tasks.IndexOf(task);
+
+                    // If index is -1 (append) or invalid, put it at the end
+                    if (index == -1 || index >= sourceColumn.Tasks.Count)
+                        index = sourceColumn.Tasks.Count - 1;
+
+                    if (oldIndex != index)
+                    {
+                        sourceColumn.Tasks.Move(oldIndex, index);
+                        // Optional: Call _boardService.ReorderTask(...) if your backend supports it
+                    }
+                }
+                // Case B: Moving to DIFFERENT column
+                else
+                {
+                    // 1. Update UI
+                    sourceColumn.Tasks.Remove(task);
+
+                    if (index == -1 || index > targetColumn.Tasks.Count)
+                    {
+                        targetColumn.Tasks.Add(task);
+                    }
+                    else
+                    {
+                        targetColumn.Tasks.Insert(index, task);
+                    }
+
+                    // 2. Update Backend (Service)
+                    // Note: Your Service implementation might need to support index/insertions later
+                    _boardService.RemoveTaskFromColumn(sourceColumn.Entity, task.Entity);
+                    _boardService.AddTaskToColumn(targetColumn.Entity, task.Entity);
+                }
+            }
         }
 
         private void ExecuteSelectTask(object? parameter)
         {
-            if (parameter is TaskItem task)
-            {
-                SelectedTask = task;
-            }
+            if (parameter is TaskItem task) SelectedTask = task;
         }
 
         public void CloseDetails() => SelectedTask = null;
-
-        public void MoveTask(TaskItem task, Column targetColumn)
-        {
-            var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(task));
-            if (sourceColumn != null && sourceColumn != targetColumn)
-            {
-                sourceColumn.RemoveTask(task);
-                targetColumn.AddTask(task);
-            }
-        }
 
         private void ExecuteDeleteTask(object? parameter)
         {
             if (SelectedTask is TaskItem taskToDelete)
             {
                 var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(taskToDelete));
-                if (sourceColumn != null) { sourceColumn.RemoveTask(taskToDelete); SelectedTask = null; }
+                if (sourceColumn != null)
+                {
+                    sourceColumn.Tasks.Remove(taskToDelete);
+                    SelectedTask = null;
+                    _boardService.RemoveTaskFromColumn(sourceColumn.Entity, taskToDelete.Entity);
+                }
             }
         }
 
@@ -88,24 +128,36 @@ namespace Terrarium.Avalonia.ViewModels
                         nextId = allTasks.Max(t => int.TryParse(t.Id, out int id) ? id : 0) + 1;
                     }
                 }
-                var newTask = new TaskItem { Id = nextId.ToString(), Content = "New Task", Tag = "New", Priority = "Low", Date = "Today" };
+
+                var newEntity = new TaskEntity
+                {
+                    Id = nextId.ToString(),
+                    Content = "New Task",
+                    Tag = "New",
+                    Priority = TaskPriority.Low,
+                    DueDate = DateTime.Now
+                };
+
+                var newTask = new TaskItem(newEntity);
                 targetColumn.Tasks.Insert(0, newTask);
                 SelectedTask = newTask;
+
+                _boardService.AddTaskToColumn(targetColumn.Entity, newEntity);
             }
         }
 
         private void LoadData()
         {
-            var col1 = new Column { Id = "col-1", Title = "Backlog" };
-            col1.Tasks.Add(new TaskItem { Id = "1", Content = "Design System Audit", Tag = "Design", Priority = "High", Date = "Tomorrow" });
-            col1.Tasks.Add(new TaskItem { Id = "2", Content = "Q3 Marketing Assets", Tag = "Marketing", Priority = "Medium", Date = "Oct 24" });
-            col1.Tasks.Add(new TaskItem { Id = "3", Content = "Update dependencies", Tag = "Dev", Priority = "Low", Date = "Oct 28" });
-            var col2 = new Column { Id = "col-2", Title = "In Progress" };
-            col2.Tasks.Add(new TaskItem { Id = "4", Content = "Dark Mode Implementation", Tag = "Dev", Priority = "High", Date = "Today" });
-            var col3 = new Column { Id = "col-3", Title = "Review" };
-            var col4 = new Column { Id = "col-4", Title = "Complete" };
-            col4.Tasks.Add(new TaskItem { Id = "5", Content = "Competitor Analysis", Tag = "Product", Priority = "Medium", Date = "Oct 10" });
-            Columns.Add(col1); Columns.Add(col2); Columns.Add(col3); Columns.Add(col4);
+            var boardData = _boardService.GetFullBoard();
+            foreach (var colEntity in boardData)
+            {
+                var columnVm = new Column(colEntity);
+                foreach (var taskEntity in colEntity.Tasks)
+                {
+                    columnVm.Tasks.Add(new TaskItem(taskEntity));
+                }
+                Columns.Add(columnVm);
+            }
         }
     }
 }

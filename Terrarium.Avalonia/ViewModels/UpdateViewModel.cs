@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Terrarium.Logic.Services;
 using Terrarium.Avalonia.ViewModels.Core;
+using Terrarium.Logic.Services.Update;
 
 namespace Terrarium.Avalonia.ViewModels
 {

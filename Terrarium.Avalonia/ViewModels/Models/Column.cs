@@ -1,31 +1,36 @@
 ﻿using System.Collections.ObjectModel;
 using Terrarium.Avalonia.ViewModels.Core;
+using Terrarium.Core.Models;
 
 namespace Terrarium.Avalonia.ViewModels.Models
 {
     public class Column : ViewModelBase
     {
-        public string Id { get; set; } = "";
-        public string Title { get; set; } = "";
-        public ObservableCollection<TaskItem> Tasks { get; set; } = new();
+        private readonly ColumnEntity _entity;
+        public ColumnEntity Entity => _entity;
+
+        public Column(ColumnEntity entity)
+        {
+            _entity = entity;
+        }
+
+        public string Id => _entity.Id;
+
+        public string Title
+        {
+            get => _entity.Title;
+            set
+            {
+                if (_entity.Title != value)
+                {
+                    _entity.Title = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public ObservableCollection<TaskItem> Tasks { get; } = new();
+
         public int TaskCount => Tasks.Count;
-
-        public void AddTask(TaskItem task)
-        {
-            if (!Tasks.Contains(task))
-            {
-                Tasks.Add(task);
-                OnPropertyChanged(nameof(TaskCount));
-            }
-        }
-
-        public void RemoveTask(TaskItem task)
-        {
-            if (Tasks.Contains(task))
-            {
-                Tasks.Remove(task);
-                OnPropertyChanged(nameof(TaskCount));
-            }
-        }
     }
 }

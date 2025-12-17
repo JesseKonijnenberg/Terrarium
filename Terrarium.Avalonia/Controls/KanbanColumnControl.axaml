@@ -3,13 +3,12 @@
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              xmlns:controls="using:Terrarium.Avalonia.Controls"
              xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
+             xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
              x:Class="Terrarium.Avalonia.Controls.KanbanColumnControl"
              x:DataType="models:Column">
 
     <Border Width="320" Background="Transparent"
-            DragDrop.AllowDrop="True"
-            DragDrop.DragOver="OnDragOver"
-            DragDrop.Drop="OnDrop">
+            behaviors:KanbanDropHandler.IsDropTarget="True">
         
         <Grid RowDefinitions="Auto, *, Auto">
             <Grid Grid.Row="0" Margin="0,0,0,20" ColumnDefinitions="Auto, Auto, *, Auto">

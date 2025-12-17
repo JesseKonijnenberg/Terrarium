@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Terrarium.Logic.Services
+namespace Terrarium.Logic.Services.Update
 {
     public interface IUpdateService
     {

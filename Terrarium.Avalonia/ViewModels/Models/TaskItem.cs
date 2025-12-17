@@ -1,44 +1,46 @@
-﻿using Avalonia.Media;
+﻿using System;
+using Avalonia.Media;
 using Terrarium.Avalonia.ViewModels.Core;
+using Terrarium.Core.Enums;
+using Terrarium.Core.Models;
 
 namespace Terrarium.Avalonia.ViewModels.Models
 {
     public class TaskItem : ViewModelBase
     {
-        private string _id = "";
-        public string Id
+        private readonly TaskEntity _entity;
+        public TaskEntity Entity => _entity;
+
+        public TaskItem(TaskEntity entity)
         {
-            get => _id;
-            set
-            {
-                _id = value;
-                OnPropertyChanged();
-            }
+            _entity = entity ?? throw new ArgumentNullException(nameof(entity));
         }
 
-        private string _content = "";
+        
+
+        public string Id => _entity.Id;
+
         public string Content
         {
-            get => _content;
+            get => _entity.Content;
             set
             {
-                if (_content != value)
+                if (_entity.Content != value)
                 {
-                    _content = value;
+                    _entity.Content = value;
                     OnPropertyChanged();
                 }
             }
         }
 
-        private string _tag = "";
         public string Tag
         {
-            get => _tag;
+            get => _entity.Tag;
             set
             {
-                if (_tag != value)
+                if (_entity.Tag != value)
                 {
-                    _tag = value.ToUpper();
+                    _entity.Tag = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TagBgColor));
                     OnPropertyChanged(nameof(TagTextColor));
@@ -47,35 +49,36 @@ namespace Terrarium.Avalonia.ViewModels.Models
             }
         }
 
-        private string _priority = "";
         public string Priority
         {
-            get => _priority;
+            get => _entity.Priority.ToString();
             set
             {
-                if (_priority != value)
+                if (Enum.TryParse(value, true, out TaskPriority newPriority))
                 {
-                    _priority = value;
+                    if (_entity.Priority != newPriority)
+                    {
+                        _entity.Priority = newPriority;
+                        OnPropertyChanged();
+                        OnPropertyChanged(nameof(IsHighPriority));
+                    }
+                }
+            }
+        }
+        public string Date
+        {
+            get => _entity.DueDate.ToString("MMM dd");
+            set
+            {
+                if (DateTime.TryParse(value, out DateTime newDate))
+                {
+                    _entity.DueDate = newDate;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsHighPriority));
                 }
             }
         }
 
-        private string _date = "";
-        public string Date
-        {
-            get => _date;
-            set
-            {
-                if (_date != value)
-                {
-                    _date = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public bool IsHighPriority => Priority == "High";
+        public bool IsHighPriority => _entity.Priority == TaskPriority.High;
 
         public IBrush TagBgColor => GetTagBrush(Tag, 0.3);
         public IBrush TagTextColor => GetTagBrush(Tag, 1.0);
@@ -83,7 +86,7 @@ namespace Terrarium.Avalonia.ViewModels.Models
 
         private IBrush GetTagBrush(string tag, double opacity)
         {
-            var colorStr = tag.ToUpper() switch
+            var colorStr = tag?.ToUpper() switch
             {
                 "DESIGN" => "#a65d57",
                 "DEV" => "#4a5c6a",

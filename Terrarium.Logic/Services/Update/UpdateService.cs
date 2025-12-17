@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Velopack;
 using Velopack.Sources;
 
-namespace Terrarium.Logic.Services
+namespace Terrarium.Logic.Services.Update
 {
     public class UpdateService : IUpdateService
     {

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
              x:Class="Terrarium.Avalonia.Controls.TaskCardControl"
              x:DataType="models:TaskItem">
 
@@ -24,9 +25,9 @@
     </UserControl.Styles>
 
     <Border Classes="TaskCard"
-            PointerPressed="OnPointerPressed"
-            PointerMoved="OnPointerMoved"
-            Tapped="OnTapped">
+            behaviors:KanbanDragHandler.IsDraggable="True"
+            behaviors:KanbanDragHandler.Command="{Binding $parent[Window].((vm:KanbanBoardViewModel)DataContext).SelectTaskCommand}"
+            behaviors:KanbanDragHandler.CommandParameter="{Binding .}">
         
         <Grid RowDefinitions="Auto, Auto, Auto">
             <Border HorizontalAlignment="Left" Background="{Binding TagBgColor}" BorderBrush="{Binding TagBorderColor}" BorderThickness="1" CornerRadius="10" Padding="12,2" Margin="0,0,0,12">
