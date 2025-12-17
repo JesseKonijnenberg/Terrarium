@@ -22,7 +22,6 @@
             </Setter>
         </Style>
         <Style Selector="Border.PlantSlot:pointerover">
-            <Setter Property="Background" Value="#10ffffff"/> 
             <Setter Property="RenderTransform" Value="scale(1.05)"/>
             <Setter Property="ZIndex" Value="9999"/> 
         </Style>
