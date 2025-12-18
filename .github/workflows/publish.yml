@@ -22,7 +22,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x' # Keep this matching your project
+        dotnet-version: '10.0.x' # Keep this matching your project
 
     - name: Install Velopack Tool
       run: dotnet tool install -g vpk
@@ -36,7 +36,7 @@ jobs:
         Write-Host "Building Version: $ver"
 
         # 2. Publish (Explicit project path)
-        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -o ./publish
+        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -p:Version=$VERSION -o ./publish
         
         # 3. Pack (Using the clean $ver variable)
         vpk pack -u Terrarium -v $ver -p ./publish -e Terrarium.Avalonia.exe -i ./Terrarium.Avalonia/Assets/logo.ico
@@ -52,7 +52,7 @@ jobs:
         echo "Building Version: $VERSION"
 
         # 2. Publish (Explicit project path)
-        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r linux-x64 --self-contained -o ./publish
+        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r linux-x64 --self-contained -p:Version=$VERSION -o ./publish
         
         # 3. Pack (Using the clean $VERSION variable)
         vpk pack -u Terrarium -v $VERSION -p ./publish -e Terrarium.Avalonia -i ./Terrarium.Avalonia/Assets/logo.png
