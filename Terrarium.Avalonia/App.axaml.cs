@@ -62,6 +62,7 @@ namespace Terrarium.Avalonia
 
             services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
 
+            services.AddTransient<SettingsViewModel>();
             services.AddSingleton<KanbanBoardViewModel>();
             services.AddSingleton<GardenViewModel>();
             services.AddSingleton<MainWindowViewModel>();

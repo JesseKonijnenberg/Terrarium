@@ -59,8 +59,15 @@
             </StackPanel>
 
             <StackPanel Grid.Row="2" Margin="0,0,0,20" HorizontalAlignment="Center">
-                <c:UpdateStatusControl DataContext="{Binding BoardVm.Updater}" />
+                <c:UpdateStatusControl DataContext="{Binding BoardVm.Updater}" Margin="0,0,0,20" />
+                
+                <Button Classes="Icon" 
+                        Content="{StaticResource IconSettings}" 
+                        Command="{Binding GoToSettingsCommand}"
+                        ToolTip.Tip="Settings"/>
             </StackPanel>
+
+            
             
         </Grid>
     </Border>

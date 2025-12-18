@@ -7,6 +7,7 @@ namespace Terrarium.Avalonia.ViewModels
     {
         public KanbanBoardViewModel BoardVm { get; }
         public GardenViewModel GardenVm { get; }
+        public SettingsViewModel SettingsVm { get; }
 
         private ViewModelBase _currentPage;
         public ViewModelBase CurrentPage
@@ -24,15 +25,21 @@ namespace Terrarium.Avalonia.ViewModels
 
         public ICommand GoToBoardCommand { get; }
         public ICommand GoToGardenCommand { get; }
+        public ICommand GoToSettingsCommand { get; }
 
-        public MainWindowViewModel(KanbanBoardViewModel boardVm, GardenViewModel gardenVm)
+        public MainWindowViewModel(
+            KanbanBoardViewModel boardVm,
+            GardenViewModel gardenVm,
+            SettingsViewModel settingsVm)
         {
             BoardVm = boardVm;
             GardenVm = gardenVm;
+            SettingsVm = settingsVm;
             _currentPage = BoardVm;
 
             GoToBoardCommand = new RelayCommand(_ => CurrentPage = BoardVm);
             GoToGardenCommand = new RelayCommand(_ => CurrentPage = GardenVm);
+            GoToSettingsCommand = new RelayCommand(_ => CurrentPage = SettingsVm);
         }
     }
 }
