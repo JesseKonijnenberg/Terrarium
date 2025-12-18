@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Terrarium.Core.Models
+namespace Terrarium.Core.Models.Kanban
 {
     public class ColumnEntity
     {

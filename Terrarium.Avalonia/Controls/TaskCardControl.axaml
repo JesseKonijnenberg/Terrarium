@@ -32,7 +32,7 @@
                 <TextBlock Text="{Binding Tag}" Foreground="{Binding TagTextColor}" FontSize="10" FontWeight="Bold"/>
             </Border>
             
-            <TextBlock Grid.Row="1" Text="{Binding Content}" Foreground="#d6ccc2" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,16"/>
+            <TextBlock Grid.Row="1" Text="{Binding Title}" Foreground="#d6ccc2" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,16"/>
             
             <Grid Grid.Row="2" ColumnDefinitions="Auto, *">
                 <TextBlock Text="{Binding Date}" Foreground="{StaticResource TextMuted}" FontSize="11"/>

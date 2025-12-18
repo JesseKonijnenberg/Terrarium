@@ -7,6 +7,7 @@ using Terrarium.Avalonia.ViewModels.Models;
 using Terrarium.Core.Enums;
 using Terrarium.Core.Interfaces;
 using Terrarium.Core.Models;
+using Terrarium.Core.Models.Kanban;
 using Terrarium.Logic.Services;
 
 namespace Terrarium.Avalonia.ViewModels
@@ -21,6 +22,7 @@ namespace Terrarium.Avalonia.ViewModels
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand SelectTaskCommand { get; }
+        public ICommand SaveTaskCommand { get; }
 
         public ObservableCollection<Column> Columns { get; set; } = new();
 
@@ -30,6 +32,10 @@ namespace Terrarium.Avalonia.ViewModels
             get => _selectedTask;
             set
             {
+                if (_selectedTask != null)
+                {
+                    SaveTask(_selectedTask);
+                }
                 _selectedTask = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDetailPanelOpen));
@@ -37,13 +43,15 @@ namespace Terrarium.Avalonia.ViewModels
         }
         public bool IsDetailPanelOpen => SelectedTask != null;
 
-        public KanbanBoardViewModel()
+        public KanbanBoardViewModel(IBoardService boardService, IGardenEconomyService gardenEconomyService)
         {
-            _boardService = new BoardService();
-            _gardenEconomyService = GardenEconomyService.Instance;
+            _boardService = boardService;
+            _gardenEconomyService = gardenEconomyService;
+
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
             SelectTaskCommand = new RelayCommand(ExecuteSelectTask);
+            SaveTaskCommand = new RelayCommand(ExecuteSaveTask);
             LoadData();
         }
 
@@ -77,7 +85,44 @@ namespace Terrarium.Avalonia.ViewModels
             if (parameter is TaskItem task) SelectedTask = task;
         }
 
-        public void CloseDetails() => SelectedTask = null;
+        public void CloseDetails()
+        {
+            if (SelectedTask != null)
+            {
+                SaveTask(SelectedTask);
+            }
+            SelectedTask = null;
+        }
+
+        private void ExecuteSaveTask(object? parameter)
+        {
+            if (SelectedTask != null)
+            {
+                SaveTask(SelectedTask);
+            }
+        }
+
+        private async void SaveTask(TaskItem task)
+        {
+            task.Entity.Title = task.Title;
+            task.Entity.Tag = task.Tag;
+            task.Entity.Description = task.Description;
+
+            if (Enum.TryParse(typeof(TaskPriority), task.Priority, true, out var result))
+            {
+                task.Entity.Priority = (TaskPriority)result;
+            }
+            else
+            {
+                task.Entity.Priority = TaskPriority.Low; // Default fallback
+            }
+            if (DateTime.TryParse(task.Date, out var dateResult))
+            {
+                task.Entity.DueDate = dateResult;
+            }
+
+            await _boardService.UpdateTaskAsync(task.Entity);
+        }
 
         private async void ExecuteDeleteTask(object? parameter)
         {
@@ -113,8 +158,9 @@ namespace Terrarium.Avalonia.ViewModels
                 var newEntity = new TaskEntity
                 {
                     Id = nextId.ToString(),
-                    Content = "New Task",
+                    Title = "New Task",
                     Tag = "New",
+                    Description = "",
                     Priority = TaskPriority.Low,
                     DueDate = DateTime.Now
                 };
@@ -127,9 +173,11 @@ namespace Terrarium.Avalonia.ViewModels
             }
         }
 
-        private void LoadData()
+        private async void LoadData()
         {
-            var boardData = _boardService.GetFullBoard();
+            var boardData = await ((BoardService)_boardService).LoadBoardAsync();
+
+            Columns.Clear();
             foreach (var colEntity in boardData)
             {
                 var columnVm = new Column(colEntity);

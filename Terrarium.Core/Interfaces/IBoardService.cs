@@ -1,13 +1,14 @@
-﻿using Terrarium.Core.Models;
+﻿using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Core.Interfaces
 {
     public interface IBoardService
     {
-        List<ColumnEntity> GetFullBoard();
+        Task<List<ColumnEntity>> LoadBoardAsync();
 
         Task MoveTaskAsync(TaskEntity task, string toColumnId, int index);
         Task AddTaskAsync(TaskEntity task, string toColumnId);
         Task DeleteTaskAsync(TaskEntity task);
+        Task UpdateTaskAsync(TaskEntity task);
     }
 }

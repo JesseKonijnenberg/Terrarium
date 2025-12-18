@@ -1,65 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq; // Needed for LINQ
 using System.Threading.Tasks;
-using Terrarium.Core.Enums;
 using Terrarium.Core.Interfaces;
-using Terrarium.Core.Models;
+using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Logic.Services
 {
     public class BoardService : IBoardService
     {
-        private List<ColumnEntity> _board;
+        private readonly IBoardRepository _repository;
 
-        public BoardService()
+        private List<ColumnEntity> _boardCache = new();
+
+        public BoardService(IBoardRepository repository)
         {
-            _board = GenerateDummyData();
+            _repository = repository;
         }
 
-        public List<ColumnEntity> GetFullBoard()
+        public async Task<List<ColumnEntity>> LoadBoardAsync()
         {
-            return _board;
+            _boardCache = await _repository.LoadBoardAsync();
+            return _boardCache;
         }
 
+        public List<ColumnEntity> GetCachedBoard() => _boardCache;
 
-        public Task AddTaskAsync(TaskEntity task, string columnId)
+        public async Task AddTaskAsync(TaskEntity task, string columnId)
         {
-            return Task.Delay(50);
-        }
+            await _repository.AddTaskAsync(task, columnId);
 
-        public Task MoveTaskAsync(TaskEntity task, string targetColumnId, int index)
-        {
-            return Task.Delay(50);
-        }
-
-        public Task DeleteTaskAsync(TaskEntity task)
-        {
-            return Task.Delay(50);
-        }
-
-        private List<ColumnEntity> GenerateDummyData()
-        {
-            TaskEntity Create(string id, string content, string tag, TaskPriority priority, int days)
+            var col = _boardCache.FirstOrDefault(c => c.Id == columnId);
+            if (col != null)
             {
-                return new TaskEntity { Id = id, Content = content, Tag = tag, Priority = priority, DueDate = DateTime.Now.AddDays(days) };
+                col.Tasks.Insert(0, task);
             }
+        }
 
-            return new List<ColumnEntity>
+        public async Task MoveTaskAsync(TaskEntity task, string targetColumnId, int index)
+        {
+            await _repository.MoveTaskAsync(task.Id, targetColumnId, index);
+
+            var sourceCol = _boardCache.FirstOrDefault(c => c.Tasks.Any(t => t.Id == task.Id));
+            if (sourceCol != null)
             {
-                new ColumnEntity
+                var taskInCache = sourceCol.Tasks.First(t => t.Id == task.Id);
+                sourceCol.Tasks.Remove(taskInCache);
+
+                var targetCol = _boardCache.FirstOrDefault(c => c.Id == targetColumnId);
+                if (targetCol != null)
                 {
-                    Id = "col-1", Title = "Backlog",
-                    Tasks = new List<TaskEntity> { Create("1", "Design Sys", "Design", TaskPriority.High, 1) }
-                },
-                new ColumnEntity
+ 
+                    if (index < 0) index = 0;
+                    if (index > targetCol.Tasks.Count) index = targetCol.Tasks.Count;
+
+                    targetCol.Tasks.Insert(index, taskInCache);
+                }
+            }
+        }
+
+        public async Task DeleteTaskAsync(TaskEntity task)
+        {
+            await _repository.DeleteTaskAsync(task.Id);
+
+            var col = _boardCache.FirstOrDefault(c => c.Tasks.Any(t => t.Id == task.Id));
+            if (col != null)
+            {
+                var taskInCache = col.Tasks.FirstOrDefault(t => t.Id == task.Id);
+                if (taskInCache != null)
                 {
-                    Id = "col-2", Title = "In Progress",
-                    Tasks = new List<TaskEntity> { Create("4", "Dark Mode", "Dev", TaskPriority.High, 0) }
-                },
-                new ColumnEntity { Id = "col-3", Title = "Review", Tasks = new List<TaskEntity>() },
-                new ColumnEntity { Id = "col-4", Title = "Complete", Tasks = new List<TaskEntity>() }
-            };
+                    col.Tasks.Remove(taskInCache);
+                }
+            }
+        }
+
+        public async Task UpdateTaskAsync(TaskEntity task)
+        {
+            await _repository.UpdateTaskAsync(task);
+
+            var col = _boardCache.FirstOrDefault(c => c.Tasks.Any(t => t.Id == task.Id));
+            if (col != null)
+            {
+                var cachedTask = col.Tasks.FirstOrDefault(t => t.Id == task.Id);
+                if (cachedTask != null)
+                {
+                    cachedTask.Title = task.Title;
+                    cachedTask.Description = task.Description;
+                    cachedTask.Tag = task.Tag;
+                    cachedTask.Priority = task.Priority;
+                    cachedTask.DueDate = task.DueDate;
+                }
+            }
         }
     }
 }

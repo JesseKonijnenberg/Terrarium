@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Core.Models;
+using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Avalonia.ViewModels.Models
 {

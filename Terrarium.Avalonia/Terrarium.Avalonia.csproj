@@ -6,9 +6,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-	  
 	<InvariantGlobalization>true</InvariantGlobalization>
-	  
 	<ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -31,12 +29,17 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Terrarium.Core\Terrarium.Core.csproj" />
+    <ProjectReference Include="..\Terrarium.Data\Terrarium.Data.csproj" />
     <ProjectReference Include="..\Terrarium.Logic\Terrarium.Logic.csproj" />
   </ItemGroup>
 

@@ -364,3 +364,6 @@ FodyWeavers.xsd
 /Terrarium.Avalonia/terrarium.db
 /Terrarium.Avalonia/terrarium.db-shm
 /Terrarium.Avalonia/terrarium.db-wal
+
+# Avalonia build host folders
+buildhost*/

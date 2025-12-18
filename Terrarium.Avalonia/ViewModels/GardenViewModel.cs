@@ -36,10 +36,10 @@ namespace Terrarium.Avalonia.ViewModels
 
         public ICommand WaterPlantCommand { get; }
 
-        public GardenViewModel()
+        public GardenViewModel(IGardenService gardenService, IGardenEconomyService economyService)
         {
-            _economyService = GardenEconomyService.Instance;
-            _gardenService = new GardenService();
+            _gardenService = gardenService;
+            _economyService = economyService;
 
             UpdateBalance(this, _economyService.WaterBalance);
             LoadGarden();

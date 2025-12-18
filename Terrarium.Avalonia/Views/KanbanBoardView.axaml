@@ -86,7 +86,7 @@
                                     <StackPanel Spacing="20">
                                         
                                         <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
-                                        <TextBox Text="{Binding Content}" 
+                                        <TextBox Text="{Binding Title}" 
                                                  Foreground="{StaticResource TextMain}" 
                                                  Background="Transparent" 
                                                  BorderBrush="{StaticResource BorderColor}"
@@ -120,8 +120,8 @@
                                             <TextBlock Text="{Binding Priority}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
                                         </StackPanel>
 
-                                        <TextBlock Text="BRIEF" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                        <TextBox Text="This is a placeholder description..."
+                                        <TextBlock Text="Description" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                                        <TextBox Text="{Binding Description}"
                                                  Foreground="#d6ccc2" 
                                                  Background="{StaticResource BgMain}" 
                                                  BorderBrush="{StaticResource BorderColor}"

@@ -2,7 +2,7 @@
 using Avalonia.Media;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Enums;
-using Terrarium.Core.Models;
+using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Avalonia.ViewModels.Models
 {
@@ -18,14 +18,27 @@ namespace Terrarium.Avalonia.ViewModels.Models
 
         public string Id => _entity.Id;
 
-        public string Content
+        public string Title
         {
-            get => _entity.Content;
+            get => _entity.Title;
             set
             {
-                if (_entity.Content != value)
+                if (_entity.Title != value)
                 {
-                    _entity.Content = value;
+                    _entity.Title = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string Description
+        {
+            get => Entity.Description;
+            set
+            {
+                if (Entity.Description != value)
+                {
+                    Entity.Description = value;
                     OnPropertyChanged();
                 }
             }
