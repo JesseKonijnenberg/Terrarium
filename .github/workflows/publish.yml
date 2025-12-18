@@ -22,7 +22,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x' # Keep this matching your project
+        dotnet-version: '10.0.x'
 
     - name: Install Velopack Tool
       run: dotnet tool install -g vpk
@@ -31,14 +31,14 @@ jobs:
     - name: Build & Pack (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        # 1. Clean the version number (Remove 'v' from 'v1.0.0')
+        # 1. Clean the version number
         $ver = $env:GITHUB_REF_NAME.TrimStart('v')
         Write-Host "Building Version: $ver"
 
-        # 2. Publish (Explicit project path)
-        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -p:Version=$VERSION -o ./publish
+        # 2. Publish (FIXED: Using $ver instead of $VERSION)
+        dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r win-x64 --self-contained -p:Version=$ver -o ./publish
         
-        # 3. Pack (Using the clean $ver variable)
+        # 3. Pack
         vpk pack -u Terrarium -v $ver -p ./publish -e Terrarium.Avalonia.exe -i ./Terrarium.Avalonia/Assets/logo.ico
 
     # --- LINUX BUILD ---
@@ -47,14 +47,14 @@ jobs:
       run: |
         sudo apt-get install -y libfuse2
         
-        # 1. Clean the version number (Bash syntax to strip 'v')
+        # 1. Clean the version number
         VERSION=${GITHUB_REF_NAME#v}
         echo "Building Version: $VERSION"
 
-        # 2. Publish (Explicit project path)
+        # 2. Publish (Linux uses Bash, so $VERSION is correct here)
         dotnet publish ./Terrarium.Avalonia/Terrarium.Avalonia.csproj -c Release -r linux-x64 --self-contained -p:Version=$VERSION -o ./publish
         
-        # 3. Pack (Using the clean $VERSION variable)
+        # 3. Pack
         vpk pack -u Terrarium -v $VERSION -p ./publish -e Terrarium.Avalonia -i ./Terrarium.Avalonia/Assets/logo.png
 
     - name: Upload Release to GitHub
