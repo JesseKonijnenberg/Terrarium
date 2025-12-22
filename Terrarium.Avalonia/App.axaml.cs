@@ -52,8 +52,8 @@ namespace Terrarium.Avalonia
         private void ConfigureServices(IServiceCollection services)
         {
             var storageOptions = new StorageOptions();
-            services.AddSingleton(storageOptions);
 
+            services.AddSingleton(storageOptions);
             services.AddTerrariumData(storageOptions);
 
             services.AddSingleton<IBoardRepository, SqliteBoardRepository>();

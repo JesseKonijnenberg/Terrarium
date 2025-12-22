@@ -5,26 +5,27 @@ namespace Terrarium.Core.Models.Data
 {
     public class StorageOptions
     {
-        public string BasePath { get; set; } = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Terrarium"
-        );
+        public string BasePath { get; private set; }
+        public string DatabaseFileName { get; set; } = "local.db";
 
-        public string DatabaseFileName { get; set; } = "terrarium.db";
-
-        private string? _connectionString;
-
-        public string ConnectionString
+        public StorageOptions()
         {
-            get
+            string root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+#if DEBUG
+            BasePath = Path.Combine(root, "Terrarium_Dev");
+#else
+            BasePath = Path.Combine(root, "Terrarium");
+#endif
+
+            if (!Directory.Exists(BasePath))             // Ensure the directory exists as soon as the options are created
             {
-                if (!string.IsNullOrEmpty(_connectionString))
-                {
-                    return _connectionString;
-                }
-                return $"Data Source={Path.Combine(BasePath, DatabaseFileName)}";
+                Directory.CreateDirectory(BasePath);
             }
-            set => _connectionString = value;
         }
+
+        public string ConnectionString => $"Data Source={Path.Combine(BasePath, DatabaseFileName)}";
+
+        public string BackupFilePath => Path.Combine(BasePath, "board_backup.md");
     }
 }

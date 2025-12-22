@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Terrarium.Core.Models.Data;
 using Terrarium.Data.Contexts;
 
 namespace Terrarium.Data
@@ -9,7 +10,9 @@ namespace Terrarium.Data
         public TerrariumDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<TerrariumDbContext>();
-            optionsBuilder.UseSqlite("Data Source=terrarium.db");
+
+            var options = new StorageOptions();
+            optionsBuilder.UseSqlite(options.ConnectionString);
 
             return new TerrariumDbContext(optionsBuilder.Options);
         }
