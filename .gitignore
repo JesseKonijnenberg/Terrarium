@@ -367,3 +367,6 @@ FodyWeavers.xsd
 
 # Avalonia build host folders
 buildhost*/
+
+# Rider
+.idea/
