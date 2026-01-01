@@ -5,6 +5,10 @@ using Terrarium.Data.Contexts;
 
 namespace Terrarium.Data
 {
+    /// <summary>
+    /// A factory for creating instances of <see cref="TerrariumDbContext"/> at design time.
+    /// This is primarily used by Entity Framework Core tools for migrations.
+    /// </summary>
     public class TerrariumDbContextFactory : IDesignTimeDbContextFactory<TerrariumDbContext>
     {
         public TerrariumDbContext CreateDbContext(string[] args)

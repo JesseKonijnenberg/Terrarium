@@ -3,16 +3,27 @@ using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Data.Contexts
 {
+    /// <summary>
+    /// Represents the database context for the Terrarium application, managing entity sets and database configuration.
+    /// </summary>
     public class TerrariumDbContext : DbContext
     {
         public DbSet<ColumnEntity> Columns { get; set; }
         public DbSet<TaskEntity> Tasks { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TerrariumDbContext"/> class with the specified options.
+        /// </summary>
+        /// <param name="options">The options to be used by a <see cref="DbContext"/>.</param>
         public TerrariumDbContext(DbContextOptions<TerrariumDbContext> options)
             : base(options)
         {
         }
 
+        /// <summary>
+        /// Configures the model relationships and seeds initial data.
+        /// </summary>
+        /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Define the Relationship: One Column <-> Many Tasks
