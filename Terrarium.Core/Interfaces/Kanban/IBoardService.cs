@@ -1,6 +1,6 @@
 ﻿using Terrarium.Core.Models.Kanban;
 
-namespace Terrarium.Core.Interfaces
+namespace Terrarium.Core.Interfaces.Kanban
 {
     public interface IBoardService
     {

@@ -1,4 +1,4 @@
-﻿using Terrarium.Core.Enums;
+﻿using Terrarium.Core.Enums.Garden;
 
 namespace Terrarium.Core.Models
 {

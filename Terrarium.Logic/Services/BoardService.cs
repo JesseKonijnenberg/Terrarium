@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq; // Needed for LINQ
-using System.Threading.Tasks;
-using Terrarium.Core.Interfaces;
+﻿using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
+// Needed for LINQ
 
 namespace Terrarium.Logic.Services
 {

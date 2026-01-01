@@ -3,9 +3,9 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Avalonia.ViewModels.Models;
-using Terrarium.Core.Interfaces;
+using Terrarium.Core.Enums.Garden;
+using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Models;
-using Terrarium.Logic.Services;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -58,7 +58,7 @@ namespace Terrarium.Avalonia.ViewModels
             // Starter seed if empty
             if (entities.Count == 0)
             {
-                var starter = new PlantEntity { Id = "starter", Type = Terrarium.Core.Enums.PlantType.Succulent };
+                var starter = new PlantEntity { Id = "starter", Type = PlantType.Succulent };
                 entities.Add(starter);
             }
 

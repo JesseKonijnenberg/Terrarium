@@ -1,13 +1,12 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
-using Terrarium.Core.Interfaces;
-using Terrarium.Core.Models;
+using Terrarium.Core.Interfaces.Garden;
+using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data;
 using Terrarium.Data.Contexts;

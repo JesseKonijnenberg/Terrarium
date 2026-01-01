@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using Terrarium.Core.Enums;
-using Terrarium.Core.Interfaces;
+﻿using Terrarium.Core.Enums.Garden;
+using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Models;
 
 namespace Terrarium.Logic.Services

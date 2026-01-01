@@ -1,4 +1,4 @@
-﻿namespace Terrarium.Core.Enums
+﻿namespace Terrarium.Core.Enums.Kanban
 {
     public enum TaskPriority
     {

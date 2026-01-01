@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia.Media;
 using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Core.Enums;
+using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Avalonia.ViewModels.Models

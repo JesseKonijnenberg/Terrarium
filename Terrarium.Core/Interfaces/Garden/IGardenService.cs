@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Terrarium.Core.Models;
+﻿using Terrarium.Core.Models;
 
-namespace Terrarium.Core.Interfaces
+namespace Terrarium.Core.Interfaces.Garden
 {
     public interface IGardenService
     {

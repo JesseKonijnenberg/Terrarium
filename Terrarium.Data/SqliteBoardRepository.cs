@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Terrarium.Core.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 using Terrarium.Data.Contexts;
 

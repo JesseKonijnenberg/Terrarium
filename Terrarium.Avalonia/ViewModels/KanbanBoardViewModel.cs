@@ -4,8 +4,9 @@ using System.Linq;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Avalonia.ViewModels.Models;
-using Terrarium.Core.Enums;
-using Terrarium.Core.Interfaces;
+using Terrarium.Core.Enums.Kanban;
+using Terrarium.Core.Interfaces.Garden;
+using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 using Terrarium.Logic.Services;
 

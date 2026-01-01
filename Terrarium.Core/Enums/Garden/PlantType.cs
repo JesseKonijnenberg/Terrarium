@@ -1,4 +1,4 @@
-﻿namespace Terrarium.Core.Enums
+﻿namespace Terrarium.Core.Enums.Garden
 {
     public enum PlantType
     {

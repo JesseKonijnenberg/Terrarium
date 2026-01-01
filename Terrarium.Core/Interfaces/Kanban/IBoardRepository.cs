@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Terrarium.Core.Models.Kanban;
+﻿using Terrarium.Core.Models.Kanban;
 
-namespace Terrarium.Core.Interfaces
+namespace Terrarium.Core.Interfaces.Kanban
 {
     public interface IBoardRepository
     {

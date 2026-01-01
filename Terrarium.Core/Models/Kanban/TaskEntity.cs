@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using Terrarium.Core.Enums;
+﻿using Terrarium.Core.Enums.Kanban;
 
 namespace Terrarium.Core.Models.Kanban
 {

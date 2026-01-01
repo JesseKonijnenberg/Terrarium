@@ -1,5 +1,5 @@
 ﻿using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Core.Enums;
+using Terrarium.Core.Enums.Garden;
 using Terrarium.Core.Models;
 
 namespace Terrarium.Avalonia.ViewModels.Models

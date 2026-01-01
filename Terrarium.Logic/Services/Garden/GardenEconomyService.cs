@@ -1,4 +1,4 @@
-﻿using Terrarium.Core.Interfaces;
+﻿using Terrarium.Core.Interfaces.Garden;
 
 namespace Terrarium.Logic.Services
 {
