@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using Terrarium.Avalonia.Models.Garden;
 using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Avalonia.ViewModels.Models;
 using Terrarium.Core.Enums.Garden;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Models;

@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
-             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
+             xmlns:garden="clr-namespace:Terrarium.Avalonia.Models.Garden"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.GardenView"
              x:DataType="vm:GardenViewModel">
@@ -68,7 +68,7 @@
                 </ItemsControl.ItemsPanel>
                 
                 <ItemsControl.Styles>
-                    <Style Selector="ContentPresenter" x:DataType="models:PlantUiModel">
+                    <Style Selector="ContentPresenter" x:DataType="garden:PlantUiModel">
                         <Setter Property="Canvas.Left" Value="{Binding X}"/>
                         <Setter Property="Canvas.Top" Value="{Binding Y}"/>
                         <Setter Property="ZIndex" Value="{Binding ZIndex}"/>
@@ -76,7 +76,7 @@
                 </ItemsControl.Styles>
 
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="models:PlantUiModel">
+                    <DataTemplate DataType="garden:PlantUiModel">
                         
                         <Border Classes="PlantSlot">
                             <Grid>

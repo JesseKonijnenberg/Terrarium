@@ -3,8 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
-             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:controls="using:Terrarium.Avalonia.Controls"
+             xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.KanbanBoardView"
              x:DataType="vm:KanbanBoardViewModel">
@@ -58,7 +58,7 @@
                         IsVisible="{Binding IsDetailPanelOpen}">
             
             <ContentControl.ContentTemplate>
-                <DataTemplate DataType="models:TaskItem">
+                <DataTemplate DataType="kanban:TaskItem">
                     <Grid Background="{StaticResource BgSidebar}">
                         <Grid.Effect>
                             <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>

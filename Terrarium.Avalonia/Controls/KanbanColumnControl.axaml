@@ -2,11 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              xmlns:controls="using:Terrarium.Avalonia.Controls"
-             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
              xmlns:views="using:Terrarium.Avalonia.Views"
+             xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
              x:Class="Terrarium.Avalonia.Controls.KanbanColumnControl"
-             x:DataType="models:Column">
+             x:DataType="kanban:Column">
 
     <Border Width="320" Background="Transparent"
             behaviors:KanbanDropHandler.IsDropTarget="True">

@@ -1,10 +1,10 @@
-﻿using System.Linq;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
+using Terrarium.Avalonia.Models.Kanban;
 using Terrarium.Avalonia.ViewModels;
-using Terrarium.Avalonia.ViewModels.Models;
+using Terrarium.Avalonia.Views;
 
 namespace Terrarium.Avalonia.Behaviors
 {
@@ -55,7 +55,7 @@ namespace Terrarium.Avalonia.Behaviors
             if (taskToMove == null || targetColumn == null) return;
 
             // Find ViewModel
-            var boardView = control.FindAncestorOfType<Terrarium.Avalonia.Views.KanbanBoardView>();
+            var boardView = control.FindAncestorOfType<KanbanBoardView>();
             var mainVm = boardView?.DataContext as KanbanBoardViewModel;
 
             if (mainVm == null) return;

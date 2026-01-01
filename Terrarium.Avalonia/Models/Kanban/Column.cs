@@ -2,7 +2,7 @@
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Models.Kanban;
 
-namespace Terrarium.Avalonia.ViewModels.Models
+namespace Terrarium.Avalonia.Models.Kanban
 {
     public class Column : ViewModelBase
     {

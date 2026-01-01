@@ -2,7 +2,7 @@
 using Terrarium.Core.Enums.Garden;
 using Terrarium.Core.Models;
 
-namespace Terrarium.Avalonia.ViewModels.Models
+namespace Terrarium.Avalonia.Models.Garden
 {
     public class PlantUiModel : ViewModelBase
     {

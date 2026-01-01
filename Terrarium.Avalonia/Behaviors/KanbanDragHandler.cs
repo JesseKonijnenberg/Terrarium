@@ -4,8 +4,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Terrarium.Avalonia.ViewModels.Models;
+using Terrarium.Avalonia.Models.Kanban;
 
 namespace Terrarium.Avalonia.Behaviors
 {

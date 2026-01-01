@@ -4,7 +4,7 @@ using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Models.Kanban;
 
-namespace Terrarium.Avalonia.ViewModels.Models
+namespace Terrarium.Avalonia.Models.Kanban
 {
     public class TaskItem : ViewModelBase
     {

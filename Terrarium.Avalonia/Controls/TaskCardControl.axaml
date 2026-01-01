@@ -1,11 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:models="using:Terrarium.Avalonia.ViewModels.Models"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              xmlns:views="using:Terrarium.Avalonia.Views"
              xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
+             xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
              x:Class="Terrarium.Avalonia.Controls.TaskCardControl"
-             x:DataType="models:TaskItem">
+             x:DataType="kanban:TaskItem">
     <UserControl.Styles>
         <Style Selector="Border.TaskCard">
             <Setter Property="Background" Value="{StaticResource BgCard}"/>
