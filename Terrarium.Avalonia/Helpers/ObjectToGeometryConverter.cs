@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
-namespace Terrarium.Avalonia.Converters
+namespace Terrarium.Avalonia.Helpers
 {
     public class ObjectToGeometryConverter : IValueConverter
     {
