@@ -9,18 +9,15 @@ namespace Terrarium.Avalonia.ViewModels
         public GardenViewModel GardenVm { get; }
         public SettingsViewModel SettingsVm { get; }
 
-        private ViewModelBase _currentPage;
-        public ViewModelBase CurrentPage
-        {
-            get => _currentPage;
-            set
-            {
-                if (_currentPage != value)
-                {
-                    _currentPage = value;
-                    OnPropertyChanged();
-                }
-            }
+        public ViewModelBase CurrentPage 
+        { 
+            get; 
+            set 
+            { 
+                if (field == value) return; 
+                field = value; 
+                OnPropertyChanged(); 
+            } 
         }
 
         public ICommand GoToBoardCommand { get; }
@@ -35,7 +32,7 @@ namespace Terrarium.Avalonia.ViewModels
             BoardVm = boardVm;
             GardenVm = gardenVm;
             SettingsVm = settingsVm;
-            _currentPage = BoardVm;
+            CurrentPage = BoardVm;
 
             GoToBoardCommand = new RelayCommand(_ => CurrentPage = BoardVm);
             GoToGardenCommand = new RelayCommand(_ => CurrentPage = GardenVm);

@@ -1,13 +1,12 @@
 ﻿using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
-// Needed for LINQ
 
-namespace Terrarium.Logic.Services
+namespace Terrarium.Logic.Services.Kanban
 {
     public class BoardService : IBoardService
     {
         private readonly IBoardRepository _repository;
-
+        
         private List<ColumnEntity> _boardCache = new();
 
         public BoardService(IBoardRepository repository)

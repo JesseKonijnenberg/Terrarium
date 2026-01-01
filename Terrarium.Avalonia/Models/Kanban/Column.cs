@@ -4,28 +4,20 @@ using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Avalonia.Models.Kanban
 {
-    public class Column : ViewModelBase
+    public class Column(ColumnEntity entity) : ViewModelBase
     {
-        private readonly ColumnEntity _entity;
-        public ColumnEntity Entity => _entity;
+        public ColumnEntity Entity { get; } = entity;
 
-        public Column(ColumnEntity entity)
-        {
-            _entity = entity;
-        }
-
-        public string Id => _entity.Id;
+        public string Id => Entity.Id;
 
         public string Title
         {
-            get => _entity.Title;
+            get => Entity.Title;
             set
             {
-                if (_entity.Title != value)
-                {
-                    _entity.Title = value;
-                    OnPropertyChanged();
-                }
+                if (Entity.Title == value) return;
+                Entity.Title = value;
+                OnPropertyChanged();
             }
         }
 

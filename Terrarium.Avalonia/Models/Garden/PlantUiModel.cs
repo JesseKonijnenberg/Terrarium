@@ -7,14 +7,9 @@ namespace Terrarium.Avalonia.Models.Garden
     public class PlantUiModel : ViewModelBase
     {
         public PlantEntity Entity { get; }
-
-        // --- WRAPPER PROPERTIES ---
-        // We expose these so the View binds to the UiModel, not the Entity directly.
-
         public int GrowthProgress
         {
-            get => Entity.GrowthProgress;
-            // No setter: The logic layer updates the Entity, we just reflect it.
+            get => Entity.GrowthProgress; // No setter: The logic layer updates the Entity, we just reflect it.
         }
 
         public PlantStage Stage
@@ -48,10 +43,7 @@ namespace Terrarium.Avalonia.Models.Garden
             X = x;
             Y = y;
         }
-
-        // --- THE FIX ---
-        // Call this method after the Service modifies the Entity.
-        // It tells the View: "Check these values again!"
+        
         public void Refresh()
         {
             OnPropertyChanged(nameof(GrowthProgress));

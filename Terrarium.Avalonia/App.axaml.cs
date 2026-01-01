@@ -12,6 +12,7 @@ using Terrarium.Data;
 using Terrarium.Data.Contexts;
 using Terrarium.Data.Repositories;
 using Terrarium.Logic.Services;
+using Terrarium.Logic.Services.Kanban;
 
 namespace Terrarium.Avalonia
 {

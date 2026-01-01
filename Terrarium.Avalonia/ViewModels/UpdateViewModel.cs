@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -16,72 +17,76 @@ namespace Terrarium.Avalonia.ViewModels
         public ICommand UpdateCommand { get; }
         public ICommand CancelUpdateCommand { get; }
         public ICommand RestartCommand { get; }
-
-        private bool _isUpdateAvailable;
-        public bool IsUpdateAvailable
-        {
-            get => _isUpdateAvailable;
-            set
-            {
-                _isUpdateAvailable = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-            }
-        }
-
-        private bool _isUpdating;
-        public bool IsUpdating
-        {
-            get => _isUpdating;
-            set
-            {
-                _isUpdating = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-                OnPropertyChanged(nameof(ShowProgressPanel));
-            }
-        }
-
-        private bool _isRestartPending;
-        public bool IsRestartPending
-        {
-            get => _isRestartPending;
-            set
-            {
-                _isRestartPending = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-            }
-        }
-
-        private bool _isCancelling;
-        public bool IsCancelling
-        {
-            get => _isCancelling;
-            set
-            {
-                _isCancelling = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-                OnPropertyChanged(nameof(ShowProgressPanel));
-            }
-        }
-
-        private int _updateProgress;
-        public int UpdateProgress
-        {
-            get => _updateProgress;
-            set { _updateProgress = value; OnPropertyChanged(); }
-        }
-
-        private string _updateButtonText = "Check for Updates";
-        public string UpdateButtonText { get => _updateButtonText; set { _updateButtonText = value; OnPropertyChanged(); } }
-
-
+        
         public bool ShowStartButton => IsUpdateAvailable && !IsUpdating && !IsRestartPending && !IsCancelling;
-
         public bool ShowProgressPanel => IsUpdating && !IsCancelling;
 
+        public bool IsUpdateAvailable
+        {
+            get;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowStartButton));
+            }
+        }
+
+        public bool IsUpdating
+        {
+            get;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowStartButton));
+                OnPropertyChanged(nameof(ShowProgressPanel));
+            }
+        }
+
+        public bool IsRestartPending
+        {
+            get;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowStartButton));
+            }
+        }
+
+        public bool IsCancelling
+        {
+            get;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowStartButton));
+                OnPropertyChanged(nameof(ShowProgressPanel));
+            }
+        }
+
+        public int UpdateProgress
+        {
+            get;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string UpdateButtonText
+        {
+            get;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        } = "Check for Updates";
+        
         public UpdateViewModel()
         {
             _updateService = new UpdateService();
@@ -141,7 +146,7 @@ namespace Terrarium.Avalonia.ViewModels
             {
                 IsUpdating = false;
                 UpdateButtonText = "Failed";
-                System.Diagnostics.Debug.WriteLine($"Update Failed: {ex}");
+                Debug.WriteLine($"Update Failed: {ex}");
             }
             finally
             {

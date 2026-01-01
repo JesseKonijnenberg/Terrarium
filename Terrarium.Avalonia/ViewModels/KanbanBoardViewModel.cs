@@ -8,7 +8,7 @@ using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
-using Terrarium.Logic.Services;
+using Terrarium.Logic.Services.Kanban;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -26,17 +26,16 @@ namespace Terrarium.Avalonia.ViewModels
 
         public ObservableCollection<Column> Columns { get; set; } = new();
 
-        private TaskItem? _selectedTask;
         public TaskItem? SelectedTask
         {
-            get => _selectedTask;
+            get;
             set
             {
-                if (_selectedTask != null)
+                if (field != null)
                 {
-                    SaveTask(_selectedTask);
+                    SaveTask(field);
                 }
-                _selectedTask = value;
+                field = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDetailPanelOpen));
             }

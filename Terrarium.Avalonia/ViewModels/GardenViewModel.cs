@@ -16,22 +16,14 @@ namespace Terrarium.Avalonia.ViewModels
         private readonly Random _random = new Random();
 
         // CONSTANTS for Collision & Layout
-        private const int PlantWidth = 140;  // Must match View
-        private const int PlantHeight = 160; // Must match View
+        private const int PlantWidth = 140;
+        private const int PlantHeight = 160;
         private const int GardenWidth = 1000;
         private const int GardenHeight = 600;
 
         public string Title => "Garden Sanctuary";
-
-        // WATER
-        private int _waterBalance;
-        public int WaterBalance
-        {
-            get => _waterBalance;
-            set { _waterBalance = value; OnPropertyChanged(); }
-        }
-
-        // PLANTS (Using the UI Wrapper now)
+        public int WaterBalance { get; set { field = value; OnPropertyChanged(); } }
+        
         public ObservableCollection<PlantUiModel> Plants { get; } = new();
 
         public ICommand WaterPlantCommand { get; }
