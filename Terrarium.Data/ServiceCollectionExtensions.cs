@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data.Contexts;
-using Terrarium.Data.Repositories;
 
 namespace Terrarium.Data
 {

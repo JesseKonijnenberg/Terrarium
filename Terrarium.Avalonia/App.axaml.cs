@@ -10,7 +10,6 @@ using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data;
 using Terrarium.Data.Contexts;
-using Terrarium.Data.Repositories;
 using Terrarium.Logic.Services;
 using Terrarium.Logic.Services.Kanban;
 
@@ -30,6 +29,10 @@ namespace Terrarium.Avalonia
             var collection = new ServiceCollection();
             ConfigureServices(collection);
             Services = collection.BuildServiceProvider();
+            
+            var backupService = Services.GetRequiredService<IBackupService>();
+            backupService.Initialize();
+            
             using (var scope = Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TerrariumDbContext>();
@@ -58,8 +61,10 @@ namespace Terrarium.Avalonia
 
             services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
             services.AddSingleton<IBoardService, BoardService>();
-            services.AddSingleton<IGardenService, GardenService>();
+            services.AddSingleton<IBackupService, BackupService>();
+            services.AddSingleton<IBoardSerializer>(new BoardSerializer(storageOptions.TemplateFilePath));
 
+            services.AddSingleton<IGardenService, GardenService>();
             services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
 
             services.AddTransient<SettingsViewModel>();

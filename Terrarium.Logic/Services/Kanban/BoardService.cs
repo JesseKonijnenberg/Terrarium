@@ -1,4 +1,5 @@
-﻿using Terrarium.Core.Interfaces.Kanban;
+﻿using Terrarium.Core.Events.Kanban;
+using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Logic.Services.Kanban
@@ -8,6 +9,8 @@ namespace Terrarium.Logic.Services.Kanban
         private readonly IBoardRepository _repository;
         
         private List<ColumnEntity> _boardCache = new();
+        
+        public event EventHandler<BoardChangedEventsArgs> BoardChanged;
 
         public BoardService(IBoardRepository repository)
         {
@@ -31,6 +34,7 @@ namespace Terrarium.Logic.Services.Kanban
             {
                 col.Tasks.Insert(0, task);
             }
+            NotifyBoardChanged(new BoardChangedEventsArgs());
         }
 
         public async Task MoveTaskAsync(TaskEntity task, string targetColumnId, int index)
@@ -53,6 +57,7 @@ namespace Terrarium.Logic.Services.Kanban
                     targetCol.Tasks.Insert(index, taskInCache);
                 }
             }
+            NotifyBoardChanged(new BoardChangedEventsArgs());
         }
 
         public async Task DeleteTaskAsync(TaskEntity task)
@@ -68,6 +73,7 @@ namespace Terrarium.Logic.Services.Kanban
                     col.Tasks.Remove(taskInCache);
                 }
             }
+            NotifyBoardChanged(new BoardChangedEventsArgs());
         }
 
         public async Task UpdateTaskAsync(TaskEntity task)
@@ -87,6 +93,13 @@ namespace Terrarium.Logic.Services.Kanban
                     cachedTask.DueDate = task.DueDate;
                 }
             }
+            NotifyBoardChanged(new BoardChangedEventsArgs());
+        }
+
+
+        private void NotifyBoardChanged(BoardChangedEventsArgs e)
+        {
+            BoardChanged?.Invoke(this,e);
         }
     }
 }

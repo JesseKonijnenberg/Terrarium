@@ -3,7 +3,7 @@ using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 using Terrarium.Data.Contexts;
 
-namespace Terrarium.Data.Repositories
+namespace Terrarium.Data
 {
     public class SqliteBoardRepository : IBoardRepository
     {

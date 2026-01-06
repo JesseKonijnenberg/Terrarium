@@ -1,13 +1,14 @@
-﻿using System;
-using System.IO;
-
-namespace Terrarium.Core.Models.Data
+﻿namespace Terrarium.Core.Models.Data
 {
     /// <summary>
-    /// Configuration options for data storage, managing file paths and connection strings for the application.
+    /// Configuration options for data storage, managing file paths, connection strings, 
+    /// and template locations for the application.
     /// </summary>
     public class StorageOptions
     {
+        private const string DefaultTemplateFileName = "default_board.md";
+        private const string CustomTemplateFileName = "custom_board.md";
+
         /// <summary>
         /// Gets the base directory path where application data is stored.
         /// This path varies depending on the build configuration (Debug vs Release).
@@ -32,8 +33,8 @@ namespace Terrarium.Core.Models.Data
 #else
             BasePath = Path.Combine(root, "Terrarium");
 #endif
-
-            if (!Directory.Exists(BasePath))             // Ensure the directory exists as soon as the options are created
+            
+            if (!Directory.Exists(BasePath))
             {
                 Directory.CreateDirectory(BasePath);
             }
@@ -48,5 +49,24 @@ namespace Terrarium.Core.Models.Data
         /// Gets the full file path for the board backup file.
         /// </summary>
         public string BackupFilePath => Path.Combine(BasePath, "board_backup.md");
+
+        /// <summary>
+        /// Gets the path to the Markdown template to be used for backups.
+        /// Prioritizes a user-defined "custom_board.md" in the AppData folder,
+        /// falling back to the "default_board.md" in the application assets.
+        /// </summary>
+        public string TemplateFilePath
+        {
+            get
+            {
+                string customPath = Path.Combine(BasePath, CustomTemplateFileName);
+                if (File.Exists(customPath))
+                {
+                    return customPath;
+                }
+                
+                return Path.Combine(AppContext.BaseDirectory, "Assets", "Templates", DefaultTemplateFileName);
+            }
+        }
     }
 }
