@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
-             xmlns:controls="using:Terrarium.Avalonia.Controls"
              xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
              xmlns:views="using:Terrarium.Avalonia.Views"
              xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
+             xmlns:controlsUiComponents="clr-namespace:Terrarium.Avalonia.Controls__UI_Components_"
              x:Class="Terrarium.Avalonia.Controls.KanbanColumnControl"
              x:DataType="kanban:Column">
 
@@ -24,7 +24,7 @@
                 <ItemsControl ItemsSource="{Binding Tasks}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <controls:TaskCardControl/>
+                            <controlsUiComponents:TaskCardControl/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

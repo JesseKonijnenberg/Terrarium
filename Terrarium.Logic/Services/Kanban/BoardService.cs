@@ -7,14 +7,16 @@ namespace Terrarium.Logic.Services.Kanban
     public class BoardService : IBoardService
     {
         private readonly IBoardRepository _repository;
+        private readonly ITaskParserService _taskParserService;
         
         private List<ColumnEntity> _boardCache = new();
         
         public event EventHandler<BoardChangedEventsArgs> BoardChanged;
 
-        public BoardService(IBoardRepository repository)
+        public BoardService(IBoardRepository repository, ITaskParserService taskParserService)
         {
             _repository = repository;
+            _taskParserService = taskParserService;
         }
 
         public async Task<List<ColumnEntity>> LoadBoardAsync()
@@ -75,6 +77,19 @@ namespace Terrarium.Logic.Services.Kanban
             }
             NotifyBoardChanged(new BoardChangedEventsArgs());
         }
+        
+        public async Task DeleteMultipleTasksAsync(IEnumerable<string> taskIds)
+        {
+            await _repository.DeleteTasksAsync(taskIds);
+            
+            var idSet = new HashSet<string>(taskIds);
+            foreach (var col in _boardCache)
+            {
+                col.Tasks.RemoveAll(t => idSet.Contains(t.Id));
+            }
+
+            NotifyBoardChanged(new BoardChangedEventsArgs());
+        }
 
         public async Task UpdateTaskAsync(TaskEntity task)
         {
@@ -92,6 +107,39 @@ namespace Terrarium.Logic.Services.Kanban
                     cachedTask.Priority = task.Priority;
                     cachedTask.DueDate = task.DueDate;
                 }
+            }
+            NotifyBoardChanged(new BoardChangedEventsArgs());
+        }
+        
+        public async Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text)
+        {
+            var results = _taskParserService.ParseClipboardText(text).ToList();
+            var processedTasks = new List<TaskEntity>();
+            
+            var boardData = await LoadBoardAsync(); 
+
+            foreach (var result in results)
+            {
+                var targetCol = boardData.FirstOrDefault(c => c.Title == result.TargetColumnName) 
+                                ?? boardData.FirstOrDefault();
+
+                if (targetCol == null) continue;
+
+                result.Task.ColumnId = targetCol.Id;
+                
+                await AddTaskAsync(result.Task, targetCol.Id);
+                processedTasks.Add(result.Task);
+            }
+
+            return processedTasks;
+        }
+        
+        public async Task WipeBoardAsync()
+        {
+            await _repository.DeleteAllTasksAsync();
+            foreach (var col in _boardCache)
+            {
+                col.Tasks.Clear();
             }
             NotifyBoardChanged(new BoardChangedEventsArgs());
         }

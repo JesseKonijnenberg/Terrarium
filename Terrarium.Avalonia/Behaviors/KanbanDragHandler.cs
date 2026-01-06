@@ -40,8 +40,12 @@ namespace Terrarium.Avalonia.Behaviors
         {
             IsDraggableProperty.Changed.AddClassHandler<Control>((element, args) =>
             {
-                if ((bool)args.NewValue)
+                if (args.NewValue is bool isDraggable && isDraggable)
                 {
+                    element.PointerPressed -= OnPointerPressed;
+                    element.PointerMoved -= OnPointerMoved;
+                    element.Tapped -= OnTapped;
+
                     element.PointerPressed += OnPointerPressed;
                     element.PointerMoved += OnPointerMoved;
                     element.Tapped += OnTapped;
@@ -111,7 +115,7 @@ namespace Terrarium.Avalonia.Behaviors
         private static void OnTapped(object? sender, TappedEventArgs e)
         {
             if (sender is not Control control) return;
-
+            
             if (control.GetValue(IsDraggingProperty)) return;
 
             var command = GetCommand(control);

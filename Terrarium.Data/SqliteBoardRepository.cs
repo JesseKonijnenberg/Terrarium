@@ -65,6 +65,21 @@ namespace Terrarium.Data
                 await _context.SaveChangesAsync();
             }
         }
+        
+        public async Task DeleteTasksAsync(IEnumerable<string> taskIds)
+        {
+            await _context.Tasks
+                .Where(t => taskIds.Contains(t.Id))
+                .ExecuteDeleteAsync();
+        
+            await _context.SaveChangesAsync();
+        }
+        
+        public async Task DeleteAllTasksAsync()
+        {
+            await _context.Tasks.ExecuteDeleteAsync();
+            await _context.SaveChangesAsync();
+        }
 
         public async Task UpdateTaskAsync(TaskEntity incomingTask)
         {

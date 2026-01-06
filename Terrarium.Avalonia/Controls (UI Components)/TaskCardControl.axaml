@@ -4,8 +4,9 @@
              xmlns:views="using:Terrarium.Avalonia.Views"
              xmlns:behaviors="using:Terrarium.Avalonia.Behaviors"
              xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
-             x:Class="Terrarium.Avalonia.Controls.TaskCardControl"
+             x:Class="Terrarium.Avalonia.Controls__UI_Components_.TaskCardControl"
              x:DataType="kanban:TaskItem">
+
     <UserControl.Styles>
         <Style Selector="Border.TaskCard">
             <Setter Property="Background" Value="{StaticResource BgCard}"/>
@@ -21,13 +22,24 @@
             <Setter Property="Background" Value="#252321"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
         </Style>
+        <Style Selector="Border.TaskCard.IsSelected">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+            <Setter Property="BorderThickness" Value="4"/>
+            <Setter Property="BoxShadow" Value="0 0 15 0 #408694"/> 
+        </Style>
     </UserControl.Styles>
+
     <Border Classes="TaskCard"
+            Classes.IsSelected="{Binding IsSelected}"
+            PointerPressed="OnPointerPressed"
             behaviors:KanbanDragHandler.IsDraggable="True"
-            behaviors:KanbanDragHandler.Command="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).SelectTaskCommand}"
+            behaviors:KanbanDragHandler.Command="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).ToggleTaskSelectionCommand}"
             behaviors:KanbanDragHandler.CommandParameter="{Binding .}">
         
-        <Grid RowDefinitions="Auto, Auto, Auto">
+        <Grid RowDefinitions="Auto, Auto, Auto"
+              Background="Transparent"
+              DoubleTapped="OnCardDoubleTapped">
+            
             <Border HorizontalAlignment="Left" Background="{Binding TagBgColor}" BorderBrush="{Binding TagBorderColor}" BorderThickness="1" CornerRadius="10" Padding="12,2" Margin="0,0,0,12">
                 <TextBlock Text="{Binding Tag}" Foreground="{Binding TagTextColor}" FontSize="10" FontWeight="Bold"/>
             </Border>

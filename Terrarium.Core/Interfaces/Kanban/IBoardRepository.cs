@@ -8,6 +8,8 @@ namespace Terrarium.Core.Interfaces.Kanban
         Task AddTaskAsync(TaskEntity task, string columnId);
         Task UpdateTaskAsync(TaskEntity task);
         Task DeleteTaskAsync(string taskId);
+        Task DeleteTasksAsync(IEnumerable<string> taskIds);
+        Task DeleteAllTasksAsync();
         Task MoveTaskAsync(string taskId, string targetColumnId, int newIndex);
     }
 }

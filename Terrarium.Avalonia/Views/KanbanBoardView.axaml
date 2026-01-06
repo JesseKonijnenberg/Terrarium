@@ -15,8 +15,11 @@
                     CommandParameter="{Binding $parent[TopLevel].Clipboard}"/>
         <KeyBinding Gesture="Ctrl+A" 
                     Command="{Binding SelectAllTasksCommand}"/>
+        <KeyBinding Gesture="Back" 
+                    Command="{Binding DeleteSelectedTasksCommand}"/>
         <KeyBinding Gesture="Delete" 
                     Command="{Binding DeleteAllTasksCommand}"/>
+        <KeyBinding Gesture="Escape" Command="{Binding DeselectAllCommand}"/>
     </UserControl.KeyBindings>
 
     <UserControl.Styles>
@@ -40,6 +43,10 @@
         <Style Selector="Button.TaskCard:pointerover /template/ Border#CardBorder">
             <Setter Property="Background" Value="#252321"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+        </Style>
+        <Style Selector="Button.TaskCard.IsSelected /template/ Border#CardBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+            <Setter Property="BorderThickness" Value="4"/>
         </Style>
     </UserControl.Styles>
 
@@ -67,7 +74,7 @@
         </ScrollViewer>
 
         <ContentControl Grid.RowSpan="2" HorizontalAlignment="Right" Width="450"
-                        Content="{Binding SelectedTask}"
+                        Content="{Binding OpenedTask}"
                         IsVisible="{Binding IsDetailPanelOpen}">
             <ContentControl.ContentTemplate>
                 <DataTemplate DataType="kanban:TaskItem">

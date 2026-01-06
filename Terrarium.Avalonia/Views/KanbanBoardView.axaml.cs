@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Terrarium.Avalonia.ViewModels;
 
 namespace Terrarium.Avalonia.Views
 {
@@ -18,7 +19,13 @@ namespace Terrarium.Avalonia.Views
         
         private void OnBackgroundPointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            this.Focus();
+            var grid = sender as Grid;
+            grid?.Focus();
+    
+            if (DataContext is KanbanBoardViewModel vm)
+            {
+                vm.DeselectAllCommand.Execute(null);
+            }
         }
     }
 }

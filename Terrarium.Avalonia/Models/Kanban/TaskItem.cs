@@ -64,6 +64,13 @@ public class TaskItem(TaskEntity entity) : ViewModelBase
     }
 
     public bool IsHighPriority => Entity.Priority == TaskPriority.High;
+    
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set { _isSelected = value; OnPropertyChanged(); } // Notification is critical
+    }
 
     // UI Formatting Logic
     public IBrush TagBgColor => GetTagBrush(Tag, 0.3);

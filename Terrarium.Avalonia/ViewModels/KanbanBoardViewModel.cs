@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using Avalonia.Input.Platform;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Terrarium.Avalonia.Models.Kanban;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Enums.Kanban;
@@ -23,17 +24,22 @@ namespace Terrarium.Avalonia.ViewModels
         public UpdateViewModel Updater { get; } = new UpdateViewModel();
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
-        public ICommand SelectTaskCommand { get; }
+        public ICommand OpenTaskCommand { get; }
         public ICommand SaveTaskCommand { get; }
         public ICommand SmartPasteCommand { get; }
         public ICommand SelectAllTasksCommand { get; }
         public ICommand DeleteAllTasksCommand { get; }
         public ICommand ConfirmDeleteAllCommand { get; }
         public ICommand CancelDeleteAllCommand { get; }
+        public ICommand ToggleTaskSelectionCommand { get; }
+        public ICommand DeleteSelectedTasksCommand { get; }
+        public ICommand DeselectAllCommand { get; }
 
         public ObservableCollection<Column> Columns { get; set; } = new();
+        public ObservableHashSet<string> SelectedTaskIds { get; } = new();
+        
 
-        public TaskItem? SelectedTask
+        public TaskItem? OpenedTask
         {
             get;
             set
@@ -47,14 +53,13 @@ namespace Terrarium.Avalonia.ViewModels
                 OnPropertyChanged(nameof(IsDetailPanelOpen));
             }
         }
-        private bool _isDeleteAllConfirmationOpen;
         public bool IsDeleteAllConfirmationOpen
         {
-            get => _isDeleteAllConfirmationOpen;
-            set { _isDeleteAllConfirmationOpen = value; OnPropertyChanged(); }
+            get;
+            set { field = value; OnPropertyChanged(); }
         }
         
-        public bool IsDetailPanelOpen => SelectedTask != null;
+        public bool IsDetailPanelOpen => OpenedTask != null;
 
         public KanbanBoardViewModel(
             IBoardService boardService, 
@@ -67,12 +72,16 @@ namespace Terrarium.Avalonia.ViewModels
 
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
-            SelectTaskCommand = new RelayCommand(ExecuteSelectTask);
+            OpenTaskCommand = new RelayCommand(ExecuteOpenTask);
             SaveTaskCommand = new RelayCommand(ExecuteSaveTask);
             SmartPasteCommand = new RelayCommand(ExecuteSmartPaste);
             DeleteAllTasksCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = true);
             ConfirmDeleteAllCommand = new RelayCommand(ExecuteConfirmDeleteAll);
             CancelDeleteAllCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = false);
+            ToggleTaskSelectionCommand = new RelayCommand(ExecuteToggleSelection);
+            DeleteSelectedTasksCommand = new RelayCommand(ExecuteDeleteSelected, _ => SelectedTaskIds.Any());
+            SelectAllTasksCommand = new RelayCommand(ExecuteSelectAll);
+            DeselectAllCommand = new RelayCommand(ExecuteDeselectAll);
             
             LoadData();
         }
@@ -102,25 +111,33 @@ namespace Terrarium.Avalonia.ViewModels
             }
         }
 
-        private void ExecuteSelectTask(object? parameter)
+        private void ExecuteOpenTask(object? parameter)
         {
-            if (parameter is TaskItem task) SelectedTask = task;
+            if (parameter is TaskItem task) 
+            {
+                OpenedTask = task;
+                
+                if (!SelectedTaskIds.Contains(task.Id))
+                {
+                    SelectedTaskIds.Add(task.Id);
+                }
+            }
         }
 
         public void CloseDetails()
         {
-            if (SelectedTask != null)
+            if (OpenedTask != null)
             {
-                SaveTask(SelectedTask);
+                SaveTask(OpenedTask);
             }
-            SelectedTask = null;
+            OpenedTask = null;
         }
 
         private void ExecuteSaveTask(object? parameter)
         {
-            if (SelectedTask != null)
+            if (OpenedTask != null)
             {
-                SaveTask(SelectedTask);
+                SaveTask(OpenedTask);
             }
         }
 
@@ -148,49 +165,40 @@ namespace Terrarium.Avalonia.ViewModels
 
         private async void ExecuteDeleteTask(object? parameter)
         {
-            if (SelectedTask is TaskItem taskToDelete)
+            if (OpenedTask is TaskItem taskToDelete)
             {
                 var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(taskToDelete));
                 if (sourceColumn != null)
                 {
                     sourceColumn.Tasks.Remove(taskToDelete);
-                    SelectedTask = null;
+                    OpenedTask = null;
 
                     await _boardService.DeleteTaskAsync(taskToDelete.Entity);
                 }
             }
         }
 
-        private bool CanExecuteDeleteTask(object? parameter) => SelectedTask != null;
+        private bool CanExecuteDeleteTask(object? parameter) => OpenedTask != null;
 
         private async void ExecuteAddItem(object? parameter)
         {
             if (parameter is Column targetColumn)
             {
-                int nextId = 1;
-                if (Columns.Any(c => c.Tasks.Any()))
-                {
-                    var allTasks = Columns.SelectMany(c => c.Tasks);
-                    if (allTasks.Any())
-                    {
-                        nextId = allTasks.Max(t => int.TryParse(t.Id, out int id) ? id : 0) + 1;
-                    }
-                }
-
                 var newEntity = new TaskEntity
                 {
-                    Id = nextId.ToString(),
                     Title = "New Task",
                     Tag = "New",
-                    Description = "",
                     Priority = TaskPriority.Low,
-                    DueDate = DateTime.Now
+                    DueDate = DateTime.Now,
+                    ColumnId = targetColumn.Id
                 };
-
+                
                 var newTask = new TaskItem(newEntity);
+                
                 targetColumn.Tasks.Insert(0, newTask);
-                SelectedTask = newTask;
-
+                
+                OpenedTask = newTask;
+                
                 await _boardService.AddTaskAsync(newEntity, targetColumn.Id);
             }
         }
@@ -213,97 +221,114 @@ namespace Terrarium.Avalonia.ViewModels
         
         private async void ExecuteConfirmDeleteAll(object? parameter)
         {
-            IsDeleteAllConfirmationOpen = false; // Hide popup
-    
+            IsDeleteAllConfirmationOpen = false;
+            
+            await _boardService.WipeBoardAsync();
+            
             foreach (var column in Columns)
             {
-                // Must clear DB first
-                foreach (var task in column.Tasks.ToList())
-                {
-                    await _boardService.DeleteTaskAsync(task.Entity);
-                }
-                // Then clear UI
                 column.Tasks.Clear();
             }
     
-            SelectedTask = null;
-            Console.WriteLine("[SYSTEM] Board wiped successfully.");
+            OpenedTask = null;
         }
         
         private async void ExecuteSmartPaste(object? parameter)
         {
-            Console.WriteLine("--- SMART PASTE TRIGGERED ---");
+            if (parameter is not IClipboard clipboard) return;
+            var text = await clipboard.GetTextAsync();
+            
+            var newTasks = await _boardService.ProcessSmartPasteAsync(text);
 
-            if (parameter == null)
+            foreach (var entity in newTasks)
             {
-                Console.WriteLine("[ERROR] Command Parameter is NULL. The XAML binding is failing.");
-                return;
-            }
-
-            if (parameter is not IClipboard clipboard)
-            {
-                Console.WriteLine($"[ERROR] Parameter is wrong type: {parameter.GetType().Name}. Expected: IClipboard.");
-                return;
-            }
-
-            Console.WriteLine("[SUCCESS] Clipboard service found.");
-
-            try 
-            {
-                var text = await clipboard.GetTextAsync();
+                var uiColumn = Columns.FirstOrDefault(c => c.Id == entity.ColumnId);
                 
-                if (string.IsNullOrWhiteSpace(text))
+                if (uiColumn != null)
                 {
-                    Console.WriteLine("[WARNING] Clipboard text is empty or null.");
-                    return;
+                    var newTaskItem = new TaskItem(entity);
+                    uiColumn.Tasks.Add(newTaskItem);
                 }
-
-                Console.WriteLine($"[INFO] Clipboard Content Found ({text.Length} chars):");
-                Console.WriteLine(text);
-
-                var parsedTasks = _taskParserService.ParseClipboardText(text).ToList();
-                
-                Console.WriteLine($"[INFO] Parser found {parsedTasks.Count} tasks.");
-
-                if (!parsedTasks.Any()) 
-                {
-                    Console.WriteLine("[WARNING] Parser returned 0 tasks. Check Regex/Format.");
-                    return;
-                }
-
-                var targetColumn = Columns.FirstOrDefault();
-                if (targetColumn == null)
-                {
-                     Console.WriteLine("[ERROR] No columns found to paste into!");
-                     return;
-                }
-
-                foreach (var entity in parsedTasks)
-                {
-                    Console.WriteLine($"[ACTION] Adding Task: {entity.Title}");
-                    
-                    int nextId = 1;
-                    if (Columns.Any(c => c.Tasks.Any()))
-                    {
-                        nextId = Columns.SelectMany(c => c.Tasks)
-                            .Max(t => int.TryParse(t.Id, out int id) ? id : 0) + 1;
-                    }
-                    entity.Id = nextId.ToString();
-
-                    var newTask = new TaskItem(entity);
-                    targetColumn.Tasks.Add(newTask);
-                    await _boardService.AddTaskAsync(entity, targetColumn.Id);
-                    
-                    // Auto-select to confirm UI update
-                    //SelectedTask = newTask;
-                }
-                Console.WriteLine("--- PASTE COMPLETE ---");
             }
-            catch (Exception ex)
+        }
+        
+        private void ExecuteToggleSelection(object? parameter)
+        {
+            if (parameter is TaskItem task)
             {
-                Console.WriteLine($"[CRITICAL ERROR] {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                task.IsSelected = !task.IsSelected;
+                
+                if (task.IsSelected)
+                {
+                    if (!SelectedTaskIds.Contains(task.Id))
+                        SelectedTaskIds.Add(task.Id);
+                }
+                else
+                {
+                    SelectedTaskIds.Remove(task.Id);
+                }
+                (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
+        }
+        
+        private void ExecuteSelectAll(object? parameter)
+        {
+            SelectedTaskIds.Clear();
+    
+            foreach (var column in Columns)
+            {
+                foreach (var task in column.Tasks)
+                {
+                    SelectedTaskIds.Add(task.Id);
+                    task.IsSelected = true; 
+                }
+            }
+            (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        }
+        
+        private async void ExecuteDeleteSelected(object? parameter)
+        {
+            if (!SelectedTaskIds.Any()) return;
+            
+            var idsToDelete = SelectedTaskIds.ToList();
+            
+            await _boardService.DeleteMultipleTasksAsync(idsToDelete);
+
+            foreach (var column in Columns)
+            {
+                var toRemove = column.Tasks.Where(t => idsToDelete.Contains(t.Id)).ToList();
+        
+                foreach (var task in toRemove)
+                {
+                    column.Tasks.Remove(task);
+                }
+            }
+            
+            SelectedTaskIds.Clear();
+            
+            if (OpenedTask != null && idsToDelete.Contains(OpenedTask.Id))
+            {
+                OpenedTask = null;
+            }
+            
+            (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        }
+        
+        private void ExecuteDeselectAll(object? parameter)
+        {
+            SelectedTaskIds.Clear();
+            
+            foreach (var column in Columns)
+            {
+                foreach (var task in column.Tasks)
+                {
+                    task.IsSelected = false;
+                }
+            }
+            
+            OpenedTask = null;
+            
+            (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
     }
 }
