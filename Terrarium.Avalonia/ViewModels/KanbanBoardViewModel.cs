@@ -26,6 +26,10 @@ namespace Terrarium.Avalonia.ViewModels
         public ICommand SelectTaskCommand { get; }
         public ICommand SaveTaskCommand { get; }
         public ICommand SmartPasteCommand { get; }
+        public ICommand SelectAllTasksCommand { get; }
+        public ICommand DeleteAllTasksCommand { get; }
+        public ICommand ConfirmDeleteAllCommand { get; }
+        public ICommand CancelDeleteAllCommand { get; }
 
         public ObservableCollection<Column> Columns { get; set; } = new();
 
@@ -43,6 +47,13 @@ namespace Terrarium.Avalonia.ViewModels
                 OnPropertyChanged(nameof(IsDetailPanelOpen));
             }
         }
+        private bool _isDeleteAllConfirmationOpen;
+        public bool IsDeleteAllConfirmationOpen
+        {
+            get => _isDeleteAllConfirmationOpen;
+            set { _isDeleteAllConfirmationOpen = value; OnPropertyChanged(); }
+        }
+        
         public bool IsDetailPanelOpen => SelectedTask != null;
 
         public KanbanBoardViewModel(
@@ -59,6 +70,9 @@ namespace Terrarium.Avalonia.ViewModels
             SelectTaskCommand = new RelayCommand(ExecuteSelectTask);
             SaveTaskCommand = new RelayCommand(ExecuteSaveTask);
             SmartPasteCommand = new RelayCommand(ExecuteSmartPaste);
+            DeleteAllTasksCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = true);
+            ConfirmDeleteAllCommand = new RelayCommand(ExecuteConfirmDeleteAll);
+            CancelDeleteAllCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = false);
             
             LoadData();
         }
@@ -195,6 +209,25 @@ namespace Terrarium.Avalonia.ViewModels
                 }
                 Columns.Add(columnVm);
             }
+        }
+        
+        private async void ExecuteConfirmDeleteAll(object? parameter)
+        {
+            IsDeleteAllConfirmationOpen = false; // Hide popup
+    
+            foreach (var column in Columns)
+            {
+                // Must clear DB first
+                foreach (var task in column.Tasks.ToList())
+                {
+                    await _boardService.DeleteTaskAsync(task.Entity);
+                }
+                // Then clear UI
+                column.Tasks.Clear();
+            }
+    
+            SelectedTask = null;
+            Console.WriteLine("[SYSTEM] Board wiped successfully.");
         }
         
         private async void ExecuteSmartPaste(object? parameter)
