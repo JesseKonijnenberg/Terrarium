@@ -11,7 +11,8 @@ namespace Terrarium.Logic.Services.Kanban
         private static readonly Regex PriorityRegex = new(@"!(\w+)", RegexOptions.Compiled);
         private static readonly Regex TaskLineRegex = new(@"^[\s-]*\[[x\s]?\]\s*(.*)", RegexOptions.Compiled);
         
-        private static readonly Regex ColumnHeaderRegex = new(@"^##\s+([^(]+)", RegexOptions.Compiled);
+        private static readonly Regex ColumnHeaderRegex = 
+            new(@"^##\s+([\w\s🏔️🏗️🧪✅]+?)(?:\s*\(.*\))?$", RegexOptions.Compiled);
 
         public IEnumerable<ParsedTaskResult> ParseClipboardText(string text)
         {
@@ -31,6 +32,7 @@ namespace Terrarium.Logic.Services.Kanban
                 if (colMatch.Success)
                 {
                     currentColumnName = colMatch.Groups[1].Value.Trim();
+                    currentColumnName = Regex.Replace(currentColumnName, @"[^\w\s]", "").Trim();
                     continue;
                 }
                 

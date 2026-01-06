@@ -11,5 +11,6 @@ namespace Terrarium.Core.Interfaces.Kanban
         Task DeleteTasksAsync(IEnumerable<string> taskIds);
         Task DeleteAllTasksAsync();
         Task MoveTaskAsync(string taskId, string targetColumnId, int newIndex);
+        Task MoveMultipleTasksAsync(List<string> taskIds, string targetColumnId, int startIndex);
     }
 }

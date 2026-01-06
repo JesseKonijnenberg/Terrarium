@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -88,26 +89,37 @@ namespace Terrarium.Avalonia.ViewModels
 
         public async void MoveTask(TaskItem task, Column targetColumn, int index = -1)
         {
-            var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(task));
-
-            if (sourceColumn != null)
+            List<TaskItem> tasksToMove;
+    
+            if (task.IsSelected)
             {
-                sourceColumn.Tasks.Remove(task);
+                tasksToMove = Columns.SelectMany(c => c.Tasks)
+                    .Where(t => t.IsSelected)
+                    .ToList();
+            }
+            else
+            {
+                tasksToMove = new List<TaskItem> { task };
+            }
 
+            var ids = tasksToMove.Select(t => t.Id).ToList();
+            
+            foreach (var t in tasksToMove)
+            {
+                var sourceCol = Columns.FirstOrDefault(c => c.Tasks.Contains(t));
+                sourceCol?.Tasks.Remove(t);
+        
                 if (index == -1 || index > targetColumn.Tasks.Count)
-                {
-                    targetColumn.Tasks.Add(task);
-                }
+                    targetColumn.Tasks.Add(t);
                 else
-                {
-                    targetColumn.Tasks.Insert(index, task);
-                }
-                if (targetColumn.Title == "Complete" || targetColumn.Title == "Done")
-                {
-                    _gardenEconomyService.EarnWater(20);
-                }
-
-                await _boardService.MoveTaskAsync(task.Entity, targetColumn.Id, index);
+                    targetColumn.Tasks.Insert(index++, t);
+            }
+            
+            await _boardService.MoveMultipleTasksAsync(ids, targetColumn.Id, index);
+            
+            if (targetColumn.Title == "Complete" || targetColumn.Title == "Done")
+            {
+                _gardenEconomyService.EarnWater(20 * tasksToMove.Count);
             }
         }
 
@@ -289,28 +301,26 @@ namespace Terrarium.Avalonia.ViewModels
         private async void ExecuteDeleteSelected(object? parameter)
         {
             if (!SelectedTaskIds.Any()) return;
-            
-            var idsToDelete = SelectedTaskIds.ToList();
-            
-            await _boardService.DeleteMultipleTasksAsync(idsToDelete);
 
-            foreach (var column in Columns)
-            {
-                var toRemove = column.Tasks.Where(t => idsToDelete.Contains(t.Id)).ToList();
-        
-                foreach (var task in toRemove)
-                {
-                    column.Tasks.Remove(task);
-                }
-            }
-            
-            SelectedTaskIds.Clear();
+            var idsToDelete = SelectedTaskIds.ToList();
             
             if (OpenedTask != null && idsToDelete.Contains(OpenedTask.Id))
             {
                 OpenedTask = null;
             }
             
+            await _boardService.DeleteMultipleTasksAsync(idsToDelete);
+            
+            foreach (var column in Columns)
+            {
+                var toRemove = column.Tasks.Where(t => idsToDelete.Contains(t.Id)).ToList();
+                foreach (var task in toRemove)
+                {
+                    column.Tasks.Remove(task);
+                }
+            }
+
+            SelectedTaskIds.Clear();
             (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
         

@@ -83,18 +83,39 @@ namespace Terrarium.Data
 
         public async Task UpdateTaskAsync(TaskEntity incomingTask)
         {
-            var existingTask = await _context.Tasks.FindAsync(incomingTask.Id);
-
-            if (existingTask != null)
+            try 
             {
-                existingTask.Title = incomingTask.Title;
-                existingTask.Description = incomingTask.Description;
-                existingTask.Tag = incomingTask.Tag;
-                existingTask.Priority = incomingTask.Priority;
-                existingTask.DueDate = incomingTask.DueDate;
+                var existingTask = await _context.Tasks.FindAsync(incomingTask.Id);
 
-                await _context.SaveChangesAsync();
+                if (existingTask != null)
+                {
+                    existingTask.Title = incomingTask.Title;
+                    existingTask.Description = incomingTask.Description;
+                    existingTask.Tag = incomingTask.Tag;
+                    existingTask.Priority = incomingTask.Priority;
+                    existingTask.DueDate = incomingTask.DueDate;
+
+                    await _context.SaveChangesAsync();
+                }
             }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                Console.WriteLine($"[DbUpdateConcurrencyException]: {ex.Message}");
+            }
+        }
+        
+        public async Task MoveMultipleTasksAsync(List<string> taskIds, string targetColumnId, int startIndex)
+        {
+            foreach (var id in taskIds)
+            {
+                var task = await _context.Tasks.FindAsync(id);
+                if (task != null)
+                {
+                    task.ColumnId = targetColumnId;
+                    task.Order = startIndex++;
+                }
+            }
+            await _context.SaveChangesAsync();
         }
     }
 }

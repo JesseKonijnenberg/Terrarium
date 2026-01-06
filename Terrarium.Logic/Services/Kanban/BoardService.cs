@@ -113,21 +113,21 @@ namespace Terrarium.Logic.Services.Kanban
         
         public async Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text)
         {
+            var boardData = await _repository.LoadBoardAsync();
             var results = _taskParserService.ParseClipboardText(text).ToList();
             var processedTasks = new List<TaskEntity>();
-            
-            var boardData = await LoadBoardAsync(); 
 
             foreach (var result in results)
             {
-                var targetCol = boardData.FirstOrDefault(c => c.Title == result.TargetColumnName) 
+                var targetCol = boardData.FirstOrDefault(c => 
+                                    result.TargetColumnName.Contains(c.Title, StringComparison.OrdinalIgnoreCase) ||
+                                    c.Title.Contains(result.TargetColumnName, StringComparison.OrdinalIgnoreCase))
                                 ?? boardData.FirstOrDefault();
 
                 if (targetCol == null) continue;
 
                 result.Task.ColumnId = targetCol.Id;
-                
-                await AddTaskAsync(result.Task, targetCol.Id);
+                await _repository.AddTaskAsync(result.Task, targetCol.Id);
                 processedTasks.Add(result.Task);
             }
 
@@ -143,7 +143,31 @@ namespace Terrarium.Logic.Services.Kanban
             }
             NotifyBoardChanged(new BoardChangedEventsArgs());
         }
+        
+        public async Task MoveMultipleTasksAsync(IEnumerable<string> taskIds, string targetColumnId, int startIndex)
+        {
+            var ids = taskIds.ToList();
+            
+            await _repository.MoveMultipleTasksAsync(ids, targetColumnId, startIndex);
+            
+            var targetCol = _boardCache.FirstOrDefault(c => c.Id == targetColumnId);
+            if (targetCol == null) return;
 
+            foreach (var id in ids)
+            {
+                var sourceCol = _boardCache.FirstOrDefault(c => c.Tasks.Any(t => t.Id == id));
+                if (sourceCol != null)
+                {
+                    var taskEntity = sourceCol.Tasks.First(t => t.Id == id);
+                    sourceCol.Tasks.Remove(taskEntity);
+                    
+                    targetCol.Tasks.Insert(Math.Min(startIndex++, targetCol.Tasks.Count), taskEntity);
+                    taskEntity.ColumnId = targetColumnId;
+                }
+            }
+
+            NotifyBoardChanged(new BoardChangedEventsArgs());
+        }
 
         private void NotifyBoardChanged(BoardChangedEventsArgs e)
         {

@@ -103,12 +103,17 @@ namespace Terrarium.Avalonia.Behaviors
             if (control.DataContext is not TaskItem task) return;
 
             var dragData = new DataObject();
-            dragData.Set("TaskItem", task);
+            
+            if (task.IsSelected)
+            {
+                dragData.Set("TaskItem", task); 
+            }
+            else
+            {
+                dragData.Set("TaskItem", task);
+            }
 
-#pragma warning disable CS0618
-            var result = await DragDrop.DoDragDrop(e, dragData, DragDropEffects.Move);
-#pragma warning restore CS0618
-
+            await DragDrop.DoDragDrop(e, dragData, DragDropEffects.Move);
             control.SetValue(IsDraggingProperty, false);
         }
 
