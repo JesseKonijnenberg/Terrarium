@@ -63,6 +63,8 @@ namespace Terrarium.Avalonia
             services.AddSingleton<IBoardService, BoardService>();
             services.AddSingleton<IBackupService, BackupService>();
             services.AddSingleton<IBoardSerializer>(new BoardSerializer(storageOptions.TemplateFilePath));
+            
+            services.AddSingleton<ITaskParserService, TaskParserService>();
 
             services.AddSingleton<IGardenService, GardenService>();
             services.AddSingleton<IGardenEconomyService, GardenEconomyService>();

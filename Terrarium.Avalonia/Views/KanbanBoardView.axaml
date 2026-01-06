@@ -8,6 +8,12 @@
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.KanbanBoardView"
              x:DataType="vm:KanbanBoardViewModel">
+    
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+V" 
+                    Command="{Binding SmartPasteCommand}" 
+                    CommandParameter="{Binding $parent[TopLevel].Clipboard}"/>
+    </UserControl.KeyBindings>
 
     <UserControl.Styles>
         <Style Selector="Button.TaskCard">
@@ -33,7 +39,10 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="80, *">
+    <Grid RowDefinitions="80, *" 
+          Background="Transparent" 
+          Focusable="True" 
+          PointerPressed="OnBackgroundPointerPressed">
             
         <controls:TopBarControl Grid.Row="0"/>
 
