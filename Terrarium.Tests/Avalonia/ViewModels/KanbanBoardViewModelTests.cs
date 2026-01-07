@@ -133,9 +133,9 @@ public class KanbanBoardViewModelTests
         Assert.Single(col.Tasks);
         Assert.Equal("p1", col.Tasks[0].Id);
     }
-
+    
     [Fact]
-    public void ExecuteDeleteSelected_ShouldWipeFromUIAndClosePanel()
+    public void ExecuteDeleteSelected_ShouldWipeFromUI()
     {
         var vm = CreateViewModel();
         var task = new TaskItem(new TaskEntity { Id = "del-me" });
@@ -144,14 +144,30 @@ public class KanbanBoardViewModelTests
         vm.Columns.Add(col);
         
         vm.ToggleTaskSelectionCommand.Execute(task);
-        vm.OpenedTask = task;
-
+        
         vm.DeleteSelectedTasksCommand.Execute(null);
-
+        
         Assert.Empty(col.Tasks);
-        Assert.Null(vm.OpenedTask);
         Assert.Empty(vm.SelectedTaskIds);
         _boardServiceMock.Verify(s => s.DeleteMultipleTasksAsync(It.IsAny<List<string>>()), Times.Once);
+    }
+
+    [Fact]
+    public void ExecuteDeleteTask_WhenPanelOpen_ShouldDeleteAndClose()
+    {
+        var vm = CreateViewModel();
+        var task = new TaskItem(new TaskEntity { Id = "del-me" });
+        var col = CreateTestColumn("c1", "Backlog");
+        col.Tasks.Add(task);
+        vm.Columns.Add(col);
+        
+        vm.OpenedTask = task;
+        
+        vm.DeleteTaskCommand.Execute(null);
+        
+        Assert.Empty(col.Tasks);
+        Assert.Null(vm.OpenedTask);
+        _boardServiceMock.Verify(s => s.DeleteTaskAsync(It.IsAny<TaskEntity>()), Times.Once);
     }
 
     [Fact]
