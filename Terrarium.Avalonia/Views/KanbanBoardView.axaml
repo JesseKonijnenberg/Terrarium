@@ -55,88 +55,107 @@
     <Grid RowDefinitions="80, *" 
           Background="Transparent" 
           Focusable="True" 
-          behaviors:BoardInteractions.FocusOnClick="True"
-          behaviors:BoardInteractions.CommandOnPressed="{Binding DeselectAllCommand}">
+          behaviors:BoardInteractions.FocusOnClick="True">
             
         <controls:TopBarControl Grid.Row="0"/>
 
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding Columns}" Margin="30">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="30"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <controls:KanbanColumnControl/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <Grid Grid.Row="1">
+            
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Disabled"
+                          IsHitTestVisible="{Binding !IsDetailPanelOpen}"
+                          behaviors:BoardInteractions.CommandOnPressed="{Binding DeselectAllCommand}">
+                <ItemsControl ItemsSource="{Binding Columns}" Margin="30">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="30"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:KanbanColumnControl/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
-        <ContentControl Grid.RowSpan="2" HorizontalAlignment="Right" Width="450"
-                        Content="{Binding OpenedTask}"
-                        IsVisible="{Binding IsDetailPanelOpen}">
-            <ContentControl.ContentTemplate>
-                <DataTemplate DataType="kanban:TaskItem">
-                    <Grid Background="{StaticResource BgSidebar}">
-                        <Grid.Effect>
-                            <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
-                        </Grid.Effect>
+            <Border Background="Black" 
+                    Opacity="0.2" 
+                    IsVisible="{Binding IsDetailPanelOpen}"
+                    IsHitTestVisible="True">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                    </Transitions>
+                </Border.Transitions>
+            </Border>
 
-                        <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
-                            <Grid RowDefinitions="80, *, Auto">
-                                <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
-                                    <Grid ColumnDefinitions="*, Auto, Auto">
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <TextBlock Text="{Binding Id, StringFormat='#{0}'}" Foreground="{StaticResource AccentSage}" FontFamily="Georgia" FontStyle="Italic" VerticalAlignment="Center"/>
-                                            <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Content="Delete" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
-                                                Command="{Binding $parent[UserControl].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
-                                        <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
-                                                Command="{Binding $parent[UserControl].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
-                                    </Grid>
-                                </Border>
+            <ContentControl HorizontalAlignment="Right" 
+                            Width="450"
+                            ZIndex="1000"
+                            Content="{Binding OpenedTask}"
+                            IsVisible="{Binding IsDetailPanelOpen}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate DataType="kanban:TaskItem">
+                        <Grid Background="{StaticResource BgSidebar}" Focusable="True">
+                            <Grid.Effect>
+                                <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
+                            </Grid.Effect>
 
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
-                                    <StackPanel Spacing="20">
-                                        <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
-                                        <TextBox Text="{Binding Title}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="28" FontFamily="Georgia" TextWrapping="Wrap"/>
-                                        <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,10,0,0">
-                                            <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
-                                                <TextBox Text="{Binding Tag}" Foreground="{Binding TagTextColor}" Background="Transparent" BorderThickness="0" FontWeight="Bold" FontSize="10" Width="60"/>
-                                            </Border>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
-                                                 <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
-                                                 <TextBox Text="{Binding Date}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="12" Width="60"/>
+                            <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+                                <Grid RowDefinitions="80, *, Auto">
+                                    <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
+                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                                             </StackPanel>
-                                        </StackPanel>
-                                        <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                        <TextBlock Text="{Binding Priority}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Description" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                        <TextBox Text="{Binding Description}" Foreground="#d6ccc2" Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="10" MinHeight="100" TextWrapping="Wrap" AcceptsReturn="True"/>
-                                    </StackPanel>
-                                </ScrollViewer>
-
-                                <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
-                                    <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
-                                        <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                                            <Button Grid.Column="1" Content="Delete" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
+                                                    Command="{Binding $parent[UserControl].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
+                                            <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
+                                                    Command="{Binding $parent[UserControl].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
+                                        </Grid>
                                     </Border>
-                                </Border>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </DataTemplate>
-            </ContentControl.ContentTemplate>
-        </ContentControl>
+
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
+                                        <StackPanel Spacing="20">
+                                            <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding Title}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="28" FontFamily="Georgia" TextWrapping="Wrap"/>
+                                            
+                                            <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,10,0,0">
+                                                <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
+                                                    <TextBox Text="{Binding Tag}" Foreground="{Binding TagTextColor}" Background="Transparent" BorderThickness="0" FontWeight="Bold" FontSize="10" Width="60"/>
+                                                </Border>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
+                                                     <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+                                                     <TextBox Text="{Binding Date}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="12" Width="60"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                                            <TextBlock Text="{Binding Priority}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Description" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                                            <TextBox Text="{Binding Description}" Foreground="#d6ccc2" Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="10" MinHeight="100" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+
+                                    <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
+                                        <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+                                            <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                                        </Border>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+        </Grid>
 
         <Grid Grid.RowSpan="2" 
               Background="#CC000000" 
               IsVisible="{Binding IsDeleteAllConfirmationOpen}"
-              ZIndex="1000">
+              ZIndex="2000">
             <Border Background="{StaticResource BgSidebar}" 
                     CornerRadius="12" 
                     Padding="40" 
@@ -150,7 +169,7 @@
                         <TextBlock Text="⚠️ DANGER ZONE" FontSize="12" FontWeight="Bold" Foreground="#E57373" HorizontalAlignment="Center"/>
                         <TextBlock Text="Wipe Entire Board?" FontSize="22" FontFamily="Georgia" Foreground="{StaticResource TextMain}" HorizontalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="This will permanently delete all tasks in all columns. You cannot undo this action." Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" TextAlignment="Center"/>
+                    <TextBlock Text="This will permanently delete all tasks. You cannot undo this action." Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" TextAlignment="Center"/>
                     <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
                         <Button Content="Yes, Delete Everything" Background="#E57373" Foreground="White" Padding="20,10" FontWeight="Bold" Command="{Binding ConfirmDeleteAllCommand}"/>
                         <Button Content="Cancel" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="20,10" Command="{Binding CancelDeleteAllCommand}"/>
@@ -158,6 +177,5 @@
                 </StackPanel>
             </Border>
         </Grid>
-
     </Grid>
 </UserControl>

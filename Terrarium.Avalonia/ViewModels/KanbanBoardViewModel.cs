@@ -79,12 +79,21 @@ namespace Terrarium.Avalonia.ViewModels
             OpenTaskCommand = new RelayCommand(ExecuteOpenTask);
             SaveTaskCommand = new RelayCommand(ExecuteSaveTask);
             SmartPasteCommand = new RelayCommand(ExecuteSmartPaste);
-            DeleteAllTasksCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = true);
             ConfirmDeleteAllCommand = new RelayCommand(ExecuteConfirmDeleteAll);
             CancelDeleteAllCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = false);
             ToggleTaskSelectionCommand = new RelayCommand(ExecuteToggleSelection);
-            DeleteSelectedTasksCommand = new RelayCommand(ExecuteDeleteSelected, _ => SelectedTaskIds.Any());
-            SelectAllTasksCommand = new RelayCommand(ExecuteSelectAll);
+            DeleteAllTasksCommand = new RelayCommand(
+                _ => IsDeleteAllConfirmationOpen = true,
+                _ => !IsDetailPanelOpen
+            );
+            DeleteSelectedTasksCommand = new RelayCommand(
+                ExecuteDeleteSelected, 
+                _ => !IsDetailPanelOpen && SelectedTaskIds.Any()
+            );
+            SelectAllTasksCommand = new RelayCommand(
+                ExecuteSelectAll,
+                _ => !IsDetailPanelOpen
+            );
             DeselectAllCommand = new RelayCommand(ExecuteDeselectAll);
             
             LoadData();
@@ -130,12 +139,13 @@ namespace Terrarium.Avalonia.ViewModels
         {
             if (parameter is TaskItem task) 
             {
-                OpenedTask = task;
-                
+                task.IsSelected = true;
                 if (!SelectedTaskIds.Contains(task.Id))
                 {
                     SelectedTaskIds.Add(task.Id);
                 }
+
+                OpenedTask = task;
             }
         }
 
@@ -143,6 +153,9 @@ namespace Terrarium.Avalonia.ViewModels
         {
             if (OpenedTask != null)
             {
+                OpenedTask.IsSelected = false;
+                SelectedTaskIds.Remove(OpenedTask.Id);
+        
                 SaveTask(OpenedTask);
             }
             OpenedTask = null;
@@ -271,8 +284,10 @@ namespace Terrarium.Avalonia.ViewModels
         {
             if (parameter is TaskItem task)
             {
+                if (IsDetailPanelOpen && OpenedTask?.Id == task.Id) return;
+        
                 task.IsSelected = !task.IsSelected;
-                
+        
                 if (task.IsSelected)
                 {
                     if (!SelectedTaskIds.Contains(task.Id))
@@ -288,6 +303,7 @@ namespace Terrarium.Avalonia.ViewModels
         
         private void ExecuteSelectAll(object? parameter)
         {
+            if (IsDetailPanelOpen) return;
             SelectedTaskIds.Clear();
     
             foreach (var column in Columns)
@@ -303,6 +319,7 @@ namespace Terrarium.Avalonia.ViewModels
         
         private async void ExecuteDeleteSelected(object? parameter)
         {
+            if (IsDetailPanelOpen) return;
             if (!SelectedTaskIds.Any()) return;
 
             var idsToDelete = SelectedTaskIds.ToList();
@@ -328,6 +345,16 @@ namespace Terrarium.Avalonia.ViewModels
         
         private void ExecuteDeselectAll(object? parameter)
         {
+            if (IsDeleteAllConfirmationOpen)
+            {
+                return;
+            }
+            if (IsDetailPanelOpen)
+            {
+                CloseDetails();
+                return;
+            }
+            
             SelectedTaskIds.Clear();
             foreach (var column in Columns)
             {
@@ -336,7 +363,7 @@ namespace Terrarium.Avalonia.ViewModels
                     task.IsSelected = false;
                 }
             }
-            OpenedTask = null;
+    
             (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
     }

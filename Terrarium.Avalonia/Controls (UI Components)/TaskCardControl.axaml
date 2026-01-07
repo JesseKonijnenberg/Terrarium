@@ -33,12 +33,11 @@
             Classes.IsSelected="{Binding IsSelected}"
             behaviors:BoardInteractions.StopPropagation="True"
             behaviors:KanbanDragHandler.IsDraggable="True"
-            behaviors:KanbanDragHandler.Command="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).ToggleTaskSelectionCommand}"
-            behaviors:KanbanDragHandler.CommandParameter="{Binding .}">
+            behaviors:KanbanDragHandler.Command="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).ToggleTaskSelectionCommand}">
         
         <Grid RowDefinitions="Auto, Auto, Auto"
               Background="Transparent"
-              behaviors:BoardInteractions.CommandOnDoubleTap="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).OpenTaskCommand}"
+              behaviors:BoardInteractions.CommandOnRightClick="{Binding $parent[views:KanbanBoardView].((vm:KanbanBoardViewModel)DataContext).OpenTaskCommand}"
               behaviors:BoardInteractions.CommandParameter="{Binding .}">
             
             <Border HorizontalAlignment="Left" Background="{Binding TagBgColor}" BorderBrush="{Binding TagBorderColor}" BorderThickness="1" CornerRadius="10" Padding="12,2" Margin="0,0,0,12">

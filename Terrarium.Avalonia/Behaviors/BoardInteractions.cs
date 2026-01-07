@@ -32,6 +32,11 @@ namespace Terrarium.Avalonia.Behaviors
             AvaloniaProperty.RegisterAttached<BoardInteractions, Control, object?>("CommandParameter");
         public static void SetCommandParameter(Control element, object? value) => element.SetValue(CommandParameterProperty, value);
         public static object? GetCommandParameter(Control element) => element.GetValue(CommandParameterProperty);
+        
+        public static readonly AttachedProperty<ICommand?> CommandOnRightClickProperty =
+            AvaloniaProperty.RegisterAttached<BoardInteractions, Control, ICommand?>("CommandOnRightClick");
+        public static void SetCommandOnRightClick(Control element, ICommand? value) => element.SetValue(CommandOnRightClickProperty, value);
+        public static ICommand? GetCommandOnRightClick(Control element) => element.GetValue(CommandOnRightClickProperty);
 
         
         static BoardInteractions()
@@ -58,6 +63,12 @@ namespace Terrarium.Avalonia.Behaviors
                 {
                     sender.DoubleTapped -= OnDoubleTapped;
                 }
+            });
+            
+            CommandOnRightClickProperty.Changed.AddClassHandler<Control>((sender, args) =>
+            {
+                if (args.NewValue is ICommand) sender.PointerReleased += OnPointerReleased;
+                else sender.PointerReleased -= OnPointerReleased;
             });
         }
 
@@ -107,6 +118,23 @@ namespace Terrarium.Avalonia.Behaviors
             {
                 command.Execute(parameter);
                 e.Handled = true;
+            }
+        }
+        
+        private static void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (sender is not Control control) return;
+            
+            if (e.InitialPressMouseButton == MouseButton.Right)
+            {
+                var command = GetCommandOnRightClick(control);
+                var parameter = GetCommandParameter(control) ?? control.DataContext;
+
+                if (command != null && command.CanExecute(parameter))
+                {
+                    command.Execute(parameter);
+                    e.Handled = true;
+                }
             }
         }
     }
