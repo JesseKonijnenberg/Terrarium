@@ -1,3 +1,4 @@
+using Terrarium.Core.Events.Kanban;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Data;
 
@@ -16,7 +17,7 @@ namespace Terrarium.Logic.Services.Kanban
             }
         }
 
-        private async void OnBoardChanged(object sender, EventArgs e)
+        private async void OnBoardChanged(object sender, BoardChangedEventsArgs e)
         {
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
@@ -28,7 +29,7 @@ namespace Terrarium.Logic.Services.Kanban
             {
                 await Task.Delay(_delayTime, token);
                 
-                Save();
+                await Save();
             }
             catch (OperationCanceledException)
             {
@@ -39,11 +40,11 @@ namespace Terrarium.Logic.Services.Kanban
             }
         }
 
-        private void Save()
+        private async Task Save()
         {
             var board = boardService.GetCachedBoard();
             var markdown = serializer.ToMarkdown(board);
-            File.WriteAllTextAsync(storageOptions.BackupFilePath, markdown);
+            await File.WriteAllTextAsync(storageOptions.BackupFilePath, markdown);
         }
     }
 }
