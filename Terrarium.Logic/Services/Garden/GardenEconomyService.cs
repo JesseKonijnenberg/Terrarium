@@ -1,6 +1,6 @@
 ﻿using Terrarium.Core.Interfaces.Garden;
 
-namespace Terrarium.Logic.Services
+namespace Terrarium.Core.Interfaces.Update
 {
     public class GardenEconomyService : IGardenEconomyService
     {

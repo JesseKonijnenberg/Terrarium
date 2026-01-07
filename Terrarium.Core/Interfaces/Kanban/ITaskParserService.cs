@@ -2,11 +2,6 @@ using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Core.Interfaces.Kanban
 {
-    public record ParsedTaskResult(
-        TaskEntity Task, 
-        string TargetColumnName
-    );
-    
     public interface ITaskParserService
     {
         /// <summary>

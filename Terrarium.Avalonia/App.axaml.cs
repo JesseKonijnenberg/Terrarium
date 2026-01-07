@@ -7,10 +7,11 @@ using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
+using Terrarium.Core.Interfaces.Update;
+using Terrarium.Core.Interfaces.Update.Update;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data;
 using Terrarium.Data.Contexts;
-using Terrarium.Logic.Services;
 using Terrarium.Logic.Services.Kanban;
 
 namespace Terrarium.Avalonia
@@ -61,6 +62,7 @@ namespace Terrarium.Avalonia
 
             services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
             services.AddSingleton<IBoardService, BoardService>();
+            services.AddTransient<IUpdateService, UpdateService>();
             services.AddSingleton<IBackupService, BackupService>();
             services.AddSingleton<IBoardSerializer>(new BoardSerializer(storageOptions.TemplateFilePath));
             

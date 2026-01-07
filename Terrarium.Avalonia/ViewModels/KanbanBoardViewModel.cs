@@ -10,8 +10,8 @@ using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
+using Terrarium.Core.Interfaces.Update;
 using Terrarium.Core.Models.Kanban;
-using Terrarium.Logic.Services.Kanban;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -35,7 +35,7 @@ namespace Terrarium.Avalonia.ViewModels
         public ICommand DeleteSelectedTasksCommand { get; }
         public ICommand DeselectAllCommand { get; }
 
-        public UpdateViewModel Updater { get; } = new UpdateViewModel();
+        public UpdateViewModel Updater { get; }
         public ObservableCollection<Column> Columns { get; set; } = new();
         public ObservableHashSet<string> SelectedTaskIds { get; } = new();
         
@@ -65,11 +65,14 @@ namespace Terrarium.Avalonia.ViewModels
         public KanbanBoardViewModel(
             IBoardService boardService, 
             IGardenEconomyService gardenEconomyService,
-            ITaskParserService taskParserService)
+            ITaskParserService taskParserService,
+            IUpdateService updateService)
         {
             _boardService = boardService;
             _gardenEconomyService = gardenEconomyService;
             _taskParserService = taskParserService;
+            
+            Updater = new UpdateViewModel(updateService);
 
             AddItemCommand = new RelayCommand(ExecuteAddItem);
             DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
@@ -217,7 +220,7 @@ namespace Terrarium.Avalonia.ViewModels
 
         private async void LoadData()
         {
-            var boardData = await ((BoardService)_boardService).LoadBoardAsync();
+            var boardData = await _boardService.LoadBoardAsync();
 
             Columns.Clear();
             foreach (var colEntity in boardData)

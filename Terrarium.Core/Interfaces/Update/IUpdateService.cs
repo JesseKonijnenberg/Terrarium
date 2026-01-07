@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Terrarium.Logic.Services.Update
+﻿namespace Terrarium.Core.Interfaces.Update
 {
     public interface IUpdateService
     {

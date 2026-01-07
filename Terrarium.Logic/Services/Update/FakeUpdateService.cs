@@ -1,4 +1,6 @@
-﻿namespace Terrarium.Logic.Services.Update
+﻿using System.Diagnostics;
+
+namespace Terrarium.Core.Interfaces.Update.Update
 {
     public class FakeUpdateService : IUpdateService
     {
@@ -27,7 +29,7 @@
 
         public void ApplyUpdatesAndRestart()
         {
-            System.Diagnostics.Debug.WriteLine("FAKE SERVICE: ApplyUpdatesAndRestart called.");
+            Debug.WriteLine("FAKE SERVICE: ApplyUpdatesAndRestart called.");
         }
     }
 }

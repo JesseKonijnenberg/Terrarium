@@ -2,7 +2,7 @@
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Models;
 
-namespace Terrarium.Logic.Services
+namespace Terrarium.Core.Interfaces.Update
 {
     public class GardenService : IGardenService
     {

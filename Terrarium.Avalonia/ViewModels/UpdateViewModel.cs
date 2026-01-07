@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Logic.Services.Update;
+using Terrarium.Core.Interfaces.Update;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -87,14 +87,14 @@ namespace Terrarium.Avalonia.ViewModels
             }
         } = "Check for Updates";
         
-        public UpdateViewModel()
+        public UpdateViewModel(IUpdateService updateService)
         {
-            _updateService = new UpdateService();
+            _updateService = updateService;
 
             UpdateCommand = new RelayCommand(ExecuteUpdate);
             CancelUpdateCommand = new RelayCommand(ExecuteCancelUpdate);
             RestartCommand = new RelayCommand(ExecuteRestart);
-
+            
             Task.Run(CheckForUpdates);
         }
 

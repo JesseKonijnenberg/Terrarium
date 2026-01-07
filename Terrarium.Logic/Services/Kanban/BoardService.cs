@@ -52,16 +52,16 @@ namespace Terrarium.Logic.Services.Kanban
                 var targetCol = _boardCache.FirstOrDefault(c => c.Id == targetColumnId);
                 if (targetCol != null)
                 {
- 
                     if (index < 0) index = 0;
                     if (index > targetCol.Tasks.Count) index = targetCol.Tasks.Count;
-
+                    
+                    taskInCache.ColumnId = targetColumnId; 
                     targetCol.Tasks.Insert(index, taskInCache);
                 }
             }
             NotifyBoardChanged(new BoardChangedEventsArgs());
         }
-
+        
         public async Task DeleteTaskAsync(TaskEntity task)
         {
             await _repository.DeleteTaskAsync(task.Id);

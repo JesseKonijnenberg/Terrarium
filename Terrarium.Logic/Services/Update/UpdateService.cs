@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Velopack;
+﻿using Velopack;
 using Velopack.Sources;
 
-namespace Terrarium.Logic.Services.Update
+namespace Terrarium.Core.Interfaces.Update.Update
 {
     public class UpdateService : IUpdateService
     {
