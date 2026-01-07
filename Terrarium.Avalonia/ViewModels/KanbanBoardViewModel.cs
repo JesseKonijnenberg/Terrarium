@@ -21,8 +21,7 @@ namespace Terrarium.Avalonia.ViewModels
         private readonly IBoardService _boardService;
         private readonly IGardenEconomyService _gardenEconomyService;
         private readonly ITaskParserService _taskParserService;
-
-        public UpdateViewModel Updater { get; } = new UpdateViewModel();
+        
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand OpenTaskCommand { get; }
@@ -36,6 +35,7 @@ namespace Terrarium.Avalonia.ViewModels
         public ICommand DeleteSelectedTasksCommand { get; }
         public ICommand DeselectAllCommand { get; }
 
+        public UpdateViewModel Updater { get; } = new UpdateViewModel();
         public ObservableCollection<Column> Columns { get; set; } = new();
         public ObservableHashSet<string> SelectedTaskIds { get; } = new();
         
@@ -319,7 +319,6 @@ namespace Terrarium.Avalonia.ViewModels
                     column.Tasks.Remove(task);
                 }
             }
-
             SelectedTaskIds.Clear();
             (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
@@ -327,7 +326,6 @@ namespace Terrarium.Avalonia.ViewModels
         private void ExecuteDeselectAll(object? parameter)
         {
             SelectedTaskIds.Clear();
-            
             foreach (var column in Columns)
             {
                 foreach (var task in column.Tasks)
@@ -335,9 +333,7 @@ namespace Terrarium.Avalonia.ViewModels
                     task.IsSelected = false;
                 }
             }
-            
             OpenedTask = null;
-            
             (DeleteSelectedTasksCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
     }

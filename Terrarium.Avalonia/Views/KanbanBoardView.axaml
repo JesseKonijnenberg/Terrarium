@@ -5,6 +5,7 @@
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              xmlns:controls="using:Terrarium.Avalonia.Controls"
              xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
+             xmlns:behaviors="clr-namespace:Terrarium.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.KanbanBoardView"
              x:DataType="vm:KanbanBoardViewModel">
@@ -19,7 +20,8 @@
                     Command="{Binding DeleteSelectedTasksCommand}"/>
         <KeyBinding Gesture="Delete" 
                     Command="{Binding DeleteAllTasksCommand}"/>
-        <KeyBinding Gesture="Escape" Command="{Binding DeselectAllCommand}"/>
+        <KeyBinding Gesture="Escape" 
+                    Command="{Binding DeselectAllCommand}"/>
     </UserControl.KeyBindings>
 
     <UserControl.Styles>
@@ -53,7 +55,8 @@
     <Grid RowDefinitions="80, *" 
           Background="Transparent" 
           Focusable="True" 
-          PointerPressed="OnBackgroundPointerPressed">
+          behaviors:BoardInteractions.FocusOnClick="True"
+          behaviors:BoardInteractions.CommandOnPressed="{Binding DeselectAllCommand}">
             
         <controls:TopBarControl Grid.Row="0"/>
 
