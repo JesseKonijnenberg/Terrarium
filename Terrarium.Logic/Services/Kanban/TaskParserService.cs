@@ -15,6 +15,7 @@ namespace Terrarium.Logic.Services.Kanban
         private static readonly Regex ColumnHeaderRegex = 
             new(@"^##\s+([\w\s🏔️🏗️🧪✅]+?)(?:\s*\(.*\))?$", RegexOptions.Compiled);
 
+        /// <inheritdoc />
         public IEnumerable<ParsedTaskResult> ParseClipboardText(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) yield break;
