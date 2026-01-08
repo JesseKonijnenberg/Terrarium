@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -7,11 +6,8 @@ using Avalonia.Input.Platform;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Terrarium.Avalonia.Models.Kanban;
 using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Core.Enums.Kanban;
-using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Update;
-using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Avalonia.ViewModels
 {
@@ -19,8 +15,6 @@ namespace Terrarium.Avalonia.ViewModels
     {
 
         private readonly IBoardService _boardService;
-        private readonly IGardenEconomyService _gardenEconomyService;
-        private readonly ITaskParserService _taskParserService;
         
         public ICommand AddItemCommand { get; }
         public ICommand DeleteTaskCommand { get; }
@@ -64,13 +58,9 @@ namespace Terrarium.Avalonia.ViewModels
 
         public KanbanBoardViewModel(
             IBoardService boardService, 
-            IGardenEconomyService gardenEconomyService,
-            ITaskParserService taskParserService,
             IUpdateService updateService)
         {
             _boardService = boardService;
-            _gardenEconomyService = gardenEconomyService;
-            _taskParserService = taskParserService;
             
             Updater = new UpdateViewModel(updateService);
 
@@ -101,18 +91,9 @@ namespace Terrarium.Avalonia.ViewModels
 
         public async void MoveTask(TaskItem task, Column targetColumn, int index = -1)
         {
-            List<TaskItem> tasksToMove;
-    
-            if (task.IsSelected)
-            {
-                tasksToMove = Columns.SelectMany(c => c.Tasks)
-                    .Where(t => t.IsSelected)
-                    .ToList();
-            }
-            else
-            {
-                tasksToMove = new List<TaskItem> { task };
-            }
+            var tasksToMove = task.IsSelected 
+                ? Columns.SelectMany(c => c.Tasks).Where(t => t.IsSelected).ToList()
+                : new List<TaskItem> { task };
 
             var ids = tasksToMove.Select(t => t.Id).ToList();
             
@@ -120,19 +101,13 @@ namespace Terrarium.Avalonia.ViewModels
             {
                 var sourceCol = Columns.FirstOrDefault(c => c.Tasks.Contains(t));
                 sourceCol?.Tasks.Remove(t);
-        
                 if (index == -1 || index > targetColumn.Tasks.Count)
                     targetColumn.Tasks.Add(t);
                 else
                     targetColumn.Tasks.Insert(index++, t);
             }
             
-            await _boardService.MoveMultipleTasksAsync(ids, targetColumn.Id, index);
-            
-            if (targetColumn.Title == "Complete" || targetColumn.Title == "Done")
-            {
-                _gardenEconomyService.EarnWater(20 * tasksToMove.Count);
-            }
+            await _boardService.MoveTasksWithEconomyAsync(ids, targetColumn.Id, targetColumn.Title, index);
         }
 
         private void ExecuteOpenTask(object? parameter)
@@ -171,24 +146,13 @@ namespace Terrarium.Avalonia.ViewModels
 
         private async void SaveTask(TaskItem task)
         {
-            task.Entity.Title = task.Title;
-            task.Entity.Tag = task.Tag;
-            task.Entity.Description = task.Description;
-
-            if (Enum.TryParse(typeof(TaskPriority), task.Priority, true, out var result))
-            {
-                task.Entity.Priority = (TaskPriority)result;
-            }
-            else
-            {
-                task.Entity.Priority = TaskPriority.Low; // Default fallback
-            }
-            if (DateTime.TryParse(task.Date, out var dateResult))
-            {
-                task.Entity.DueDate = dateResult;
-            }
-
-            await _boardService.UpdateTaskAsync(task.Entity);
+            await _boardService.UpdateTaskFromUiAsync(
+                task.Entity, 
+                task.Title, 
+                task.Description, 
+                task.Tag, 
+                task.Priority, 
+                task.Date);
         }
 
         private async void ExecuteDeleteTask(object? parameter)
@@ -212,21 +176,12 @@ namespace Terrarium.Avalonia.ViewModels
         {
             if (parameter is Column targetColumn)
             {
-                var newEntity = new TaskEntity
-                {
-                    Title = "New Task",
-                    Tag = "New",
-                    Priority = TaskPriority.Low,
-                    DueDate = DateTime.Now,
-                    ColumnId = targetColumn.Id
-                };
-                
+                var newEntity = _boardService.CreateDefaultTaskEntity(targetColumn.Id).Result;
                 var newTask = new TaskItem(newEntity);
-                
+        
                 targetColumn.Tasks.Insert(0, newTask);
-                
                 OpenedTask = newTask;
-                
+        
                 await _boardService.AddTaskAsync(newEntity, targetColumn.Id);
             }
         }

@@ -16,6 +16,10 @@ namespace Terrarium.Core.Interfaces.Kanban
         Task DeleteMultipleTasksAsync(IEnumerable<string> taskIds);
         Task WipeBoardAsync();
         Task MoveMultipleTasksAsync(IEnumerable<string> taskIds, string targetColumnId, int startIndex);
+        Task<TaskEntity> CreateDefaultTaskEntity(string columnId);
+        Task UpdateTaskFromUiAsync(TaskEntity entity, string title, string description, string tag, string priority, string date);
+
+        Task MoveTasksWithEconomyAsync(List<string> taskIds, string targetColumnId, string targetColumnTitle, int index);
         event EventHandler<BoardChangedEventsArgs> BoardChanged;
     }
 }

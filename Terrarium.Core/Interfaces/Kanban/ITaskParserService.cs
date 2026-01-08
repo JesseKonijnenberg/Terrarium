@@ -1,4 +1,4 @@
-using Terrarium.Core.Models.Kanban;
+using Terrarium.Core.Models.Kanban.DTO;
 
 namespace Terrarium.Core.Interfaces.Kanban
 {

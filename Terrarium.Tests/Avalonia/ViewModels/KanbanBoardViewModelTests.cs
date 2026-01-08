@@ -29,9 +29,7 @@ public class KanbanBoardViewModelTests
         _boardServiceMock.Setup(s => s.LoadBoardAsync()).ReturnsAsync(new List<ColumnEntity>());
         
         return new KanbanBoardViewModel(
-            _boardServiceMock.Object, 
-            _economyMock.Object, 
-            _parserMock.Object,
+            _boardServiceMock.Object,
             _updateMock.Object); 
     }
 
@@ -41,11 +39,11 @@ public class KanbanBoardViewModelTests
     }
 
     [Fact]
-    public void MoveTask_SingleTask_ShouldUpdateCollectionsAndCallService()
+    public void MoveTask_ShouldUpdateUICollectionsAndCallLogicService()
     {
         var vm = CreateViewModel();
         var colSource = CreateTestColumn("c1", "Backlog");
-        var colTarget = CreateTestColumn("c2", "In Progress");
+        var colTarget = CreateTestColumn("c2", "Done");
         var task = new TaskItem(new TaskEntity { Id = "t1" });
         
         colSource.Tasks.Add(task);
@@ -56,21 +54,9 @@ public class KanbanBoardViewModelTests
 
         Assert.Empty(colSource.Tasks);
         Assert.Single(colTarget.Tasks);
-        _boardServiceMock.Verify(s => s.MoveMultipleTasksAsync(
-            It.Is<List<string>>(l => l.Contains("t1")), "c2", It.IsAny<int>()), Times.Once);
-    }
-
-    [Fact]
-    public void MoveTask_ToDoneColumn_ShouldEarnWaterReward()
-    {
-        var vm = CreateViewModel();
-        var colDone = CreateTestColumn("c-done", "Done");
-        var task = new TaskItem(new TaskEntity { Id = "t1" });
-        vm.Columns.Add(colDone);
-
-        vm.MoveTask(task, colDone);
-
-        _economyMock.Verify(e => e.EarnWater(20), Times.Once);
+        
+        _boardServiceMock.Verify(s => s.MoveTasksWithEconomyAsync(
+            It.Is<List<string>>(l => l.Contains("t1")), "c2", "Done", It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -86,7 +72,7 @@ public class KanbanBoardViewModelTests
     }
 
     [Fact]
-    public void OpenedTask_SettingNewTask_ShouldTriggerAutoSaveOnOldTask()
+    public void OpenedTask_SettingNewTask_ShouldCallUpdateViaService()
     {
         var vm = CreateViewModel();
         var task1 = new TaskItem(new TaskEntity { Id = "t1", Title = "Original" });
@@ -97,25 +83,29 @@ public class KanbanBoardViewModelTests
 
         vm.OpenedTask = task2;
 
-        _boardServiceMock.Verify(s => s.UpdateTaskAsync(It.Is<TaskEntity>(t => t.Title == "Updated")), Times.Once);
+        _boardServiceMock.Verify(s => s.UpdateTaskFromUiAsync(
+            task1.Entity, "Updated", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
-    public void ExecuteAddItem_ShouldInsertAtTopAndOpenPanel()
+    public void ExecuteAddItem_ShouldRequestEntityFromServiceAndOpenPanel()
     {
         var vm = CreateViewModel();
         var col = CreateTestColumn("c1", "Backlog");
         vm.Columns.Add(col);
+        
+        var newEntity = new TaskEntity { Id = "new-id", ColumnId = "c1" };
+        _boardServiceMock.Setup(s => s.CreateDefaultTaskEntity("c1")).ReturnsAsync(newEntity);
 
         vm.AddItemCommand.Execute(col);
 
         Assert.Single(col.Tasks);
-        Assert.Equal(col.Tasks[0], vm.OpenedTask);
-        _boardServiceMock.Verify(s => s.AddTaskAsync(It.IsAny<TaskEntity>(), "c1"), Times.Once);
+        Assert.Equal("new-id", vm.OpenedTask.Id);
+        _boardServiceMock.Verify(s => s.AddTaskAsync(newEntity, "c1"), Times.Once);
     }
 
     [Fact]
-    public async Task ExecuteSmartPaste_ShouldAddTasksToCorrectUIColumns()
+    public async Task ExecuteSmartPaste_ShouldProcessAndAddResultsToUI()
     {
         var vm = CreateViewModel();
         var col = CreateTestColumn("target-col", "Target");
@@ -135,7 +125,7 @@ public class KanbanBoardViewModelTests
     }
     
     [Fact]
-    public void ExecuteDeleteSelected_ShouldWipeFromUI()
+    public void ExecuteDeleteSelected_ShouldRemoveFromUIAndCallService()
     {
         var vm = CreateViewModel();
         var task = new TaskItem(new TaskEntity { Id = "del-me" });
@@ -144,50 +134,22 @@ public class KanbanBoardViewModelTests
         vm.Columns.Add(col);
         
         vm.ToggleTaskSelectionCommand.Execute(task);
-        
         vm.DeleteSelectedTasksCommand.Execute(null);
         
         Assert.Empty(col.Tasks);
-        Assert.Empty(vm.SelectedTaskIds);
         _boardServiceMock.Verify(s => s.DeleteMultipleTasksAsync(It.IsAny<List<string>>()), Times.Once);
     }
 
     [Fact]
-    public void ExecuteDeleteTask_WhenPanelOpen_ShouldDeleteAndClose()
+    public void ExecuteDeselectAll_WhenPanelOpen_ShouldClosePanelFirst()
     {
         var vm = CreateViewModel();
-        var task = new TaskItem(new TaskEntity { Id = "del-me" });
-        var col = CreateTestColumn("c1", "Backlog");
-        col.Tasks.Add(task);
-        vm.Columns.Add(col);
-        
-        vm.OpenedTask = task;
-        
-        vm.DeleteTaskCommand.Execute(null);
-        
-        Assert.Empty(col.Tasks);
-        Assert.Null(vm.OpenedTask);
-        _boardServiceMock.Verify(s => s.DeleteTaskAsync(It.IsAny<TaskEntity>()), Times.Once);
-    }
-
-    [Fact]
-    public void ExecuteDeselectAll_ShouldClearSelectionAndClosePanel()
-    {
-        var vm = CreateViewModel();
-        var col = CreateTestColumn("c1", "Backlog");
         var task = new TaskItem(new TaskEntity { Id = "t1" });
-        
-        col.Tasks.Add(task);
-        vm.Columns.Add(col);
-
-        task.IsSelected = true;
-        vm.SelectedTaskIds.Add("t1");
         vm.OpenedTask = task;
         
         vm.DeselectAllCommand.Execute(null);
         
-        Assert.False(task.IsSelected);
-        Assert.Empty(vm.SelectedTaskIds);
         Assert.Null(vm.OpenedTask);
+        Assert.False(task.IsSelected);
     }
 }

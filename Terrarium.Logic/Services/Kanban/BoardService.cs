@@ -1,4 +1,6 @@
-﻿using Terrarium.Core.Events.Kanban;
+﻿using Terrarium.Core.Enums.Kanban;
+using Terrarium.Core.Events.Kanban;
+using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 
@@ -8,15 +10,17 @@ namespace Terrarium.Logic.Services.Kanban
     {
         private readonly IBoardRepository _repository;
         private readonly ITaskParserService _taskParserService;
+        private readonly IGardenEconomyService _gardenEconomyService;
         
         private List<ColumnEntity> _boardCache = new();
-        
+
         public event EventHandler<BoardChangedEventsArgs> BoardChanged;
 
-        public BoardService(IBoardRepository repository, ITaskParserService taskParserService)
+        public BoardService(IBoardRepository repository, ITaskParserService taskParserService, IGardenEconomyService gardenEconomyService)
         {
             _repository = repository;
             _taskParserService = taskParserService;
+            _gardenEconomyService = gardenEconomyService;
         }
 
         public async Task<List<ColumnEntity>> LoadBoardAsync()
@@ -167,6 +171,46 @@ namespace Terrarium.Logic.Services.Kanban
             }
 
             NotifyBoardChanged(new BoardChangedEventsArgs());
+        }
+
+        public async Task<TaskEntity> CreateDefaultTaskEntity(string columnId)
+        {
+            return new TaskEntity
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = "New Task",
+                Tag = "New",
+                Priority = TaskPriority.Low,
+                DueDate = DateTime.Now,
+                ColumnId = columnId,
+            };
+        }
+        
+        public async Task UpdateTaskFromUiAsync(TaskEntity entity, string title, string description, string tag, string priority, string date)
+        {
+            entity.Title = title;
+            entity.Description = description;
+            entity.Tag = tag;
+            
+            if (Enum.TryParse<TaskPriority>(priority, true, out var result))
+                entity.Priority = result;
+            else
+                entity.Priority = TaskPriority.Low;
+
+            if (DateTime.TryParse(date, out var dateResult))
+                entity.DueDate = dateResult;
+    
+            await UpdateTaskAsync(entity);
+        }
+        
+        public async Task MoveTasksWithEconomyAsync(List<string> taskIds, string targetColumnId, string targetColumnTitle, int index)
+        {
+            await MoveMultipleTasksAsync(taskIds, targetColumnId, index);
+            
+            if (targetColumnTitle == "Complete" || targetColumnTitle == "Done")
+            {
+                _gardenEconomyService.EarnWater(20 * taskIds.Count);
+            }
         }
 
         private void NotifyBoardChanged(BoardChangedEventsArgs e)

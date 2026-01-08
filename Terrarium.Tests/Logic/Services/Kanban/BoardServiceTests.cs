@@ -1,6 +1,9 @@
 using Moq;
+using Terrarium.Core.Enums.Kanban;
+using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
+using Terrarium.Core.Models.Kanban.DTO;
 using Terrarium.Logic.Services.Kanban;
 
 namespace Terrarium.Tests.Logic.Services.Kanban;
@@ -9,13 +12,58 @@ public class BoardServiceTests
 {
     private readonly Mock<IBoardRepository> _repoMock;
     private readonly Mock<ITaskParserService> _parserMock;
+    private readonly Mock<IGardenEconomyService> _economyMock;
     private readonly BoardService _service;
 
     public BoardServiceTests()
     {
         _repoMock = new Mock<IBoardRepository>();
         _parserMock = new Mock<ITaskParserService>();
-        _service = new BoardService(_repoMock.Object, _parserMock.Object);
+        _economyMock = new Mock<IGardenEconomyService>();
+        _service = new BoardService(_repoMock.Object, _parserMock.Object, _economyMock.Object);
+    }
+
+    [Fact]
+    public async Task CreateDefaultTaskEntity_ShouldReturnPopulatedTask()
+    {
+        var result = await _service.CreateDefaultTaskEntity("col-1");
+
+        Assert.NotNull(result);
+        Assert.Equal("col-1", result.ColumnId);
+        Assert.Equal("New Task", result.Title);
+        Assert.Equal(TaskPriority.Low, result.Priority);
+        Assert.False(string.IsNullOrEmpty(result.Id));
+    }
+
+    [Fact]
+    public async Task UpdateTaskFromUiAsync_ShouldParseStringsAndSave()
+    {
+        var entity = new TaskEntity { Id = "t1" };
+        var title = "New Title";
+        var priority = "High";
+        var date = "2026-12-25";
+
+        await _service.UpdateTaskFromUiAsync(entity, title, "desc", "tag", priority, date);
+
+        Assert.Equal(title, entity.Title);
+        Assert.Equal(TaskPriority.High, entity.Priority);
+        Assert.Equal(2026, entity.DueDate.Year);
+        _repoMock.Verify(r => r.UpdateTaskAsync(entity), Times.Once);
+    }
+
+    [Fact]
+    public async Task MoveTasksWithEconomyAsync_ToDone_ShouldTriggerReward()
+    {
+        var ids = new List<string> { "t1", "t2" };
+        var colSource = new ColumnEntity { Id = "src", Tasks = new List<TaskEntity> { new() { Id = "t1" }, new() { Id = "t2" } } };
+        var colTarget = new ColumnEntity { Id = "dest", Title = "Done", Tasks = new List<TaskEntity>() };
+        
+        _repoMock.Setup(r => r.LoadBoardAsync()).ReturnsAsync(new List<ColumnEntity> { colSource, colTarget });
+        await _service.LoadBoardAsync();
+
+        await _service.MoveTasksWithEconomyAsync(ids, "dest", "Done", 0);
+
+        _economyMock.Verify(e => e.EarnWater(40), Times.Once);
     }
 
     [Fact]
@@ -75,12 +123,7 @@ public class BoardServiceTests
     {
         var markdown = "some text";
         var task = new TaskEntity { Title = "Pasted Task" };
-        
-        var parsedResults = new List<ParsedTaskResult> 
-        { 
-            new ParsedTaskResult(task, "done") 
-        };
-    
+        var parsedResults = new List<ParsedTaskResult> { new ParsedTaskResult(task, "done") };
         var board = new List<ColumnEntity> { new() { Id = "id-done", Title = "Done", Tasks = new() } };
 
         _parserMock.Setup(p => p.ParseClipboardText(markdown)).Returns(parsedResults);

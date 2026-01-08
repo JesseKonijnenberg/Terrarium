@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
+using Terrarium.Core.Models.Kanban.DTO;
 
 namespace Terrarium.Logic.Services.Kanban
 {

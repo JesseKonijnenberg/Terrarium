@@ -1,4 +1,4 @@
-namespace Terrarium.Core.Models.Kanban
+namespace Terrarium.Core.Models.Kanban.DTO
 {
     public record ParsedTaskResult(
         TaskEntity Task, 
