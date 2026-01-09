@@ -1,81 +1,68 @@
 ﻿using System;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Avalonia.Models.Kanban;
 
-public class TaskItem(TaskEntity entity) : ViewModelBase
+/// <summary>
+/// A reactive wrapper for TaskEntity that provides UI-ready properties 
+/// and automatic brush calculation.
+/// </summary>
+public partial class TaskItem : ViewModelBase
 {
-    public TaskEntity Entity { get; } = entity ?? throw new ArgumentNullException(nameof(entity));
+    public TaskEntity Entity { get; }
+
+    [ObservableProperty]
+    private string _title;
+
+    [ObservableProperty]
+    private string _description;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TagBgColor))]
+    [NotifyPropertyChangedFor(nameof(TagTextColor))]
+    [NotifyPropertyChangedFor(nameof(TagBorderColor))]
+    private string _tag;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHighPriority))]
+    private TaskPriority _priority;
+
+    [ObservableProperty]
+    private DateTime _dueDate;
+
+    [ObservableProperty]
+    private bool _isSelected;
+
+    public TaskItem(TaskEntity entity)
+    {
+        Entity = entity ?? throw new ArgumentNullException(nameof(entity));
+        
+        _title = entity.Title;
+        _description = entity.Description;
+        _tag = entity.Tag;
+        _priority = entity.Priority;
+        _dueDate = entity.DueDate;
+    }
 
     public string Id => Entity.Id;
-
-    public string Title
-    {
-        get => Entity.Title;
-        set { if (Entity.Title == value) return; Entity.Title = value; OnPropertyChanged(); }
-    }
-
-    public string Description
-    {
-        get => Entity.Description;
-        set { if (Entity.Description == value) return; Entity.Description = value; OnPropertyChanged(); }
-    }
-
-    public string Tag
-    {
-        get => Entity.Tag;
-        set
-        {
-            if (Entity.Tag == value) return;
-            Entity.Tag = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(TagBgColor));
-            OnPropertyChanged(nameof(TagTextColor));
-            OnPropertyChanged(nameof(TagBorderColor));
-        }
-    }
-
-    public string Priority
-    {
-        get => Entity.Priority.ToString();
-        set
-        {
-            if (!Enum.TryParse<TaskPriority>(value, true, out var newPriority)) return;
-            if (Entity.Priority == newPriority) return;
-            
-            Entity.Priority = newPriority;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsHighPriority));
-        }
-    }
-
-    public string Date
-    {
-        get => Entity.DueDate.ToString("MMM dd");
-        set
-        {
-            if (!DateTime.TryParse(value, out var newDate)) return;
-            Entity.DueDate = newDate;
-            OnPropertyChanged();
-        }
-    }
-
-    public bool IsHighPriority => Entity.Priority == TaskPriority.High;
+    public bool IsHighPriority => Priority == TaskPriority.High;
     
-    private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set { _isSelected = value; OnPropertyChanged(); } // Notification is critical
-    }
+    public string FormattedDate => DueDate.ToString("MMM dd");
 
-    // UI Formatting Logic
     public IBrush TagBgColor => GetTagBrush(Tag, 0.3);
     public IBrush TagTextColor => GetTagBrush(Tag, 1.0);
     public IBrush TagBorderColor => GetTagBrush(Tag, 0.5);
+    
+
+    partial void OnTitleChanged(string value) => Entity.Title = value;
+    partial void OnDescriptionChanged(string value) => Entity.Description = value;
+    partial void OnTagChanged(string value) => Entity.Tag = value;
+    partial void OnPriorityChanged(TaskPriority value) => Entity.Priority = value;
+    partial void OnDueDateChanged(DateTime value) => Entity.DueDate = value;
 
     private IBrush GetTagBrush(string? tag, double opacity)
     {

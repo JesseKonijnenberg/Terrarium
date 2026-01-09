@@ -1,10 +1,9 @@
 ﻿using Terrarium.Core.Models;
 
-namespace Terrarium.Core.Interfaces.Garden
+namespace Terrarium.Core.Interfaces.Garden;
+
+public interface IGardenService
 {
-    public interface IGardenService
-    {
-        List<PlantEntity> GetGarden();
-        void WaterPlant(PlantEntity plant, int amount);
-    }
+    List<PlantEntity> GetGarden();
+    void WaterPlant(PlantEntity plant, int amount);
 }

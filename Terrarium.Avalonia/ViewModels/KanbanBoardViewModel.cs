@@ -1,106 +1,198 @@
-﻿#region File Header & Imports
-
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Windows.Input;
+using System.Threading.Tasks;
 using Avalonia.Input.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Terrarium.Avalonia.Models.Kanban;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Update;
 
-#endregion
-
 namespace Terrarium.Avalonia.ViewModels;
 
-public class KanbanBoardViewModel : ViewModelBase
+/// <summary>
+/// A production-ready ViewModel for the Kanban board, utilizing CommunityToolkit Source Generators
+/// to handle commands, property notifications, and async orchestration.
+/// </summary>
+public partial class KanbanBoardViewModel : ViewModelBase
 {
-#region Fields & Services
     private readonly IBoardService _boardService;
-#endregion
 
-#region UI Collections & State
+    [ObservableProperty]
+    private bool _isDeleteAllConfirmationOpen;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDetailPanelOpen))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteTaskCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedTasksCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteAllTasksCommand))]
+    private TaskItem? _openedTask;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedTasksCommand))]
+    private int _selectionCount;
+
     public UpdateViewModel Updater { get; }
     public ObservableCollection<Column> Columns { get; set; } = new();
     public ObservableHashSet<string> SelectedTaskIds { get; } = new();
 
-    public TaskItem? OpenedTask
-    {
-        get;
-        set
-        {
-            if (field != null) SaveTask(field);
-            field = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsDetailPanelOpen));
-        }
-    }
-
-    public bool IsDeleteAllConfirmationOpen
-    {
-        get;
-        set { field = value; OnPropertyChanged(); }
-    }
-
     public bool IsDetailPanelOpen => OpenedTask != null;
-#endregion
 
-#region Commands
-    public ICommand AddItemCommand { get; private set; }
-    public ICommand DeleteTaskCommand { get; private set; }
-    public ICommand OpenTaskCommand { get; private set; }
-    public ICommand SaveTaskCommand { get; private set; }
-    public ICommand SmartPasteCommand { get; private set; }
-    public ICommand SelectAllTasksCommand { get; private set; }
-    public ICommand DeleteAllTasksCommand { get; private set; }
-    public ICommand ConfirmDeleteAllCommand { get; private set; }
-    public ICommand CancelDeleteAllCommand { get; private set; }
-    public ICommand ToggleTaskSelectionCommand { get; private set; }
-    public ICommand DeleteSelectedTasksCommand { get; private set; }
-    public ICommand DeselectAllCommand { get; private set; }
-#endregion
-
-#region Constructor & Initialization
     public KanbanBoardViewModel(IBoardService boardService, IUpdateService updateService)
     {
         _boardService = boardService;
         Updater = new UpdateViewModel(updateService);
-
-        InitializeCommands();
-        LoadData();
+        
+        _ = LoadDataAsync();
     }
-
-    private void InitializeCommands()
+    
+    partial void OnOpenedTaskChanging(TaskItem? value)
     {
-        AddItemCommand = new RelayCommand(ExecuteAddItem);
-        DeleteTaskCommand = new RelayCommand(ExecuteDeleteTask, CanExecuteDeleteTask);
-        OpenTaskCommand = new RelayCommand(ExecuteOpenTask);
-        SaveTaskCommand = new RelayCommand(ExecuteSaveTask);
-        SmartPasteCommand = new RelayCommand(ExecuteSmartPaste);
-        ConfirmDeleteAllCommand = new RelayCommand(ExecuteConfirmDeleteAll);
-        CancelDeleteAllCommand = new RelayCommand(_ => IsDeleteAllConfirmationOpen = false);
-        ToggleTaskSelectionCommand = new RelayCommand(ExecuteToggleSelection);
-
-        DeleteAllTasksCommand = new RelayCommand(
-            _ => IsDeleteAllConfirmationOpen = true,
-            _ => !IsDetailPanelOpen);
-
-        DeleteSelectedTasksCommand = new RelayCommand(
-            ExecuteDeleteSelected, 
-            _ => !IsDetailPanelOpen && SelectedTaskIds.Any());
-
-        SelectAllTasksCommand = new RelayCommand(
-            ExecuteSelectAll,
-            _ => !IsDetailPanelOpen);
-
-        DeselectAllCommand = new RelayCommand(ExecuteDeselectAll);
+        if (OpenedTask != null)
+        {
+            _ = SaveTaskAsync(OpenedTask);
+        }
     }
-#endregion
 
-#region Task Operations (CRUD & Move)
-    public async void MoveTask(TaskItem task, Column targetColumn, int index = -1)
+    [RelayCommand]
+    private async Task AddItemAsync(Column targetColumn)
+    {
+        var newEntity = await _boardService.CreateDefaultTaskEntity(targetColumn.Id);
+        var newTask = new TaskItem(newEntity);
+
+        targetColumn.Tasks.Insert(0, newTask);
+        OpenedTask = newTask;
+
+        await _boardService.AddTaskAsync(newEntity, targetColumn.Id);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDeleteTask))]
+    private async Task DeleteTaskAsync()
+    {
+        if (OpenedTask is not { } taskToDelete) return;
+
+        var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(taskToDelete));
+        if (sourceColumn != null)
+        {
+            sourceColumn.Tasks.Remove(taskToDelete);
+            OpenedTask = null;
+            await _boardService.DeleteTaskAsync(taskToDelete.Entity);
+        }
+    }
+    private bool CanDeleteTask() => OpenedTask != null;
+
+    [RelayCommand]
+    private async Task SaveTaskCommandAsync() 
+    {
+        if (OpenedTask != null) await SaveTaskAsync(OpenedTask);
+    }
+
+    [RelayCommand]
+    private async Task SmartPasteAsync(IClipboard clipboard)
+    {
+        var text = await clipboard.GetTextAsync();
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        var newTasks = await _boardService.ProcessSmartPasteAsync(text);
+        foreach (var entity in newTasks)
+        {
+            var uiColumn = Columns.FirstOrDefault(c => c.Id == entity.ColumnId);
+            uiColumn?.Tasks.Add(new TaskItem(entity));
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAllAsync()
+    {
+        IsDeleteAllConfirmationOpen = false;
+        await _boardService.WipeBoardAsync();
+        foreach (var column in Columns) column.Tasks.Clear();
+        OpenedTask = null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDeleteSelected), AllowConcurrentExecutions = false)]
+    private async Task DeleteSelectedTasksAsync()
+    {
+        var idsToDelete = SelectedTaskIds.ToList();
+        if (OpenedTask != null && idsToDelete.Contains(OpenedTask.Id)) OpenedTask = null;
+        
+        await _boardService.DeleteMultipleTasksAsync(idsToDelete);
+        
+        foreach (var column in Columns)
+        {
+            var toRemove = column.Tasks.Where(t => idsToDelete.Contains(t.Id)).ToList();
+            foreach (var task in toRemove) column.Tasks.Remove(task);
+        }
+    
+        SelectedTaskIds.Clear();
+        SelectionCount = 0;
+    }
+    private bool CanDeleteSelected() => !IsDetailPanelOpen && SelectionCount > 0;
+
+    [RelayCommand(CanExecute = nameof(CanModifyBoard))]
+    private void DeleteAllTasks()
+    {
+        IsDeleteAllConfirmationOpen = true;
+    }
+
+    [RelayCommand]
+    private void CancelDeleteAll()
+    {
+        IsDeleteAllConfirmationOpen = false;
+    }
+
+    private bool CanModifyBoard() => !IsDetailPanelOpen;
+
+    [RelayCommand]
+    private void OpenTask(TaskItem task)
+    {
+        task.IsSelected = true;
+        if (!SelectedTaskIds.Contains(task.Id)) SelectedTaskIds.Add(task.Id);
+        OpenedTask = task;
+        SelectionCount = SelectedTaskIds.Count;
+    }
+
+    [RelayCommand]
+    private void ToggleTaskSelection(TaskItem task)
+    {
+        if (IsDetailPanelOpen && OpenedTask?.Id == task.Id) return;
+
+        task.IsSelected = !task.IsSelected;
+        if (task.IsSelected) SelectedTaskIds.Add(task.Id);
+        else SelectedTaskIds.Remove(task.Id);
+
+        SelectionCount = SelectedTaskIds.Count;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanModifyBoard))]
+    private void SelectAllTasks()
+    {
+        SelectedTaskIds.Clear();
+        foreach (var task in Columns.SelectMany(c => c.Tasks))
+        {
+            SelectedTaskIds.Add(task.Id);
+            task.IsSelected = true;
+        }
+        SelectionCount = SelectedTaskIds.Count;
+    }
+
+    [RelayCommand]
+    private void DeselectAll()
+    {
+        if (IsDeleteAllConfirmationOpen) return;
+        if (IsDetailPanelOpen) { CloseDetails(); return; }
+
+        SelectedTaskIds.Clear();
+        foreach (var task in Columns.SelectMany(c => c.Tasks)) task.IsSelected = false;
+        SelectionCount = 0;
+    }
+
+    public async Task MoveTaskAsync(TaskItem task, Column targetColumn, int index = -1)
     {
         var tasksToMove = task.IsSelected 
             ? Columns.SelectMany(c => c.Tasks).Where(t => t.IsSelected).ToList()
@@ -112,6 +204,7 @@ public class KanbanBoardViewModel : ViewModelBase
         {
             var sourceCol = Columns.FirstOrDefault(c => c.Tasks.Contains(t));
             sourceCol?.Tasks.Remove(t);
+            
             if (index == -1 || index > targetColumn.Tasks.Count)
                 targetColumn.Tasks.Add(t);
             else
@@ -121,79 +214,22 @@ public class KanbanBoardViewModel : ViewModelBase
         await _boardService.MoveTasksWithEconomyAsync(ids, targetColumn.Id, targetColumn.Title, index);
     }
 
-    private async void ExecuteAddItem(object? parameter)
+    private async Task SaveTaskAsync(TaskItem task)
     {
-        if (parameter is Column targetColumn)
+        try
         {
-            var newEntity = _boardService.CreateDefaultTaskEntity(targetColumn.Id).Result;
-            var newTask = new TaskItem(newEntity);
-    
-            targetColumn.Tasks.Insert(0, newTask);
-            OpenedTask = newTask;
-    
-            await _boardService.AddTaskAsync(newEntity, targetColumn.Id);
+            await _boardService.UpdateTaskFromUiAsync(
+                task.Entity, 
+                task.Title, 
+                task.Description, 
+                task.Tag, 
+                task.Priority,
+                task.DueDate
+            );
         }
-    }
-
-    private async void ExecuteSaveTask(object? parameter) 
-    { 
-        if (OpenedTask != null) SaveTask(OpenedTask); 
-    }
-
-    private async void SaveTask(TaskItem task) => 
-        await _boardService.UpdateTaskFromUiAsync(task.Entity, task.Title, task.Description, task.Tag, task.Priority, task.Date);
-
-    private async void ExecuteDeleteTask(object? parameter)
-    {
-        if (OpenedTask is TaskItem taskToDelete)
+        catch (Exception ex)
         {
-            var sourceColumn = Columns.FirstOrDefault(c => c.Tasks.Contains(taskToDelete));
-            if (sourceColumn != null)
-            {
-                sourceColumn.Tasks.Remove(taskToDelete);
-                OpenedTask = null;
-                await _boardService.DeleteTaskAsync(taskToDelete.Entity);
-            }
-        }
-    }
-
-    private bool CanExecuteDeleteTask(object? parameter) => OpenedTask != null;
-
-    private async void ExecuteDeleteSelected(object? parameter)
-    {
-        if (IsDetailPanelOpen || !SelectedTaskIds.Any()) return;
-
-        var idsToDelete = SelectedTaskIds.ToList();
-        if (OpenedTask != null && idsToDelete.Contains(OpenedTask.Id)) OpenedTask = null;
-        
-        await _boardService.DeleteMultipleTasksAsync(idsToDelete);
-        
-        foreach (var column in Columns)
-        {
-            var toRemove = column.Tasks.Where(t => idsToDelete.Contains(t.Id)).ToList();
-            foreach (var task in toRemove) column.Tasks.Remove(task);
-        }
-        SelectedTaskIds.Clear();
-        RefreshCommandStates();
-    }
-
-    private async void ExecuteConfirmDeleteAll(object? parameter)
-    {
-        IsDeleteAllConfirmationOpen = false;
-        await _boardService.WipeBoardAsync();
-        foreach (var column in Columns) column.Tasks.Clear();
-        OpenedTask = null;
-    }
-#endregion
-
-#region Selection & UI Navigation
-    private void ExecuteOpenTask(object? parameter)
-    {
-        if (parameter is TaskItem task) 
-        {
-            task.IsSelected = true;
-            if (!SelectedTaskIds.Contains(task.Id)) SelectedTaskIds.Add(task.Id);
-            OpenedTask = task;
+            Debug.WriteLine($"Save failed: {ex.Message}");
         }
     }
 
@@ -203,52 +239,13 @@ public class KanbanBoardViewModel : ViewModelBase
         {
             OpenedTask.IsSelected = false;
             SelectedTaskIds.Remove(OpenedTask.Id);
-            SaveTask(OpenedTask);
+            SelectionCount = SelectedTaskIds.Count;
+            _ = SaveTaskAsync(OpenedTask);
         }
         OpenedTask = null;
     }
 
-    private void ExecuteToggleSelection(object? parameter)
-    {
-        if (parameter is not TaskItem task || (IsDetailPanelOpen && OpenedTask?.Id == task.Id)) return;
-
-        task.IsSelected = !task.IsSelected;
-        if (task.IsSelected) SelectedTaskIds.Add(task.Id);
-        else SelectedTaskIds.Remove(task.Id);
-
-        RefreshCommandStates();
-    }
-
-    private void ExecuteSelectAll(object? parameter)
-    {
-        if (IsDetailPanelOpen) return;
-        SelectedTaskIds.Clear();
-        foreach (var column in Columns)
-        {
-            foreach (var task in column.Tasks)
-            {
-                SelectedTaskIds.Add(task.Id);
-                task.IsSelected = true; 
-            }
-        }
-        RefreshCommandStates();
-    }
-
-    private void ExecuteDeselectAll(object? parameter)
-    {
-        if (IsDeleteAllConfirmationOpen) return;
-        if (IsDetailPanelOpen) { CloseDetails(); return; }
-        
-        SelectedTaskIds.Clear();
-        foreach (var column in Columns)
-            foreach (var task in column.Tasks) task.IsSelected = false;
-
-        RefreshCommandStates();
-    }
-#endregion
-
-#region Data Loading & External Input
-    private async void LoadData()
+    private async Task LoadDataAsync()
     {
         var boardData = await _boardService.LoadBoardAsync();
         Columns.Clear();
@@ -259,22 +256,4 @@ public class KanbanBoardViewModel : ViewModelBase
             Columns.Add(columnVm);
         }
     }
-
-    private async void ExecuteSmartPaste(object? parameter)
-    {
-        if (parameter is not IClipboard clipboard) return;
-        var text = await clipboard.GetTextAsync();
-        var newTasks = await _boardService.ProcessSmartPasteAsync(text);
-
-        foreach (var entity in newTasks)
-        {
-            var uiColumn = Columns.FirstOrDefault(c => c.Id == entity.ColumnId);
-            if (uiColumn != null) uiColumn.Tasks.Add(new TaskItem(entity));
-        }
-    }
-#endregion
-
-#region Helpers
-    private void RefreshCommandStates() => ((RelayCommand)DeleteSelectedTasksCommand).RaiseCanExecuteChanged();
-#endregion
 }

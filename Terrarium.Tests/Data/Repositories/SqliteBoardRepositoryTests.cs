@@ -1,8 +1,8 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Terrarium.Core.Models.Kanban;
-using Terrarium.Data;
 using Terrarium.Data.Contexts;
+using Terrarium.Data.Repositories;
 
 namespace Terrarium.Tests.Data.Repositories;
 

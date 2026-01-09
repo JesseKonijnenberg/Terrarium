@@ -127,7 +127,7 @@
                                                 </Border>
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
                                                      <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
-                                                     <TextBox Text="{Binding Date}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="12" Width="60"/>
+                                                     <TextBox Text="{Binding DueDate}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="12" Width="60"/>
                                                 </StackPanel>
                                             </StackPanel>
 

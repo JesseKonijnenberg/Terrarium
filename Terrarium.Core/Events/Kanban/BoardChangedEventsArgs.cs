@@ -1,8 +1,6 @@
-namespace Terrarium.Core.Events.Kanban
-{
-    public class BoardChangedEventsArgs : EventArgs
-    {
-        
-    }  
-}
+namespace Terrarium.Core.Events.Kanban;
 
+public class BoardChangedEventsArgs : EventArgs
+{
+        
+}

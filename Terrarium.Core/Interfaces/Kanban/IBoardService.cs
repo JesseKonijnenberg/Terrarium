@@ -1,9 +1,6 @@
-﻿#region File Header & Imports
-
+﻿using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Events.Kanban;
 using Terrarium.Core.Models.Kanban;
-
-#endregion
 
 namespace Terrarium.Core.Interfaces.Kanban;
 
@@ -13,14 +10,11 @@ namespace Terrarium.Core.Interfaces.Kanban;
 /// </summary>
 public interface IBoardService
 {
-#region Events
     /// <summary>
     /// Triggered whenever the board structure or task data is modified.
     /// </summary>
     event EventHandler<BoardChangedEventsArgs> BoardChanged;
-#endregion
 
-#region Retrieval
     /// <summary>
     /// Fetches the board configuration and tasks from the underlying data store.
     /// </summary>
@@ -30,9 +24,7 @@ public interface IBoardService
     /// Retrieves the board data currently held in memory.
     /// </summary>
     List<ColumnEntity> GetCachedBoard();
-#endregion
 
-#region Task Persistence
     /// <summary>
     /// Persists a new task to the database and updates the local cache.
     /// </summary>
@@ -57,9 +49,7 @@ public interface IBoardService
     /// Wipes all task data from the board while preserving column structure.
     /// </summary>
     Task WipeBoardAsync();
-#endregion
 
-#region Orchestration & Logic
     /// <summary>
     /// Moves a task to a new position or column.
     /// </summary>
@@ -86,8 +76,13 @@ public interface IBoardService
     Task<TaskEntity> CreateDefaultTaskEntity(string columnId);
 
     /// <summary>
-    /// Parses UI-provided strings into valid entity data and triggers an update.
+    /// Updates a task's properties using native types.
     /// </summary>
-    Task UpdateTaskFromUiAsync(TaskEntity entity, string title, string description, string tag, string priority, string date);
-#endregion
+    Task UpdateTaskFromUiAsync(
+        TaskEntity entity, 
+        string title, 
+        string description, 
+        string tag, 
+        TaskPriority priority, // Changed from string
+        DateTime dueDate);
 }

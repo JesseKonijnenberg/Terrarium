@@ -1,9 +1,8 @@
-﻿namespace Terrarium.Core.Enums.Kanban
+﻿namespace Terrarium.Core.Enums.Kanban;
+
+public enum TaskPriority
 {
-    public enum TaskPriority
-    {
-        Low,
-        Medium,
-        High
-    }
+    Low,
+    Medium,
+    High
 }

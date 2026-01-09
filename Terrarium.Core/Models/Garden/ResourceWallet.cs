@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Terrarium.Core.Models.Garden;
 
-namespace Terrarium.Core.Models.Garden
+internal class ResourceWallet
 {
-    internal class ResourceWallet
-    {
-    }
 }

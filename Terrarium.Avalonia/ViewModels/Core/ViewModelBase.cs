@@ -1,12 +1,11 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Terrarium.Avalonia.ViewModels.Core
+namespace Terrarium.Avalonia.ViewModels.Core;
+
+/// <summary>
+/// Base class for all ViewModels, providing support for Source Generated 
+/// observable properties and commands.
+/// </summary>
+public abstract partial class ViewModelBase : ObservableObject
 {
-    public class ViewModelBase : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
 }

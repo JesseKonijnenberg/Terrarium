@@ -2,160 +2,117 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Interfaces.Update;
 
-namespace Terrarium.Avalonia.ViewModels
+namespace Terrarium.Avalonia.ViewModels;
+
+public partial class UpdateViewModel : ViewModelBase
 {
-    public class UpdateViewModel : ViewModelBase
+    private readonly IUpdateService _updateService;
+    private CancellationTokenSource? _updateCts;
+    private string _foundVersion = "";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowStartButton))]
+    private bool _isUpdateAvailable;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowStartButton))]
+    [NotifyPropertyChangedFor(nameof(ShowProgressPanel))]
+    private bool _isUpdating;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowStartButton))]
+    private bool _isRestartPending;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowStartButton))]
+    [NotifyPropertyChangedFor(nameof(ShowProgressPanel))]
+    private bool _isCancelling;
+
+    [ObservableProperty]
+    private int _updateProgress;
+
+    [ObservableProperty]
+    private string _updateButtonText = "Check for Updates";
+
+    public bool ShowStartButton => IsUpdateAvailable && !IsUpdating && !IsRestartPending && !IsCancelling;
+    public bool ShowProgressPanel => IsUpdating && !IsCancelling;
+
+    public UpdateViewModel(IUpdateService updateService)
     {
-        private readonly IUpdateService _updateService;
-        private CancellationTokenSource? _updateCts;
-        private string _foundVersion = "";
+        _updateService = updateService;
+        _ = CheckForUpdatesAsync();
+    }
 
-        public ICommand UpdateCommand { get; }
-        public ICommand CancelUpdateCommand { get; }
-        public ICommand RestartCommand { get; }
-        
-        public bool ShowStartButton => IsUpdateAvailable && !IsUpdating && !IsRestartPending && !IsCancelling;
-        public bool ShowProgressPanel => IsUpdating && !IsCancelling;
-
-        public bool IsUpdateAvailable
+    private async Task CheckForUpdatesAsync()
+    {
+        string? newVersion = await _updateService.CheckForUpdatesAsync();
+        if (!string.IsNullOrEmpty(newVersion))
         {
-            get;
-            set
-            {
-                field = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-            }
+            _foundVersion = newVersion;
+            IsUpdateAvailable = true;
+            UpdateButtonText = $"Update to {newVersion}";
         }
+    }
 
-        public bool IsUpdating
+    [RelayCommand(CanExecute = nameof(CanUpdate))]
+    private async Task UpdateAsync()
+    {
+        IsUpdating = true;
+        UpdateButtonText = "Downloading...";
+        _updateCts = new CancellationTokenSource();
+
+        try
         {
-            get;
-            set
+            await _updateService.DownloadUpdatesAsync((progress) =>
             {
-                field = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-                OnPropertyChanged(nameof(ShowProgressPanel));
-            }
+                UpdateProgress = progress;
+                UpdateButtonText = $"Downloading {progress}%";
+            }, _updateCts.Token);
+
+            IsUpdating = false;
+            IsRestartPending = true;
+            UpdateButtonText = "Restart Required";
         }
-
-        public bool IsRestartPending
+        catch (OperationCanceledException)
         {
-            get;
-            set
-            {
-                field = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-            }
+            await HandleCancellationAsync();
         }
-
-        public bool IsCancelling
+        catch (Exception ex)
         {
-            get;
-            set
-            {
-                field = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShowStartButton));
-                OnPropertyChanged(nameof(ShowProgressPanel));
-            }
+            IsUpdating = false;
+            UpdateButtonText = "Failed";
+            Debug.WriteLine($"Update Failed: {ex}");
         }
-
-        public int UpdateProgress
+        finally
         {
-            get;
-            set
-            {
-                field = value;
-                OnPropertyChanged();
-            }
+            _updateCts?.Dispose();
+            _updateCts = null;
         }
+    }
 
-        public string UpdateButtonText
-        {
-            get;
-            set
-            {
-                field = value;
-                OnPropertyChanged();
-            }
-        } = "Check for Updates";
-        
-        public UpdateViewModel(IUpdateService updateService)
-        {
-            _updateService = updateService;
+    private bool CanUpdate() => IsUpdateAvailable && !IsUpdating;
 
-            UpdateCommand = new RelayCommand(ExecuteUpdate);
-            CancelUpdateCommand = new RelayCommand(ExecuteCancelUpdate);
-            RestartCommand = new RelayCommand(ExecuteRestart);
-            
-            Task.Run(CheckForUpdates);
-        }
+    [RelayCommand]
+    private void CancelUpdate() => _updateCts?.Cancel();
 
-        private async Task CheckForUpdates()
-        {
-            string? newVersion = await _updateService.CheckForUpdatesAsync();
-            if (!string.IsNullOrEmpty(newVersion))
-            {
-                _foundVersion = newVersion;
-                IsUpdateAvailable = true;
-                UpdateButtonText = $"Update to {newVersion}";
-            }
-        }
+    [RelayCommand]
+    private void Restart() => _updateService.ApplyUpdatesAndRestart();
 
-        private async void ExecuteUpdate(object? param)
-        {
-            if (!IsUpdateAvailable) return;
+    private async Task HandleCancellationAsync()
+    {
+        IsCancelling = true;
+        IsUpdating = false;
+        UpdateButtonText = "Cancelled";
 
-            IsUpdating = true;
-            UpdateButtonText = "Downloading...";
-            _updateCts = new CancellationTokenSource();
+        await Task.Delay(1000);
 
-            try
-            {
-                await _updateService.DownloadUpdatesAsync((progress) =>
-                {
-                    UpdateProgress = progress;
-                    UpdateButtonText = $"Downloading {progress}%";
-                }, _updateCts.Token);
-
-                IsUpdating = false;
-                IsRestartPending = true;
-                UpdateButtonText = "Restart Required";
-            }
-            catch (OperationCanceledException)
-            {
-                IsCancelling = true;
-                IsUpdating = false;
-
-                UpdateButtonText = "Cancelled";
-
-                await Task.Delay(1000);
-
-                IsCancelling = false;
-                UpdateProgress = 0;
-                UpdateButtonText = $"Update to {_foundVersion}";
-            }
-            catch (Exception ex)
-            {
-                IsUpdating = false;
-                UpdateButtonText = "Failed";
-                Debug.WriteLine($"Update Failed: {ex}");
-            }
-            finally
-            {
-                _updateCts?.Dispose();
-                _updateCts = null;
-            }
-        }
-
-        private void ExecuteCancelUpdate(object? param) => _updateCts?.Cancel();
-        private void ExecuteRestart(object? param) => _updateService.ApplyUpdatesAndRestart();
+        IsCancelling = false;
+        UpdateProgress = 0;
+        UpdateButtonText = $"Update to {_foundVersion}";
     }
 }

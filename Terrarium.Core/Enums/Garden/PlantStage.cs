@@ -1,11 +1,10 @@
-﻿namespace Terrarium.Core.Enums.Garden
+﻿namespace Terrarium.Core.Enums.Garden;
+
+public enum PlantStage
 {
-    public enum PlantStage
-    {
-        Seed,
-        Sprout,
-        Growing,
-        Mature,
-        Blooming
-    }
+    Seed,
+    Sprout,
+    Growing,
+    Mature,
+    Blooming
 }

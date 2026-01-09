@@ -1,53 +1,45 @@
-﻿using Terrarium.Avalonia.ViewModels.Core;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Enums.Garden;
 using Terrarium.Core.Models;
 
-namespace Terrarium.Avalonia.Models.Garden
+namespace Terrarium.Avalonia.Models.Garden;
+
+public partial class PlantUiModel : ViewModelBase
 {
-    public class PlantUiModel : ViewModelBase
+    public PlantEntity Entity { get; }
+
+    // Visual coordinates with automatic notification
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ZIndex))]
+    private double _x;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ZIndex))]
+    private double _y;
+
+    // Isometric depth: higher Y values (lower on screen) have higher Z-Index
+    public int ZIndex => (int)Y;
+
+    // These properties wrap the underlying Entity
+    public int GrowthProgress => Entity.GrowthProgress;
+    public PlantStage Stage => Entity.Stage;
+    public PlantType Type => Entity.Type;
+
+    public PlantUiModel(PlantEntity entity, double x, double y)
     {
-        public PlantEntity Entity { get; }
-        public int GrowthProgress
-        {
-            get => Entity.GrowthProgress; // No setter: The logic layer updates the Entity, we just reflect it.
-        }
+        Entity = entity;
+        _x = x;
+        _y = y;
+    }
 
-        public PlantStage Stage
-        {
-            get => Entity.Stage;
-        }
-
-        public PlantType Type => Entity.Type; // Static, likely won't change
-
-        // --- VISUAL COORDINATES ---
-        private double _x;
-        public double X
-        {
-            get => _x;
-            set { _x = value; OnPropertyChanged(); }
-        }
-
-        private double _y;
-        public double Y
-        {
-            get => _y;
-            set { _y = value; OnPropertyChanged(); }
-        }
-
-        // Z-Index ensures plants "lower" on screen appear "in front" (Isometric depth)
-        public int ZIndex => (int)Y;
-
-        public PlantUiModel(PlantEntity entity, double x, double y)
-        {
-            Entity = entity;
-            X = x;
-            Y = y;
-        }
-        
-        public void Refresh()
-        {
-            OnPropertyChanged(nameof(GrowthProgress));
-            OnPropertyChanged(nameof(Stage));
-        }
+    /// <summary>
+    /// Forces the UI to re-read values from the underlying Entity.
+    /// Useful when the logic layer (GardenService) updates the growth state.
+    /// </summary>
+    public void Refresh()
+    {
+        OnPropertyChanged(nameof(GrowthProgress));
+        OnPropertyChanged(nameof(Stage));
     }
 }

@@ -1,10 +1,9 @@
-﻿namespace Terrarium.Core.Enums.Garden
+﻿namespace Terrarium.Core.Enums.Garden;
+
+public enum PlantType
 {
-    public enum PlantType
-    {
-        Succulent,
-        Fern,
-        Monstera,
-        Bonsai
-    }
+    Succulent,
+    Fern,
+    Monstera,
+    Bonsai
 }

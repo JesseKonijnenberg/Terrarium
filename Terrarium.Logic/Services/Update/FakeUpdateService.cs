@@ -1,35 +1,35 @@
 ﻿using System.Diagnostics;
+using Terrarium.Core.Interfaces.Update;
 
-namespace Terrarium.Core.Interfaces.Update.Update
+namespace Terrarium.Logic.Services.Update;
+
+public class FakeUpdateService : IUpdateService
 {
-    public class FakeUpdateService : IUpdateService
+    private string _fakeVersion = "9.9.9 (Test)";
+
+    public async Task<string?> CheckForUpdatesAsync()
     {
-        private string _fakeVersion = "9.9.9 (Test)";
+        await Task.Delay(1000);
+        return _fakeVersion;
+    }
 
-        public async Task<string?> CheckForUpdatesAsync()
+    public async Task DownloadUpdatesAsync(Action<int> progress, CancellationToken token)
+    {
+        for (int i = 0; i <= 100; i++)
         {
-            await Task.Delay(1000);
-            return _fakeVersion;
-        }
-
-        public async Task DownloadUpdatesAsync(Action<int> progress, CancellationToken token)
-        {
-            for (int i = 0; i <= 100; i++)
+            if (token.IsCancellationRequested)
             {
-                if (token.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException();
-                }
-
-                progress(i);
-
-                await Task.Delay(30, token);
+                throw new OperationCanceledException();
             }
-        }
 
-        public void ApplyUpdatesAndRestart()
-        {
-            Debug.WriteLine("FAKE SERVICE: ApplyUpdatesAndRestart called.");
+            progress(i);
+
+            await Task.Delay(30, token);
         }
+    }
+
+    public void ApplyUpdatesAndRestart()
+    {
+        Debug.WriteLine("FAKE SERVICE: ApplyUpdatesAndRestart called.");
     }
 }

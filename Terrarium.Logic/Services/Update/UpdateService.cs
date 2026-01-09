@@ -1,47 +1,53 @@
-﻿using Velopack;
+﻿using Terrarium.Core.Interfaces.Update;
+using Velopack;
 using Velopack.Sources;
 
-namespace Terrarium.Core.Interfaces.Update.Update
+namespace Terrarium.Logic.Services.Update;
+
+/// <summary>
+/// A concrete implementation of <see cref="IUpdateService"/> utilizing the Velopack library 
+/// for GitHub-based distribution.
+/// </summary>
+public class UpdateService : IUpdateService
 {
-    public class UpdateService : IUpdateService
+    private readonly UpdateManager _manager;
+    private UpdateInfo? _cachedUpdateInfo;
+
+    public UpdateService()
     {
-        private readonly UpdateManager _manager;
+        var source = new GithubSource("https://github.com/JesseKonijnenberg/Terrarium", null, false);
+        _manager = new UpdateManager(source);
+    }
 
-        private UpdateInfo? _cachedUpdateInfo;
-
-        public UpdateService()
+    /// <inheritdoc />
+    public async Task<string?> CheckForUpdatesAsync()
+    {
+        try
         {
-            var source = new GithubSource("https://github.com/JesseKonijnenberg/Terrarium", null, false);
-            _manager = new UpdateManager(source);
-        }
+            if (!_manager.IsInstalled) return null;
 
-        public async Task<string?> CheckForUpdatesAsync()
+            _cachedUpdateInfo = await _manager.CheckForUpdatesAsync();
+
+            return _cachedUpdateInfo?.TargetFullRelease?.Version?.ToString();
+        }
+        catch
         {
-            try
-            {
-                if (!_manager.IsInstalled) return null;
-
-                _cachedUpdateInfo = await _manager.CheckForUpdatesAsync();
-
-                return _cachedUpdateInfo?.TargetFullRelease?.Version?.ToString();
-            }
-            catch
-            {
-                return null;
-            }
+            return null;
         }
+    }
 
-        public async Task DownloadUpdatesAsync(Action<int> progress, CancellationToken token)
-        {
-            if (_cachedUpdateInfo == null) return;
+    /// <inheritdoc />
+    public async Task DownloadUpdatesAsync(Action<int> progress, CancellationToken token)
+    {
+        if (_cachedUpdateInfo == null) return;
 
-            await _manager.DownloadUpdatesAsync(_cachedUpdateInfo, progress, cancelToken: token);
-        }
+        await _manager.DownloadUpdatesAsync(_cachedUpdateInfo, progress, cancelToken: token);
+    }
 
-        public void ApplyUpdatesAndRestart()
-        {
-            if (_cachedUpdateInfo == null) return;
-            _manager.ApplyUpdatesAndRestart(_cachedUpdateInfo);
-        }
+    /// <inheritdoc />
+    public void ApplyUpdatesAndRestart()
+    {
+        if (_cachedUpdateInfo == null) return;
+        _manager.ApplyUpdatesAndRestart(_cachedUpdateInfo);
     }
 }

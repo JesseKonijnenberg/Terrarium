@@ -1,18 +1,17 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Terrarium.Avalonia.Controls__UI_Components_
-{
-    public partial class TaskCardControl : UserControl
-    {
-        public TaskCardControl()
-        {
-            InitializeComponent();
-        }
+namespace Terrarium.Avalonia.Controls__UI_Components_;
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+public partial class TaskCardControl : UserControl
+{
+    public TaskCardControl()
+    {
+        InitializeComponent();
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 }

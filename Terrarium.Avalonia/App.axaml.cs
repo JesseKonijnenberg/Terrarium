@@ -8,73 +8,73 @@ using Terrarium.Avalonia.Views;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Update;
-using Terrarium.Core.Interfaces.Update.Update;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data;
 using Terrarium.Data.Contexts;
+using Terrarium.Data.Repositories;
 using Terrarium.Logic.Services.Kanban;
+using Terrarium.Logic.Services.Update;
 
-namespace Terrarium.Avalonia
+namespace Terrarium.Avalonia;
+
+public partial class App : Application
 {
-    public partial class App : Application
+    public IServiceProvider? Services { get; private set; }
+
+    public override void Initialize()
     {
-        public IServiceProvider? Services { get; private set; }
+        AvaloniaXamlLoader.Load(this);
+    }
 
-        public override void Initialize()
+    public override void OnFrameworkInitializationCompleted()
+    {
+        var collection = new ServiceCollection();
+        ConfigureServices(collection);
+        Services = collection.BuildServiceProvider();
+            
+        var backupService = Services.GetRequiredService<IBackupService>();
+        backupService.Initialize();
+            
+        using (var scope = Services.CreateScope())
         {
-            AvaloniaXamlLoader.Load(this);
+            var dbContext = scope.ServiceProvider.GetRequiredService<TerrariumDbContext>();
+            DbInitializer.Initialize(dbContext);
         }
 
-        public override void OnFrameworkInitializationCompleted()
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var collection = new ServiceCollection();
-            ConfigureServices(collection);
-            Services = collection.BuildServiceProvider();
-            
-            var backupService = Services.GetRequiredService<IBackupService>();
-            backupService.Initialize();
-            
-            using (var scope = Services.CreateScope())
+            var mainViewModel = Services.GetRequiredService<MainWindowViewModel>();
+
+            desktop.MainWindow = new MainWindow
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TerrariumDbContext>();
-                DbInitializer.Initialize(dbContext);
-            }
-
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                var mainViewModel = Services.GetRequiredService<MainWindowViewModel>();
-
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = mainViewModel
-                };
-            }
-
-            base.OnFrameworkInitializationCompleted();
+                DataContext = mainViewModel
+            };
         }
 
-        private void ConfigureServices(IServiceCollection services)
-        {
-            var storageOptions = new StorageOptions();
+        base.OnFrameworkInitializationCompleted();
+    }
 
-            services.AddSingleton(storageOptions);
-            services.AddTerrariumData(storageOptions);
+    private void ConfigureServices(IServiceCollection services)
+    {
+        var storageOptions = new StorageOptions();
 
-            services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
-            services.AddSingleton<IBoardService, BoardService>();
-            services.AddTransient<IUpdateService, UpdateService>();
-            services.AddSingleton<IBackupService, BackupService>();
-            services.AddSingleton<IBoardSerializer>(new BoardSerializer(storageOptions.TemplateFilePath));
+        services.AddSingleton(storageOptions);
+        services.AddTerrariumData(storageOptions);
+
+        services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
+        services.AddSingleton<IBoardService, BoardService>();
+        services.AddTransient<IUpdateService, UpdateService>();
+        services.AddSingleton<IBackupService, BackupService>();
+        services.AddSingleton<IBoardSerializer>(new BoardSerializer(storageOptions.TemplateFilePath));
             
-            services.AddSingleton<ITaskParserService, TaskParserService>();
+        services.AddSingleton<ITaskParserService, TaskParserService>();
 
-            services.AddSingleton<IGardenService, GardenService>();
-            services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
+        services.AddSingleton<IGardenService, GardenService>();
+        services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
 
-            services.AddTransient<SettingsViewModel>();
-            services.AddSingleton<KanbanBoardViewModel>();
-            services.AddSingleton<GardenViewModel>();
-            services.AddSingleton<MainWindowViewModel>();
-        }
+        services.AddTransient<SettingsViewModel>();
+        services.AddSingleton<KanbanBoardViewModel>();
+        services.AddSingleton<GardenViewModel>();
+        services.AddSingleton<MainWindowViewModel>();
     }
 }

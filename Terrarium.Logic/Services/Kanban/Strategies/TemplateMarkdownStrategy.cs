@@ -3,96 +3,95 @@ using System.Text.RegularExpressions;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 
-namespace Terrarium.Logic.Services.Kanban.Strategies
+namespace Terrarium.Logic.Services.Kanban.Strategies;
+
+/// <summary>
+/// An implementation of <see cref="IBoardFormattingStrategy"/> that uses an external 
+/// Markdown template with custom tags for dynamic data binding.
+/// </summary>
+public class TemplateMarkdownStrategy(string templatePath) : IBoardFormattingStrategy
 {
-  public class TemplateMarkdownStrategy(string templatePath) : IBoardFormattingStrategy
+    /// <inheritdoc />
+    public string Serialize(IEnumerable<ColumnEntity> columns)
     {
-        public string Serialize(IEnumerable<ColumnEntity> columns)
+        if (!File.Exists(templatePath))
+            return "# Error: Template file not found.";
+
+        var rawTemplate = File.ReadAllText(templatePath);
+        
+        if (string.IsNullOrWhiteSpace(rawTemplate))
+            return "# Error: Template file is empty.";
+        
+        rawTemplate = rawTemplate.Replace("{{Date}}", DateTime.Now.ToString("f"));
+        
+        var colRegex = new Regex(@"(?s)\[\[COLUMN_START\]\](.*?)\[\[COLUMN_END\]\]");
+        var colMatch = colRegex.Match(rawTemplate);
+
+        if (!colMatch.Success) return rawTemplate;
+
+        var columnTemplate = colMatch.Groups[1].Value;
+        var allColumnsBuilder = new StringBuilder();
+
+        foreach (var col in columns)
         {
-            if (!File.Exists(templatePath))
-                return "# Error: Template file not found.";
+            var currentColText = ProcessColumn(columnTemplate, col);
+            allColumnsBuilder.Append(currentColText);
+        }
+        
+        return colRegex.Replace(rawTemplate, allColumnsBuilder.ToString());
+    }
 
-            var rawTemplate = File.ReadAllText(templatePath);
-            
-            if (string.IsNullOrWhiteSpace(rawTemplate))
-                return "# Error: Template file is empty.";
-            
-            rawTemplate = rawTemplate.Replace("{{Date}}", DateTime.Now.ToString("f"));
-            
-            var colRegex = new Regex(@"(?s)\[\[COLUMN_START\]\](.*?)\[\[COLUMN_END\]\]");
-            var colMatch = colRegex.Match(rawTemplate);
+    private string ProcessColumn(string template, ColumnEntity column)
+    {
+        var sb = new StringBuilder(template);
+        sb.Replace("{{ColumnName}}", column.Title);
+        sb.Replace("{{TaskCount}}", column.Tasks?.Count.ToString() ?? "0");
+        
+        var taskRegex = new Regex(@"(?s)\[\[TASK_START\]\](.*?)\[\[TASK_END\]\]");
+        var taskMatch = taskRegex.Match(template);
 
-            if (!colMatch.Success) return rawTemplate;
+        if (taskMatch.Success && column.Tasks != null)
+        {
+            var taskTemplate = taskMatch.Groups[1].Value;
+            var allTasksBuilder = new StringBuilder();
 
-            var columnTemplate = colMatch.Groups[1].Value;
-            
-            var allColumnsBuilder = new StringBuilder();
-
-            foreach (var col in columns)
+            foreach (var task in column.Tasks)
             {
-                var currentColText = ProcessColumn(columnTemplate, col);
-                allColumnsBuilder.Append(currentColText);
+                allTasksBuilder.Append(ProcessTask(taskTemplate, task));
             }
             
-            return colRegex.Replace(rawTemplate, allColumnsBuilder.ToString());
+            return taskRegex.Replace(sb.ToString(), allTasksBuilder.ToString());
         }
+        
+        return taskRegex.Replace(sb.ToString(), ""); 
+    }
 
-        private string ProcessColumn(string template, ColumnEntity column)
+    private string ProcessTask(string template, TaskEntity task)
+    {
+        var sb = new StringBuilder(template);
+        
+        sb.Replace("{{TaskTitle}}", task.Title);
+        sb.Replace("{{TaskTag}}", task.Tag);
+        sb.Replace("{{TaskPriority}}", task.Priority.ToString());
+        
+        var descRegex = new Regex(@"(?s)\[\[DESC_START\]\](.*?)\[\[DESC_END\]\]");
+        var descMatch = descRegex.Match(template);
+
+        if (descMatch.Success)
         {
-            var sb = new StringBuilder(template);
-            sb.Replace("{{ColumnName}}", column.Title);
-            sb.Replace("{{TaskCount}}", column.Tasks?.Count.ToString() ?? "0");
-            
-            var taskRegex = new Regex(@"(?s)\[\[TASK_START\]\](.*?)\[\[TASK_END\]\]");
-            var taskMatch = taskRegex.Match(template);
-
-            if (taskMatch.Success && column.Tasks != null)
+            if (string.IsNullOrWhiteSpace(task.Description))
             {
-                var taskTemplate = taskMatch.Groups[1].Value;
-                var allTasksBuilder = new StringBuilder();
-
-                foreach (var task in column.Tasks)
-                {
-                    allTasksBuilder.Append(ProcessTask(taskTemplate, task));
-                }
-                
-                var result = taskRegex.Replace(sb.ToString(), allTasksBuilder.ToString());
-                return result;
+                return descRegex.Replace(sb.ToString(), "");
             }
             
-            return taskRegex.Replace(sb.ToString(), ""); 
+            var innerContent = descMatch.Groups[1].Value;
+            var filledContent = innerContent.Replace("{{TaskDescription}}", task.Description);
+            
+            filledContent = filledContent.Replace("\n", "\n> "); 
+            
+            return descRegex.Replace(sb.ToString(), filledContent);
         }
 
-        private string ProcessTask(string template, TaskEntity task)
-        {
-            var sb = new StringBuilder(template);
-            
-            sb.Replace("{{TaskTitle}}", task.Title);
-            sb.Replace("{{TaskTag}}", task.Tag);
-            sb.Replace("{{TaskPriority}}", task.Priority.ToString());
-            
-            var descRegex = new Regex(@"(?s)\[\[DESC_START\]\](.*?)\[\[DESC_END\]\]");
-            var descMatch = descRegex.Match(template);
-
-            if (descMatch.Success)
-            {
-                if (string.IsNullOrWhiteSpace(task.Description))
-                {
-                    return descRegex.Replace(sb.ToString(), "");
-                }
-                else
-                {
-                    var innerContent = descMatch.Groups[1].Value;
-                    var filledContent = innerContent.Replace("{{TaskDescription}}", task.Description);
-                    
-                    filledContent = filledContent.Replace("\n", "\n> "); 
-                    
-                    return descRegex.Replace(sb.ToString(), filledContent);
-                }
-            }
-
-            return sb.ToString();
-        }
-    }  
+        return sb.ToString();
+    }
 }
-

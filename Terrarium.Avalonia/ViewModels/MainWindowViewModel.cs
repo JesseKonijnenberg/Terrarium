@@ -1,42 +1,43 @@
-﻿using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Terrarium.Avalonia.ViewModels.Core;
 
-namespace Terrarium.Avalonia.ViewModels
+namespace Terrarium.Avalonia.ViewModels;
+
+/// <summary>
+/// The main shell of the application, managing top-level navigation between views.
+/// </summary>
+public partial class MainWindowViewModel : ViewModelBase
 {
-    public class MainWindowViewModel : ViewModelBase
+    public KanbanBoardViewModel BoardVm { get; }
+    public GardenViewModel GardenVm { get; }
+    public SettingsViewModel SettingsVm { get; }
+
+    /// <summary>
+    /// The current view being displayed in the main content area.
+    /// The toolkit generates the 'CurrentPage' property automatically.
+    /// </summary>
+    [ObservableProperty]
+    private ViewModelBase _currentPage;
+
+    public MainWindowViewModel(
+        KanbanBoardViewModel boardVm,
+        GardenViewModel gardenVm,
+        SettingsViewModel settingsVm)
     {
-        public KanbanBoardViewModel BoardVm { get; }
-        public GardenViewModel GardenVm { get; }
-        public SettingsViewModel SettingsVm { get; }
-
-        public ViewModelBase CurrentPage 
-        { 
-            get; 
-            set 
-            { 
-                if (field == value) return; 
-                field = value; 
-                OnPropertyChanged(); 
-            } 
-        }
-
-        public ICommand GoToBoardCommand { get; }
-        public ICommand GoToGardenCommand { get; }
-        public ICommand GoToSettingsCommand { get; }
-
-        public MainWindowViewModel(
-            KanbanBoardViewModel boardVm,
-            GardenViewModel gardenVm,
-            SettingsViewModel settingsVm)
-        {
-            BoardVm = boardVm;
-            GardenVm = gardenVm;
-            SettingsVm = settingsVm;
-            CurrentPage = BoardVm;
-
-            GoToBoardCommand = new RelayCommand(_ => CurrentPage = BoardVm);
-            GoToGardenCommand = new RelayCommand(_ => CurrentPage = GardenVm);
-            GoToSettingsCommand = new RelayCommand(_ => CurrentPage = SettingsVm);
-        }
+        BoardVm = boardVm;
+        GardenVm = gardenVm;
+        SettingsVm = settingsVm;
+        
+        _currentPage = BoardVm; // Default starting page
     }
+
+    [RelayCommand]
+    private void GoToBoard() => CurrentPage = BoardVm;
+
+    [RelayCommand]
+    private void GoToGarden() => CurrentPage = GardenVm;
+
+    [RelayCommand]
+    private void GoToSettings() => CurrentPage = SettingsVm;
 }

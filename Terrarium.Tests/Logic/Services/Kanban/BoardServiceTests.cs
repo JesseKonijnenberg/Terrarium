@@ -40,8 +40,8 @@ public class BoardServiceTests
     {
         var entity = new TaskEntity { Id = "t1" };
         var title = "New Title";
-        var priority = "High";
-        var date = "2026-12-25";
+        var priority = TaskPriority.High;
+        var date = new DateTime(2026, 1, 1);
 
         await _service.UpdateTaskFromUiAsync(entity, title, "desc", "tag", priority, date);
 

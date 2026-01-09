@@ -1,12 +1,8 @@
-﻿#region File Header & Imports
-
-using Terrarium.Core.Enums.Kanban;
+﻿using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Events.Kanban;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
-
-#endregion
 
 namespace Terrarium.Logic.Services.Kanban;
 
@@ -16,7 +12,6 @@ namespace Terrarium.Logic.Services.Kanban;
 /// </summary>
 public class BoardService : IBoardService
 {
-#region Fields & Events
     private readonly IBoardRepository _repository;
     private readonly ITaskParserService _taskParserService;
     private readonly IGardenEconomyService _gardenEconomyService;
@@ -25,9 +20,7 @@ public class BoardService : IBoardService
 
     /// <inheritdoc />
     public event EventHandler<BoardChangedEventsArgs>? BoardChanged;
-#endregion
 
-#region Initialization
     public BoardService(
         IBoardRepository repository, 
         ITaskParserService taskParserService, 
@@ -37,9 +30,7 @@ public class BoardService : IBoardService
         _taskParserService = taskParserService;
         _gardenEconomyService = gardenEconomyService;
     }
-#endregion
 
-#region Data Retrieval & Caching
     /// <inheritdoc />
     public async Task<List<ColumnEntity>> LoadBoardAsync()
     {
@@ -49,9 +40,7 @@ public class BoardService : IBoardService
 
     /// <inheritdoc />
     public List<ColumnEntity> GetCachedBoard() => _boardCache;
-#endregion
 
-#region Task CRUD Operations
     /// <inheritdoc />
     public async Task AddTaskAsync(TaskEntity task, string columnId)
     {
@@ -112,9 +101,7 @@ public class BoardService : IBoardService
         foreach (var col in _boardCache) col.Tasks.Clear();
         NotifyBoardChanged();
     }
-#endregion
 
-#region Task Movement & Orchestration
     /// <inheritdoc />
     public async Task MoveTaskAsync(TaskEntity task, string targetColumnId, int index)
     {
@@ -164,9 +151,7 @@ public class BoardService : IBoardService
         }
         NotifyBoardChanged();
     }
-#endregion
 
-#region UI Bridge & Economy Logic
     /// <inheritdoc />
     public async Task<TaskEntity> CreateDefaultTaskEntity(string columnId)
     {
@@ -182,14 +167,19 @@ public class BoardService : IBoardService
     }
 
     /// <inheritdoc />
-    public async Task UpdateTaskFromUiAsync(TaskEntity entity, string title, string description, string tag, string priority, string date)
+    public async Task UpdateTaskFromUiAsync(
+        TaskEntity entity, 
+        string title, 
+        string description, 
+        string tag, 
+        TaskPriority priority, 
+        DateTime dueDate)
     {
         entity.Title = title;
         entity.Description = description;
         entity.Tag = tag;
-        
-        entity.Priority = Enum.TryParse<TaskPriority>(priority, true, out var pResult) ? pResult : TaskPriority.Low;
-        if (DateTime.TryParse(date, out var dResult)) entity.DueDate = dResult;
+        entity.Priority = priority;
+        entity.DueDate = dueDate;
 
         await UpdateTaskAsync(entity);
     }
@@ -229,9 +219,7 @@ public class BoardService : IBoardService
 
         return processedTasks;
     }
-#endregion
 
-#region Helpers
     private void NotifyBoardChanged() 
         => BoardChanged?.Invoke(this, new BoardChangedEventsArgs());
 
@@ -240,5 +228,4 @@ public class BoardService : IBoardService
 
     private TaskEntity? FindTaskInCache(string taskId)
         => _boardCache.SelectMany(c => c.Tasks).FirstOrDefault(t => t.Id == taskId);
-#endregion
 }

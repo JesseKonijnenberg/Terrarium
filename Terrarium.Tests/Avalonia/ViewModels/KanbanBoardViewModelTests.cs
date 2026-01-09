@@ -2,6 +2,7 @@ using Avalonia.Input.Platform;
 using Moq;
 using Terrarium.Avalonia.Models.Kanban;
 using Terrarium.Avalonia.ViewModels;
+using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Update;
@@ -39,7 +40,7 @@ public class KanbanBoardViewModelTests
     }
 
     [Fact]
-    public void MoveTask_ShouldUpdateUICollectionsAndCallLogicService()
+    public async Task MoveTask_ShouldUpdateUICollectionsAndCallLogicService()
     {
         var vm = CreateViewModel();
         var colSource = CreateTestColumn("c1", "Backlog");
@@ -50,7 +51,7 @@ public class KanbanBoardViewModelTests
         vm.Columns.Add(colSource);
         vm.Columns.Add(colTarget);
 
-        vm.MoveTask(task, colTarget);
+        await vm.MoveTaskAsync(task, colTarget);
 
         Assert.Empty(colSource.Tasks);
         Assert.Single(colTarget.Tasks);
@@ -75,16 +76,30 @@ public class KanbanBoardViewModelTests
     public void OpenedTask_SettingNewTask_ShouldCallUpdateViaService()
     {
         var vm = CreateViewModel();
-        var task1 = new TaskItem(new TaskEntity { Id = "t1", Title = "Original" });
+        var originalDate = DateTime.Now;
+        var task1 = new TaskItem(new TaskEntity 
+        { 
+            Id = "t1", 
+            Title = "Original", 
+            Priority = TaskPriority.Low,
+            DueDate = originalDate
+        });
         var task2 = new TaskItem(new TaskEntity { Id = "t2" });
         
         vm.OpenedTask = task1;
         task1.Title = "Updated";
-
+        task1.Priority = TaskPriority.High;
+        
         vm.OpenedTask = task2;
-
+        
         _boardServiceMock.Verify(s => s.UpdateTaskFromUiAsync(
-            task1.Entity, "Updated", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            task1.Entity, 
+            "Updated", 
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            TaskPriority.High,
+            originalDate
+        ), Times.Once);
     }
 
     [Fact]

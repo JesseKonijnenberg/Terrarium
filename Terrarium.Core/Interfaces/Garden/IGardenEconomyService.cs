@@ -1,10 +1,9 @@
-﻿namespace Terrarium.Core.Interfaces.Garden
+﻿namespace Terrarium.Core.Interfaces.Garden;
+
+public interface IGardenEconomyService
 {
-    public interface IGardenEconomyService
-    {
-        int WaterBalance { get; }
-        event EventHandler<int>? BalanceChanged;
-        void EarnWater(int amount);
-        bool SpendWater(int amount);
-    }
+    int WaterBalance { get; }
+    event EventHandler<int>? BalanceChanged;
+    void EarnWater(int amount);
+    bool SpendWater(int amount);
 }

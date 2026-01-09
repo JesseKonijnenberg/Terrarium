@@ -4,104 +4,103 @@ using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Models.Kanban;
 using Terrarium.Core.Models.Kanban.DTO;
 
-namespace Terrarium.Logic.Services.Kanban
+namespace Terrarium.Logic.Services.Kanban;
+
+public class TaskParserService : ITaskParserService
 {
-    public class TaskParserService : ITaskParserService
-    {
-        private static readonly Regex TagRegex = new(@"#(\w+)", RegexOptions.Compiled);
-        private static readonly Regex PriorityRegex = new(@"!(\w+)", RegexOptions.Compiled);
-        private static readonly Regex TaskLineRegex = new(@"^[\s-]*\[[x\s]?\]\s*(.*)", RegexOptions.Compiled);
+    private static readonly Regex TagRegex = new(@"#(\w+)", RegexOptions.Compiled);
+    private static readonly Regex PriorityRegex = new(@"!(\w+)", RegexOptions.Compiled);
+    private static readonly Regex TaskLineRegex = new(@"^[\s-]*\[[x\s]?\]\s*(.*)", RegexOptions.Compiled);
         
-        private static readonly Regex ColumnHeaderRegex = 
-            new(@"^##\s+([\w\s🏔️🏗️🧪✅]+?)(?:\s*\(.*\))?$", RegexOptions.Compiled);
+    private static readonly Regex ColumnHeaderRegex = 
+        new(@"^##\s+([\w\s🏔️🏗️🧪✅]+?)(?:\s*\(.*\))?$", RegexOptions.Compiled);
 
-        /// <inheritdoc />
-        public IEnumerable<ParsedTaskResult> ParseClipboardText(string text)
+    /// <inheritdoc />
+    public IEnumerable<ParsedTaskResult> ParseClipboardText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) yield break;
+
+        var lines = text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        TaskEntity? currentTask = null;
+        string currentColumnName = "Backlog"; // Default starting point
+
+        foreach (var line in lines)
         {
-            if (string.IsNullOrWhiteSpace(text)) yield break;
+            var trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith("[[") || trimmedLine.StartsWith("---")) continue;
 
-            var lines = text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-            TaskEntity? currentTask = null;
-            string currentColumnName = "Backlog"; // Default starting point
-
-            foreach (var line in lines)
+            var colMatch = ColumnHeaderRegex.Match(trimmedLine);
+            if (colMatch.Success)
             {
-                var trimmedLine = line.Trim();
-                if (trimmedLine.StartsWith("[[") || trimmedLine.StartsWith("---")) continue;
-
-                var colMatch = ColumnHeaderRegex.Match(trimmedLine);
-                if (colMatch.Success)
+                if (currentTask != null)
                 {
-                    if (currentTask != null)
-                    {
-                        yield return new ParsedTaskResult(currentTask, currentColumnName);
-                        currentTask = null;
-                    }
+                    yield return new ParsedTaskResult(currentTask, currentColumnName);
+                    currentTask = null;
+                }
 
-                    var rawName = colMatch.Groups[1].Value.Trim();
+                var rawName = colMatch.Groups[1].Value.Trim();
                     
-                    var cleaned = Regex.Replace(rawName, @"[^\w\s]", "").Trim();
-                    currentColumnName = Regex.Replace(cleaned, @"\p{M}", "").Trim();
+                var cleaned = Regex.Replace(rawName, @"[^\w\s]", "").Trim();
+                currentColumnName = Regex.Replace(cleaned, @"\p{M}", "").Trim();
 
-                    continue;
-                }
-
-                var taskMatch = TaskLineRegex.Match(trimmedLine);
-                if (taskMatch.Success)
-                {
-                    if (currentTask != null)
-                    {
-                        yield return new ParsedTaskResult(currentTask, currentColumnName);
-                    }
-
-                    currentTask = CreateTaskFromLine(taskMatch.Groups[1].Value);
-                    continue;
-                }
-
-                if (currentTask != null && trimmedLine.StartsWith('>'))
-                {
-                    var description = trimmedLine.TrimStart('>').Trim();
-                    currentTask.Description = string.IsNullOrEmpty(currentTask.Description)
-                        ? description
-                        : currentTask.Description + Environment.NewLine + description;
-                }
+                continue;
             }
 
-            if (currentTask != null)
+            var taskMatch = TaskLineRegex.Match(trimmedLine);
+            if (taskMatch.Success)
             {
-                yield return new ParsedTaskResult(currentTask, currentColumnName);
+                if (currentTask != null)
+                {
+                    yield return new ParsedTaskResult(currentTask, currentColumnName);
+                }
+
+                currentTask = CreateTaskFromLine(taskMatch.Groups[1].Value);
+                continue;
+            }
+
+            if (currentTask != null && trimmedLine.StartsWith('>'))
+            {
+                var description = trimmedLine.TrimStart('>').Trim();
+                currentTask.Description = string.IsNullOrEmpty(currentTask.Description)
+                    ? description
+                    : currentTask.Description + Environment.NewLine + description;
             }
         }
 
-        private TaskEntity CreateTaskFromLine(string line)
+        if (currentTask != null)
         {
-            var tagMatch = TagRegex.Match(line);
-            string tag = tagMatch.Success ? tagMatch.Groups[1].Value : "General";
-
-            var priorityMatch = PriorityRegex.Match(line);
-            string priorityStr = priorityMatch.Success ? priorityMatch.Groups[1].Value : "Normal";
-            
-            string cleanTitle = line;
-            if (tagMatch.Success) cleanTitle = cleanTitle.Replace(tagMatch.Value, "");
-            if (priorityMatch.Success) cleanTitle = cleanTitle.Replace(priorityMatch.Value, "");
-            
-            return new TaskEntity
-            {
-                Title = cleanTitle.Trim(),
-                Tag = tag,
-                Priority = ParsePriority(priorityStr),
-                Description = ""
-            };
+            yield return new ParsedTaskResult(currentTask, currentColumnName);
         }
+    }
 
-        private TaskPriority ParsePriority(string priority)
+    private TaskEntity CreateTaskFromLine(string line)
+    {
+        var tagMatch = TagRegex.Match(line);
+        string tag = tagMatch.Success ? tagMatch.Groups[1].Value : "General";
+
+        var priorityMatch = PriorityRegex.Match(line);
+        string priorityStr = priorityMatch.Success ? priorityMatch.Groups[1].Value : "Normal";
+            
+        string cleanTitle = line;
+        if (tagMatch.Success) cleanTitle = cleanTitle.Replace(tagMatch.Value, "");
+        if (priorityMatch.Success) cleanTitle = cleanTitle.Replace(priorityMatch.Value, "");
+            
+        return new TaskEntity
         {
-            return priority.ToLower() switch
-            {
-                "high" => TaskPriority.High,
-                "medium" or "med" => TaskPriority.Medium,
-                _ => TaskPriority.Low
-            };
-        }
+            Title = cleanTitle.Trim(),
+            Tag = tag,
+            Priority = ParsePriority(priorityStr),
+            Description = ""
+        };
+    }
+
+    private TaskPriority ParsePriority(string priority)
+    {
+        return priority.ToLower() switch
+        {
+            "high" => TaskPriority.High,
+            "medium" or "med" => TaskPriority.Medium,
+            _ => TaskPriority.Low
+        };
     }
 }
