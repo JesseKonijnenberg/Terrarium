@@ -16,9 +16,10 @@ public interface IBoardService
     event EventHandler<BoardChangedEventsArgs> BoardChanged;
 
     /// <summary>
-    /// Fetches the board configuration and tasks from the underlying data store.
+    /// Loads the board for a specific workspace. 
+    /// If projectId is provided, it filters for project-specific columns.
     /// </summary>
-    Task<List<ColumnEntity>> LoadBoardAsync();
+    Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null);
 
     /// <summary>
     /// Retrieves the board data currently held in memory.
@@ -28,7 +29,7 @@ public interface IBoardService
     /// <summary>
     /// Persists a new task to the database and updates the local cache.
     /// </summary>
-    Task AddTaskAsync(TaskEntity task, string toColumnId);
+    Task AddTaskAsync(TaskEntity task, string toColumnId, string workspaceId, string? projectId = null);
 
     /// <summary>
     /// Updates an existing task's properties in the database.
@@ -66,14 +67,14 @@ public interface IBoardService
     Task MoveTasksWithEconomyAsync(List<string> taskIds, string targetColumnId, string targetColumnTitle, int index);
 
     /// <summary>
-    /// Processes clipboard text into new Task entities and assigns them to relevant columns.
+    /// Processes smart paste and links results to the active hierarchy scope.
     /// </summary>
-    Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text);
+    Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text, string workspaceId, string? projectId = null);
 
     /// <summary>
     /// Creates a new TaskEntity with default values specialized for a specific column.
     /// </summary>
-    Task<TaskEntity> CreateDefaultTaskEntity(string columnId);
+    Task<TaskEntity> CreateDefaultTaskEntity(string columnId, string workspaceId, string? projectId = null);
 
     /// <summary>
     /// Updates a task's properties using native types.

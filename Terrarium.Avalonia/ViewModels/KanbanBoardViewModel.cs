@@ -22,7 +22,13 @@ namespace Terrarium.Avalonia.ViewModels;
 public partial class KanbanBoardViewModel : ViewModelBase
 {
     private readonly IBoardService _boardService;
+    
+    [ObservableProperty]
+    private string _currentWorkspaceId = "solo-workspace";
 
+    [ObservableProperty]
+    private string? _currentProjectId;
+    
     [ObservableProperty]
     private bool _isDeleteAllConfirmationOpen;
 
@@ -58,17 +64,19 @@ public partial class KanbanBoardViewModel : ViewModelBase
             _ = SaveTaskAsync(OpenedTask);
         }
     }
+    partial void OnCurrentWorkspaceIdChanged(string value) => _ = LoadDataAsync();
+    partial void OnCurrentProjectIdChanged(string? value) => _ = LoadDataAsync();
 
     [RelayCommand]
     private async Task AddItemAsync(Column targetColumn)
     {
-        var newEntity = await _boardService.CreateDefaultTaskEntity(targetColumn.Id);
+        var newEntity = await _boardService.CreateDefaultTaskEntity(targetColumn.Id, CurrentWorkspaceId, CurrentProjectId);
         var newTask = new TaskItem(newEntity);
 
         targetColumn.Tasks.Insert(0, newTask);
         OpenedTask = newTask;
-
-        await _boardService.AddTaskAsync(newEntity, targetColumn.Id);
+        
+        await _boardService.AddTaskAsync(newEntity, targetColumn.Id, CurrentWorkspaceId, CurrentProjectId);
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteTask))]
@@ -97,8 +105,8 @@ public partial class KanbanBoardViewModel : ViewModelBase
     {
         var text = await clipboard.GetTextAsync();
         if (string.IsNullOrWhiteSpace(text)) return;
-
-        var newTasks = await _boardService.ProcessSmartPasteAsync(text);
+        
+        var newTasks = await _boardService.ProcessSmartPasteAsync(text, CurrentWorkspaceId, CurrentProjectId);
         foreach (var entity in newTasks)
         {
             var uiColumn = Columns.FirstOrDefault(c => c.Id == entity.ColumnId);
@@ -247,12 +255,16 @@ public partial class KanbanBoardViewModel : ViewModelBase
 
     private async Task LoadDataAsync()
     {
-        var boardData = await _boardService.LoadBoardAsync();
+        var boardData = await _boardService.LoadBoardAsync(CurrentWorkspaceId, CurrentProjectId);
+        
         Columns.Clear();
         foreach (var colEntity in boardData)
         {
             var columnVm = new Column(colEntity);
-            foreach (var taskEntity in colEntity.Tasks) columnVm.Tasks.Add(new TaskItem(taskEntity));
+            foreach (var taskEntity in colEntity.Tasks) 
+            {
+                columnVm.Tasks.Add(new TaskItem(taskEntity));
+            }
             Columns.Add(columnVm);
         }
     }

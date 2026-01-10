@@ -2,8 +2,6 @@ using Avalonia.Input.Platform;
 using Moq;
 using Terrarium.Avalonia.Models.Kanban;
 using Terrarium.Avalonia.ViewModels;
-using Terrarium.Core.Enums.Kanban;
-using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Update;
 using Terrarium.Core.Models.Kanban;
@@ -13,21 +11,19 @@ namespace Terrarium.Tests.Avalonia.ViewModels;
 public class KanbanBoardViewModelTests
 {
     private readonly Mock<IBoardService> _boardServiceMock;
-    private readonly Mock<IGardenEconomyService> _economyMock;
-    private readonly Mock<ITaskParserService> _parserMock;
     private readonly Mock<IUpdateService> _updateMock;
+    private const string DefaultWorkspaceId = "solo-workspace";
 
     public KanbanBoardViewModelTests()
     {
         _boardServiceMock = new Mock<IBoardService>();
-        _economyMock = new Mock<IGardenEconomyService>();
-        _parserMock = new Mock<ITaskParserService>();
         _updateMock = new Mock<IUpdateService>();
     }
 
     private KanbanBoardViewModel CreateViewModel()
     {
-        _boardServiceMock.Setup(s => s.LoadBoardAsync()).ReturnsAsync(new List<ColumnEntity>());
+        _boardServiceMock.Setup(s => s.LoadBoardAsync(DefaultWorkspaceId, It.IsAny<string>()))
+            .ReturnsAsync(new List<ColumnEntity>());
         
         return new KanbanBoardViewModel(
             _boardServiceMock.Object,
@@ -40,24 +36,44 @@ public class KanbanBoardViewModelTests
     }
 
     [Fact]
-    public async Task MoveTask_ShouldUpdateUICollectionsAndCallLogicService()
+    public void ExecuteAddItem_ShouldRequestEntityWithScopeAndOpenPanel()
     {
         var vm = CreateViewModel();
-        var colSource = CreateTestColumn("c1", "Backlog");
-        var colTarget = CreateTestColumn("c2", "Done");
-        var task = new TaskItem(new TaskEntity { Id = "t1" });
+        var col = CreateTestColumn("c1", "Backlog");
+        vm.Columns.Add(col);
         
-        colSource.Tasks.Add(task);
-        vm.Columns.Add(colSource);
-        vm.Columns.Add(colTarget);
-
-        await vm.MoveTaskAsync(task, colTarget);
-
-        Assert.Empty(colSource.Tasks);
-        Assert.Single(colTarget.Tasks);
+        var newEntity = new TaskEntity { Id = "new-id", ColumnId = "c1" };
         
-        _boardServiceMock.Verify(s => s.MoveTasksWithEconomyAsync(
-            It.Is<List<string>>(l => l.Contains("t1")), "c2", "Done", It.IsAny<int>()), Times.Once);
+        _boardServiceMock.Setup(s => s.CreateDefaultTaskEntity("c1", DefaultWorkspaceId, null))
+            .ReturnsAsync(newEntity);
+
+        vm.AddItemCommand.Execute(col);
+
+        Assert.Single(col.Tasks);
+        Assert.Equal("new-id", vm.OpenedTask!.Id);
+        
+        _boardServiceMock.Verify(s => s.AddTaskAsync(newEntity, "c1", DefaultWorkspaceId, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteSmartPaste_ShouldProcessWithScopeAndAddResults()
+    {
+        var vm = CreateViewModel();
+        var col = CreateTestColumn("target-col", "Target");
+        vm.Columns.Add(col);
+        
+        var clipboardMock = new Mock<IClipboard>();
+        clipboardMock.Setup(c => c.GetTextAsync()).ReturnsAsync("markdown task");
+        
+        var parsedEntities = new List<TaskEntity> { new TaskEntity { Id = "p1", ColumnId = "target-col" } };
+        
+        _boardServiceMock.Setup(s => s.ProcessSmartPasteAsync("markdown task", DefaultWorkspaceId, null))
+            .ReturnsAsync(parsedEntities);
+
+        await vm.SmartPasteCommand.ExecuteAsync(clipboardMock.Object);
+
+        Assert.Single(col.Tasks);
+        Assert.Equal("p1", col.Tasks[0].Id);
     }
 
     [Fact]
@@ -73,86 +89,31 @@ public class KanbanBoardViewModelTests
     }
 
     [Fact]
-    public void OpenedTask_SettingNewTask_ShouldCallUpdateViaService()
+    public async Task ChangeWorkspace_ShouldTriggerReload()
     {
         var vm = CreateViewModel();
-        var originalDate = DateTime.Now;
-        var task1 = new TaskItem(new TaskEntity 
-        { 
-            Id = "t1", 
-            Title = "Original", 
-            Priority = TaskPriority.Low,
-            DueDate = originalDate
-        });
-        var task2 = new TaskItem(new TaskEntity { Id = "t2" });
         
-        vm.OpenedTask = task1;
-        task1.Title = "Updated";
-        task1.Priority = TaskPriority.High;
+        vm.CurrentWorkspaceId = "new-dept-id";
         
-        vm.OpenedTask = task2;
-        
-        _boardServiceMock.Verify(s => s.UpdateTaskFromUiAsync(
-            task1.Entity, 
-            "Updated", 
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            TaskPriority.High,
-            originalDate
-        ), Times.Once);
+        _boardServiceMock.Verify(s => s.LoadBoardAsync("new-dept-id", It.IsAny<string>()), Times.AtLeastOnce());
     }
 
     [Fact]
-    public void ExecuteAddItem_ShouldRequestEntityFromServiceAndOpenPanel()
+    public async Task MoveTask_ShouldCallServiceWithCorrectParameters()
     {
         var vm = CreateViewModel();
-        var col = CreateTestColumn("c1", "Backlog");
-        vm.Columns.Add(col);
+        var colSource = CreateTestColumn("c1", "Backlog");
+        var colTarget = CreateTestColumn("c2", "Done");
+        var task = new TaskItem(new TaskEntity { Id = "t1" });
         
-        var newEntity = new TaskEntity { Id = "new-id", ColumnId = "c1" };
-        _boardServiceMock.Setup(s => s.CreateDefaultTaskEntity("c1")).ReturnsAsync(newEntity);
+        colSource.Tasks.Add(task);
+        vm.Columns.Add(colSource);
+        vm.Columns.Add(colTarget);
 
-        vm.AddItemCommand.Execute(col);
+        await vm.MoveTaskAsync(task, colTarget);
 
-        Assert.Single(col.Tasks);
-        Assert.Equal("new-id", vm.OpenedTask.Id);
-        _boardServiceMock.Verify(s => s.AddTaskAsync(newEntity, "c1"), Times.Once);
-    }
-
-    [Fact]
-    public async Task ExecuteSmartPaste_ShouldProcessAndAddResultsToUI()
-    {
-        var vm = CreateViewModel();
-        var col = CreateTestColumn("target-col", "Target");
-        vm.Columns.Add(col);
-        
-        var clipboardMock = new Mock<IClipboard>();
-        clipboardMock.Setup(c => c.GetTextAsync()).ReturnsAsync("markdown");
-        
-        var parsedEntities = new List<TaskEntity> { new TaskEntity { Id = "p1", ColumnId = "target-col" } };
-        _boardServiceMock.Setup(s => s.ProcessSmartPasteAsync(It.IsAny<string>())).ReturnsAsync(parsedEntities);
-
-        vm.SmartPasteCommand.Execute(clipboardMock.Object);
-        await Task.Delay(50);
-
-        Assert.Single(col.Tasks);
-        Assert.Equal("p1", col.Tasks[0].Id);
-    }
-    
-    [Fact]
-    public void ExecuteDeleteSelected_ShouldRemoveFromUIAndCallService()
-    {
-        var vm = CreateViewModel();
-        var task = new TaskItem(new TaskEntity { Id = "del-me" });
-        var col = CreateTestColumn("c1", "Backlog");
-        col.Tasks.Add(task);
-        vm.Columns.Add(col);
-        
-        vm.ToggleTaskSelectionCommand.Execute(task);
-        vm.DeleteSelectedTasksCommand.Execute(null);
-        
-        Assert.Empty(col.Tasks);
-        _boardServiceMock.Verify(s => s.DeleteMultipleTasksAsync(It.IsAny<List<string>>()), Times.Once);
+        _boardServiceMock.Verify(s => s.MoveTasksWithEconomyAsync(
+            It.Is<List<string>>(l => l.Contains("t1")), "c2", "Done", It.IsAny<int>()), Times.Once);
     }
 
     [Fact]

@@ -12,10 +12,10 @@ namespace Terrarium.Core.Interfaces.Kanban;
 public interface IBoardRepository
 {
     /// <summary>
-    /// Loads the entire board structure, including all columns and their associated tasks.
+    /// Loads columns and their tasks for a specific workspace/project.
     /// </summary>
     /// <returns>A list of column entities with nested task collections.</returns>
-    Task<List<ColumnEntity>> LoadBoardAsync();
+    Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null);
 
     /// <summary>
     /// Persists a new task entity to a specific column.

@@ -32,9 +32,9 @@ public class BoardService : IBoardService
     }
 
     /// <inheritdoc />
-    public async Task<List<ColumnEntity>> LoadBoardAsync()
+    public async Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null)
     {
-        _boardCache = await _repository.LoadBoardAsync();
+        _boardCache = await _repository.LoadBoardAsync(workspaceId, projectId);
         return _boardCache;
     }
 
@@ -42,8 +42,11 @@ public class BoardService : IBoardService
     public List<ColumnEntity> GetCachedBoard() => _boardCache;
 
     /// <inheritdoc />
-    public async Task AddTaskAsync(TaskEntity task, string columnId)
+    public async Task AddTaskAsync(TaskEntity task, string columnId, string workspaceId, string? projectId = null)
     {
+        task.WorkspaceId = workspaceId;
+        task.ProjectId = projectId;
+
         await _repository.AddTaskAsync(task, columnId);
 
         var col = _boardCache.FirstOrDefault(c => c.Id == columnId);
@@ -153,7 +156,7 @@ public class BoardService : IBoardService
     }
 
     /// <inheritdoc />
-    public async Task<TaskEntity> CreateDefaultTaskEntity(string columnId)
+    public async Task<TaskEntity> CreateDefaultTaskEntity(string columnId, string workspaceId, string? projectId = null)
     {
         return new TaskEntity
         {
@@ -163,6 +166,8 @@ public class BoardService : IBoardService
             Priority = TaskPriority.Low,
             DueDate = DateTime.Now,
             ColumnId = columnId,
+            WorkspaceId = workspaceId, // Hierarchy Link
+            ProjectId = projectId     // Hierarchy Link
         };
     }
 
@@ -197,9 +202,10 @@ public class BoardService : IBoardService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text)
+    public async Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text, string workspaceId, string? projectId = null)
     {
-        var boardData = await _repository.LoadBoardAsync();
+        // Load the specific board data for the current scope
+        var boardData = await _repository.LoadBoardAsync(workspaceId, projectId);
         var results = _taskParserService.ParseClipboardText(text).ToList();
         var processedTasks = new List<TaskEntity>();
 
@@ -213,6 +219,9 @@ public class BoardService : IBoardService
             if (targetCol == null) continue;
 
             result.Task.ColumnId = targetCol.Id;
+            result.Task.WorkspaceId = workspaceId;
+            result.Task.ProjectId = projectId;
+
             await _repository.AddTaskAsync(result.Task, targetCol.Id);
             processedTasks.Add(result.Task);
         }

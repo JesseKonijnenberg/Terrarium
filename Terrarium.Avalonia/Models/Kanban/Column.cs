@@ -20,6 +20,10 @@ public partial class Column : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TaskCount))]
     private string _title;
+    
+    public string? WorkspaceId => Entity.WorkspaceId;
+    public string? ProjectId => Entity.ProjectId;
+    public string? IterationId => Entity.IterationId;
 
     public ObservableCollection<TaskItem> Tasks { get; } = new();
 

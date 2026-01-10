@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Core.Models.Kanban;
 using Terrarium.Data.Contexts;
 using Terrarium.Data.Repositories;
@@ -11,6 +12,7 @@ public class SqliteBoardRepositoryTests : IDisposable
     private readonly SqliteConnection _connection;
     private readonly TerrariumDbContext _context;
     private readonly SqliteBoardRepository _repo;
+    private const string TestWorkspaceId = "test-workspace";
 
     public SqliteBoardRepositoryTests()
     {
@@ -23,13 +25,21 @@ public class SqliteBoardRepositoryTests : IDisposable
 
         _context = new TerrariumDbContext(options);
         _context.Database.EnsureCreated();
+        
+        _context.Workspaces.Add(new WorkspaceEntity 
+        { 
+            Id = TestWorkspaceId, 
+            Name = "Test Workspace",
+            IsPersonal = true 
+        });
+        _context.SaveChanges();
 
         _repo = new SqliteBoardRepository(_context);
     }
 
-    private async Task CreateColumnAsync(string id, string title = "Test Column")
+    private async Task CreateColumnAsync(string id, string title = "Test Column", string workspaceId = TestWorkspaceId)
     {
-        _context.Columns.Add(new ColumnEntity { Id = id, Title = title });
+        _context.Columns.Add(new ColumnEntity { Id = id, Title = title, WorkspaceId = workspaceId });
         await _context.SaveChangesAsync();
     }
 
@@ -39,11 +49,12 @@ public class SqliteBoardRepositoryTests : IDisposable
         var columnId = Guid.NewGuid().ToString();
         await CreateColumnAsync(columnId);
 
-        var task = new TaskEntity { Id = "t1", Title = "T", Tag = "G", Description = "" };
+        var task = new TaskEntity { Id = "t1", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId };
         await _repo.AddTaskAsync(task, columnId);
 
         var savedTask = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == "t1");
         Assert.NotNull(savedTask);
+        Assert.Equal(TestWorkspaceId, savedTask.WorkspaceId);
     }
 
     [Fact]
@@ -55,8 +66,8 @@ public class SqliteBoardRepositoryTests : IDisposable
         await CreateColumnAsync(col2);
 
         var ids = new List<string> { "1", "2" };
-        await _repo.AddTaskAsync(new TaskEntity { Id = "1", Title = "T1", Tag = "G", Description = "" }, col1);
-        await _repo.AddTaskAsync(new TaskEntity { Id = "2", Title = "T2", Tag = "G", Description = "" }, col1);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "1", Title = "T1", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, col1);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "2", Title = "T2", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, col1);
 
         await _repo.MoveMultipleTasksAsync(ids, col2, 10);
 
@@ -72,9 +83,9 @@ public class SqliteBoardRepositoryTests : IDisposable
         await CreateColumnAsync(colId);
 
         var ids = new List<string> { "d1", "d2" };
-        await _repo.AddTaskAsync(new TaskEntity { Id = "d1", Title = "T", Tag = "G", Description = "" }, colId);
-        await _repo.AddTaskAsync(new TaskEntity { Id = "d2", Title = "T", Tag = "G", Description = "" }, colId);
-        await _repo.AddTaskAsync(new TaskEntity { Id = "keep", Title = "T", Tag = "G", Description = "" }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "d1", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "d2", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "keep", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
 
         await _repo.DeleteTasksAsync(ids);
 
@@ -88,7 +99,7 @@ public class SqliteBoardRepositoryTests : IDisposable
         var colId = Guid.NewGuid().ToString();
         await CreateColumnAsync(colId);
 
-        var task = new TaskEntity { Id = "u1", Title = "Old", Tag = "G", Description = "" };
+        var task = new TaskEntity { Id = "u1", Title = "Old", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId };
         await _repo.AddTaskAsync(task, colId);
         
         task.Title = "New";
@@ -99,23 +110,21 @@ public class SqliteBoardRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadBoardAsync_ShouldReturnOrderedTasks()
+    public async Task LoadBoardAsync_ShouldReturnOrderedTasksForWorkspace()
     {
         var colId = Guid.NewGuid().ToString();
         await CreateColumnAsync(colId);
 
-        // We use the Repo to add them so the Order logic is handled naturally
-        await _repo.AddTaskAsync(new TaskEntity { Id = "task-last", Title = "Second", Tag = "G", Description = "" }, colId);
-        await _repo.AddTaskAsync(new TaskEntity { Id = "task-first", Title = "First", Tag = "G", Description = "" }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "task-last", Title = "Second", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "task-first", Title = "First", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
 
-        // Adjusting manual orders to verify sorting
         var tFirst = await _context.Tasks.FindAsync("task-first");
         var tLast = await _context.Tasks.FindAsync("task-last");
         tFirst!.Order = 0;
         tLast!.Order = 1;
         await _context.SaveChangesAsync();
 
-        var board = await _repo.LoadBoardAsync();
+        var board = await _repo.LoadBoardAsync(TestWorkspaceId);
         var resultTasks = board.First(c => c.Id == colId).Tasks;
 
         Assert.Equal("task-first", resultTasks[0].Id);

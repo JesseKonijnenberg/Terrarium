@@ -15,19 +15,21 @@ public class SqliteBoardRepository : IBoardRepository
     }
 
     /// <inheritdoc />
-    public async Task<List<ColumnEntity>> LoadBoardAsync()
+    public async Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null)
     {
-        var columns = await _context.Columns
+        var board = await _context.Columns
+            .Where(c => c.WorkspaceId == workspaceId && c.ProjectId == projectId)
             .Include(c => c.Tasks)
-            .AsNoTracking()
+            .OrderBy(c => c.Order)
             .ToListAsync();
 
-        foreach (var col in columns)
+        // Explicitly sort tasks in memory to guarantee the order for the UI/Tests
+        foreach (var column in board)
         {
-            col.Tasks = col.Tasks.OrderBy(t => t.Order).ToList();
+            column.Tasks = column.Tasks.OrderBy(t => t.Order).ToList();
         }
 
-        return columns;
+        return board;
     }
 
     /// <inheritdoc />
@@ -82,13 +84,25 @@ public class SqliteBoardRepository : IBoardRepository
     }
 
     /// <inheritdoc />
-    public async Task MoveTaskAsync(string taskId, string targetColumnId, int newIndex)
+    public async Task MoveTaskAsync(string taskId, string targetColumnId, int newOrder)
     {
         var task = await _context.Tasks.FindAsync(taskId);
         if (task == null) return;
 
+        // Shift all existing tasks in the target column that are at or below the new index
+        var siblings = await _context.Tasks
+            .Where(t => t.ColumnId == targetColumnId && t.Order >= newOrder && t.Id != taskId)
+            .ToListAsync();
+
+        foreach (var sibling in siblings)
+        {
+            sibling.Order++; // Make room
+        }
+
+        // Assign the new position
         task.ColumnId = targetColumnId;
-        task.Order = newIndex;
+        task.Order = newOrder;
+
         await _context.SaveChangesAsync();
     }
 

@@ -17,6 +17,126 @@ namespace Terrarium.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.1");
 
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.IterationEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Iterations");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.OrganizationEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.ProjectEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkspaceId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.WorkspaceEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPersonal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Workspaces");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "solo-workspace",
+                            IsDeleted = false,
+                            IsPersonal = true,
+                            LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Personal Workspace"
+                        });
+                });
+
             modelBuilder.Entity("Terrarium.Core.Models.Kanban.ColumnEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -34,11 +154,23 @@ namespace Terrarium.Data.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ProjectId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("WorkspaceId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("IterationId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("Columns");
 
@@ -49,7 +181,8 @@ namespace Terrarium.Data.Migrations
                             IsDeleted = false,
                             LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Order = 0,
-                            Title = "Backlog"
+                            Title = "Backlog",
+                            WorkspaceId = "solo-workspace"
                         },
                         new
                         {
@@ -57,7 +190,8 @@ namespace Terrarium.Data.Migrations
                             IsDeleted = false,
                             LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Order = 1,
-                            Title = "In Progress"
+                            Title = "In Progress",
+                            WorkspaceId = "solo-workspace"
                         },
                         new
                         {
@@ -65,7 +199,8 @@ namespace Terrarium.Data.Migrations
                             IsDeleted = false,
                             LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Order = 2,
-                            Title = "Review"
+                            Title = "Review",
+                            WorkspaceId = "solo-workspace"
                         },
                         new
                         {
@@ -73,7 +208,8 @@ namespace Terrarium.Data.Migrations
                             IsDeleted = false,
                             LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Order = 3,
-                            Title = "Complete"
+                            Title = "Complete",
+                            WorkspaceId = "solo-workspace"
                         });
                 });
 
@@ -108,6 +244,9 @@ namespace Terrarium.Data.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ProjectId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Tag")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -116,11 +255,75 @@ namespace Terrarium.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("WorkspaceId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ColumnId");
 
+                    b.HasIndex("IterationId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("WorkspaceId");
+
                     b.ToTable("Tasks");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.IterationEntity", b =>
+                {
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.ProjectEntity", "Project")
+                        .WithMany("Iterations")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.ProjectEntity", b =>
+                {
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.WorkspaceEntity", "Workspace")
+                        .WithMany("Projects")
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workspace");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.WorkspaceEntity", b =>
+                {
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.OrganizationEntity", "Organization")
+                        .WithMany("Workspaces")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Kanban.ColumnEntity", b =>
+                {
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.IterationEntity", "Iteration")
+                        .WithMany()
+                        .HasForeignKey("IterationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.ProjectEntity", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId");
+
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.WorkspaceEntity", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Iteration");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("Terrarium.Core.Models.Kanban.TaskEntity", b =>
@@ -131,7 +334,41 @@ namespace Terrarium.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.IterationEntity", "Iteration")
+                        .WithMany()
+                        .HasForeignKey("IterationId");
+
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.ProjectEntity", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId");
+
+                    b.HasOne("Terrarium.Core.Models.Hierarchy.WorkspaceEntity", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("Column");
+
+                    b.Navigation("Iteration");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Workspace");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.OrganizationEntity", b =>
+                {
+                    b.Navigation("Workspaces");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.ProjectEntity", b =>
+                {
+                    b.Navigation("Iterations");
+                });
+
+            modelBuilder.Entity("Terrarium.Core.Models.Hierarchy.WorkspaceEntity", b =>
+                {
+                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("Terrarium.Core.Models.Kanban.ColumnEntity", b =>
