@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Terrarium.Core.Models;
 using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Data.Contexts;
@@ -19,6 +20,24 @@ public class TerrariumDbContext : DbContext
         : base(options)
     {
     }
+    
+    /// <summary>
+    /// AUTOMATIC SYNC METADATA: 
+    /// This interceptor automatically updates LastModifiedUtc before saving to disk.
+    /// </summary>
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.Entity is EntityBase && (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+        foreach (var entityEntry in entries)
+        {
+            ((EntityBase)entityEntry.Entity).LastModifiedUtc = DateTime.UtcNow;
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
 
     /// <summary>
     /// Configures the model relationships and seeds initial data.
@@ -32,13 +51,18 @@ public class TerrariumDbContext : DbContext
             .WithMany(c => c.Tasks)
             .HasForeignKey(t => t.ColumnId)
             .OnDelete(DeleteBehavior.Cascade); // Deleting a column kills its tasks
+        
+        // Global Query Filter: Automatically hide "Soft Deleted" items from the UI
+        modelBuilder.Entity<TaskEntity>().HasQueryFilter(t => !t.IsDeleted);
+        modelBuilder.Entity<ColumnEntity>().HasQueryFilter(c => !c.IsDeleted);
+        
+        var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        // Seed Default Data (So the board isn't empty on first run)
         modelBuilder.Entity<ColumnEntity>().HasData(
-            new ColumnEntity { Id = "col-1", Title = "Backlog" },
-            new ColumnEntity { Id = "col-2", Title = "In Progress" },
-            new ColumnEntity { Id = "col-3", Title = "Review" },
-            new ColumnEntity { Id = "col-4", Title = "Complete" }
+            new ColumnEntity { Id = "col-1", Title = "Backlog", Order = 0, LastModifiedUtc = seedDate },
+            new ColumnEntity { Id = "col-2", Title = "In Progress", Order = 1, LastModifiedUtc = seedDate },
+            new ColumnEntity { Id = "col-3", Title = "Review", Order = 2, LastModifiedUtc = seedDate },
+            new ColumnEntity { Id = "col-4", Title = "Complete", Order = 3, LastModifiedUtc = seedDate }
         );
     }
 }

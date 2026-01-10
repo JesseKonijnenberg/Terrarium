@@ -1,8 +1,9 @@
 ﻿namespace Terrarium.Core.Models.Kanban;
 
-public class ColumnEntity
+public class ColumnEntity : EntityBase
 {
-    public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
+    public int Order { get; set; }
     public List<TaskEntity> Tasks { get; set; } = new();
+    public string? IterationId { get; set; }
 }

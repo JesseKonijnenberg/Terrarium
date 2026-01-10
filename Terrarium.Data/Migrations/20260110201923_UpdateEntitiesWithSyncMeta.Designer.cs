@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Terrarium.Data.Contexts;
 
@@ -10,9 +11,11 @@ using Terrarium.Data.Contexts;
 namespace Terrarium.Data.Migrations
 {
     [DbContext(typeof(TerrariumDbContext))]
-    partial class TerrariumDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260110201923_UpdateEntitiesWithSyncMeta")]
+    partial class UpdateEntitiesWithSyncMeta
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.1");
@@ -47,7 +50,7 @@ namespace Terrarium.Data.Migrations
                         {
                             Id = "col-1",
                             IsDeleted = false,
-                            LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LastModifiedUtc = new DateTime(2026, 1, 10, 20, 19, 23, 368, DateTimeKind.Utc).AddTicks(4140),
                             Order = 0,
                             Title = "Backlog"
                         },
@@ -55,24 +58,24 @@ namespace Terrarium.Data.Migrations
                         {
                             Id = "col-2",
                             IsDeleted = false,
-                            LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Order = 1,
+                            LastModifiedUtc = new DateTime(2026, 1, 10, 20, 19, 23, 368, DateTimeKind.Utc).AddTicks(4683),
+                            Order = 0,
                             Title = "In Progress"
                         },
                         new
                         {
                             Id = "col-3",
                             IsDeleted = false,
-                            LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Order = 2,
+                            LastModifiedUtc = new DateTime(2026, 1, 10, 20, 19, 23, 368, DateTimeKind.Utc).AddTicks(4695),
+                            Order = 0,
                             Title = "Review"
                         },
                         new
                         {
                             Id = "col-4",
                             IsDeleted = false,
-                            LastModifiedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Order = 3,
+                            LastModifiedUtc = new DateTime(2026, 1, 10, 20, 19, 23, 368, DateTimeKind.Utc).AddTicks(4705),
+                            Order = 0,
                             Title = "Complete"
                         });
                 });
