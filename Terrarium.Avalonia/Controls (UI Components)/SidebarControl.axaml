@@ -28,46 +28,67 @@
                 </ControlTemplate>
             </Setter>
         </Style>
-        <Style Selector="Button.Icon:pointerover /template/ Path">
-            <Setter Property="Stroke" Value="{StaticResource TextMain}"/>
+
+        <Style Selector="Button.WorkspaceDot">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Ellipse Name="Dot" Width="8" Height="8" Fill="{StaticResource BorderColor}" 
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.WorkspaceDot:pointerover /template/ Ellipse">
+            <Setter Property="Fill" Value="{StaticResource TextMuted}"/>
         </Style>
     </UserControl.Styles>
 
     <Border Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
-        
         <Grid RowDefinitions="Auto, *, Auto">
             
             <StackPanel Grid.Row="0" Margin="0,30,0,0" HorizontalAlignment="Center">
-                <Border Width="40" Height="40" CornerRadius="12" Background="{StaticResource AccentSage}" Margin="0,0,0,40" HorizontalAlignment="Center">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="10" Opacity="0.3" Color="Black"/>
-                    </Border.Effect>
-                    <Ellipse Width="20" Height="20" Fill="{StaticResource BgMain}"/>
-                </Border>
+                <ItemsControl ItemsSource="{Binding Organizations}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Spacing="5" Margin="0,0,0,20">
+                                <Border Width="42" Height="42" CornerRadius="12" 
+                                        Background="{StaticResource BgCard}" 
+                                        BorderBrush="{StaticResource AccentSage}" BorderThickness="1.5"
+                                        ToolTip.Tip="{Binding Name}" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Name[0]}" Foreground="{StaticResource AccentSage}"
+                                               FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontSize="16"/>
+                                </Border>
 
-                <Button Classes="Icon" 
-                        Content="{StaticResource IconLayout}" 
-                        Command="{Binding GoToBoardCommand}"
-                        ToolTip.Tip="Work Board"
-                        Margin="0,0,0,20"/>
+                                <ItemsControl ItemsSource="{Binding Workspaces}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Classes="WorkspaceDot" 
+                                                    Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).SelectWorkspaceCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip.Tip="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-                <Button Classes="Icon" 
-                        Content="{StaticResource IconLeaf}" 
-                        Command="{Binding GoToGardenCommand}"
-                        ToolTip.Tip="Garden Sanctuary"
-                        Margin="0,0,0,20"/>
+                <Separator Background="{StaticResource BorderColor}" Opacity="0.3" Margin="15,0,15,20" Height="1"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="15">
+                <Button Classes="Icon" Content="{StaticResource IconLayout}" Command="{Binding GoToBoardCommand}" ToolTip.Tip="Work Board"/>
+                <Button Classes="Icon" Content="{StaticResource IconLeaf}" Command="{Binding GoToGardenCommand}" ToolTip.Tip="Garden Sanctuary"/>
             </StackPanel>
 
             <StackPanel Grid.Row="2" Margin="0,0,0,20" HorizontalAlignment="Center">
                 <c:UpdateStatusControl DataContext="{Binding BoardVm.Updater}" Margin="0,0,0,20" />
-                
-                <Button Classes="Icon" 
-                        Content="{StaticResource IconSettings}" 
-                        Command="{Binding GoToSettingsCommand}"
-                        ToolTip.Tip="Settings"/>
+                <Button Classes="Icon" Content="{StaticResource IconSettings}" Command="{Binding GoToSettingsCommand}" ToolTip.Tip="Settings"/>
             </StackPanel>
-
-            
             
         </Grid>
     </Border>

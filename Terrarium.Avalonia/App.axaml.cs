@@ -6,12 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
 using Terrarium.Core.Interfaces.Garden;
+using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Update;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data;
 using Terrarium.Data.Contexts;
 using Terrarium.Data.Repositories;
+using Terrarium.Logic.Services.Hierarchy;
 using Terrarium.Logic.Services.Kanban;
 using Terrarium.Logic.Services.Update;
 
@@ -60,6 +62,9 @@ public partial class App : Application
 
         services.AddSingleton(storageOptions);
         services.AddTerrariumData(storageOptions);
+        
+        services.AddScoped<IHierarchyRepository, HierarchyRepository>();
+        services.AddScoped<IHierarchyService, HierarchyService>();
 
         services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
         services.AddSingleton<IBoardService, BoardService>();
