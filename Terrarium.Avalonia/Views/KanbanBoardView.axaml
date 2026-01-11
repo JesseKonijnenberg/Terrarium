@@ -6,27 +6,16 @@
              xmlns:controls="using:Terrarium.Avalonia.Controls"
              xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
              xmlns:behaviors="clr-namespace:Terrarium.Avalonia.Behaviors"
-             xmlns:helpers="clr-namespace:Terrarium.Avalonia.Helpers"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.KanbanBoardView"
              x:DataType="vm:KanbanBoardViewModel">
     
-    <UserControl.Resources>
-        <helpers:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
-    </UserControl.Resources>
-    
     <UserControl.KeyBindings>
-        <KeyBinding Gesture="Ctrl+V" 
-                    Command="{Binding SmartPasteCommand}" 
-                    CommandParameter="{Binding $parent[TopLevel].Clipboard}"/>
-        <KeyBinding Gesture="Ctrl+A" 
-                    Command="{Binding SelectAllTasksCommand}"/>
-        <KeyBinding Gesture="Back" 
-                    Command="{Binding DeleteSelectedTasksCommand}"/>
-        <KeyBinding Gesture="Delete" 
-                    Command="{Binding DeleteAllTasksCommand}"/>
-        <KeyBinding Gesture="Escape" 
-                    Command="{Binding DeselectAllCommand}"/>
+        <KeyBinding Gesture="Ctrl+V" Command="{Binding SmartPasteCommand}" CommandParameter="{Binding $parent[TopLevel].Clipboard}"/>
+        <KeyBinding Gesture="Ctrl+A" Command="{Binding SelectAllTasksCommand}"/>
+        <KeyBinding Gesture="Back" Command="{Binding DeleteSelectedTasksCommand}"/>
+        <KeyBinding Gesture="Delete" Command="{Binding DeleteAllTasksCommand}"/>
+        <KeyBinding Gesture="Escape" Command="{Binding DeselectAllCommand}"/>
     </UserControl.KeyBindings>
 
     <UserControl.Styles>
@@ -37,11 +26,7 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Name="CardBorder"
-                            Background="{StaticResource BgCard}"
-                            BorderBrush="{StaticResource BorderColor}"
-                            BorderThickness="4,0,0,0"
-                            CornerRadius="8" Padding="20">
+                    <Border Name="CardBorder" Background="{StaticResource BgCard}" BorderBrush="{StaticResource BorderColor}" BorderThickness="4,0,0,0" CornerRadius="8" Padding="20">
                         <ContentPresenter Content="{TemplateBinding Content}"/>
                     </Border>
                 </ControlTemplate>
@@ -55,42 +40,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
             <Setter Property="BorderThickness" Value="4"/>
         </Style>
-        
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource BgMain}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
-                </Transitions>
-            </Setter>
-        </Style>
-
-        <Style Selector="ComboBox:pointerover /template/ Border#LayerOnMicaBase">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
-            <Setter Property="Background" Value="#1a1a18"/>
-        </Style>
-
-        <Style Selector="ComboBoxItem">
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Margin" Value="4,2"/>
-        </Style>
-
-        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
-        </Style>
-
-        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
-        </Style>
-    </UserControl.Styles>
+        </UserControl.Styles>
 
     <Grid RowDefinitions="80, *" 
           Background="Transparent" 
@@ -100,7 +50,6 @@
         <controls:TopBarControl Grid.Row="0"/>
 
         <Grid Grid.Row="1">
-            
             <ScrollViewer HorizontalScrollBarVisibility="Auto" 
                           VerticalScrollBarVisibility="Disabled"
                           IsHitTestVisible="{Binding !IsDetailPanelOpen}"
@@ -137,113 +86,14 @@
                             IsVisible="{Binding IsDetailPanelOpen}">
                 <ContentControl.ContentTemplate>
                     <DataTemplate DataType="kanban:TaskItem">
-                        <Grid Background="{StaticResource BgSidebar}" Focusable="True">
-                            <Grid.Effect>
-                                <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
-                            </Grid.Effect>
-
-                            <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
-                                <Grid RowDefinitions="80, *, Auto">
-                                    <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
-                                        <Grid ColumnDefinitions="*, Auto, Auto">
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <Button Grid.Column="1" Content="Delete" FontSize="18" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
-                                                    Command="{Binding $parent[UserControl].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
-                                            <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
-                                                    Command="{Binding $parent[UserControl].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
-                                        </Grid>
-                                    </Border>
-
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
-                                        <StackPanel Spacing="20">
-                                            <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
-                                            <TextBox Text="{Binding Title}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="28" FontFamily="Georgia" TextWrapping="Wrap"/>
-                                            
-                                            <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,10,0,0">
-                                                <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
-                                                    <TextBox Text="{Binding Tag}" Foreground="{Binding TagTextColor}" Background="Transparent" BorderThickness="0" FontWeight="Bold" FontSize="10" Width="60"/>
-                                                </Border>
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
-                                                     <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
-                                                     <TextBox Text="{Binding DueDate}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="12" Width="60"/>
-                                                </StackPanel>
-                                            </StackPanel>
-
-                                            <TextBlock Text="PRIORITY" 
-                                                       Foreground="{StaticResource TextMuted}" 
-                                                       FontSize="10" 
-                                                       FontWeight="Bold" 
-                                                       Margin="0,15,0,5"/>
-
-                                            <ComboBox ItemsSource="{x:Static kanban:TaskItem.AllPriorities}" 
-                                                      SelectedItem="{Binding Priority}">
-                                                <ComboBox.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                                            <Ellipse Width="8" Height="8" VerticalAlignment="Center">
-                                                                <Ellipse.Fill>
-                                                                    <Binding Path=".">
-                                                                        <Binding.Converter>
-                                                                            <StaticResource ResourceKey="PriorityToColorConverter"/>
-                                                                        </Binding.Converter>
-                                                                    </Binding>
-                                                                </Ellipse.Fill>
-                                                                <Ellipse.Effect>
-                                                                    <DropShadowEffect BlurRadius="4" Opacity="0.3" Color="Black"/>
-                                                                </Ellipse.Effect>
-                                                            </Ellipse>
-                                                            <TextBlock Text="{Binding}" 
-                                                                       FontSize="12"
-                                                                       VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ComboBox.ItemTemplate>
-                                            </ComboBox>
-
-                                            <TextBlock Text="Description" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                            <TextBox Text="{Binding Description}" Foreground="#d6ccc2" Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="10" MinHeight="100" TextWrapping="Wrap" AcceptsReturn="True"/>
-                                        </StackPanel>
-                                    </ScrollViewer>
-
-                                    <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
-                                        <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
-                                            <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
-                                        </Border>
-                                    </Border>
-                                </Grid>
-                            </Border>
-                        </Grid>
+                        <controls:TaskDetailControl/>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Grid>
 
-        <Grid Grid.RowSpan="2" 
-              Background="#CC000000" 
-              IsVisible="{Binding IsDeleteAllConfirmationOpen}"
-              ZIndex="2000">
-            <Border Background="{StaticResource BgSidebar}" 
-                    CornerRadius="12" 
-                    Padding="40" 
-                    VerticalAlignment="Center" 
-                    HorizontalAlignment="Center"
-                    BorderBrush="#E57373"
-                    BorderThickness="1"
-                    MinWidth="400">
-                <StackPanel Spacing="25">
-                    <StackPanel Spacing="5" HorizontalAlignment="Center">
-                        <TextBlock Text="⚠️ DANGER ZONE" FontSize="12" FontWeight="Bold" Foreground="#E57373" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Wipe Entire Board?" FontSize="22" FontFamily="Georgia" Foreground="{StaticResource TextMain}" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                    <TextBlock Text="This will permanently delete all tasks. You cannot undo this action." Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" TextAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
-                        <Button Content="Yes, Delete Everything" Background="#E57373" Foreground="White" Padding="20,10" FontWeight="Bold" Command="{Binding ConfirmDeleteAllCommand}"/>
-                        <Button Content="Cancel" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="20,10" Command="{Binding CancelDeleteAllCommand}"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Grid>
+        <controls:WipeBoardDialogControl Grid.Row="0" Grid.RowSpan="2" 
+                                         ZIndex="2000"
+                                         IsVisible="{Binding IsDeleteAllConfirmationOpen}"/>
     </Grid>
 </UserControl>

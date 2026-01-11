@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
+             xmlns:helpers="clr-namespace:Terrarium.Avalonia.Helpers"
+             x:Class="Terrarium.Avalonia.Controls.TaskDetailControl"
+             x:DataType="kanban:TaskItem">
+
+    <UserControl.Resources>
+        <helpers:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{StaticResource BgMain}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Margin" Value="4,2"/>
+        </Style>
+        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                       ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BgCard}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Background="{StaticResource BgSidebar}" Focusable="True">
+        <Grid.Effect>
+            <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
+        </Grid.Effect>
+
+        <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+            <Grid RowDefinitions="80, *, Auto">
+                <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
+                    <Grid ColumnDefinitions="*, Auto, Auto">
+                        <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                        
+                        <Button Grid.Column="1" Content="Delete" FontSize="14" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
+                                Command="{Binding $parent[UserControl;1].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
+                        
+                        <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
+                                Command="{Binding $parent[UserControl;1].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
+                        <TextBox Text="{Binding Title}" Foreground="{StaticResource TextMain}" Background="Transparent" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" FontSize="24" FontFamily="Georgia" TextWrapping="Wrap"/>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="15">
+                            <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
+                                <TextBox Text="{Binding Tag}" Foreground="{Binding TagTextColor}" Background="Transparent" BorderThickness="0" FontWeight="Bold" FontSize="10" Width="60"/>
+                            </Border>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
+                                 <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+                                 <TextBlock Text="{Binding FormattedDate}" Foreground="{StaticResource TextMain}" FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <ComboBox ItemsSource="{x:Static kanban:TaskItem.AllPriorities}" SelectedItem="{Binding Priority}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Ellipse Width="8" Height="8" Fill="{Binding Converter={StaticResource PriorityToColorConverter}}"/>
+                                        <TextBlock Text="{Binding}" FontSize="12"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <TextBlock Text="DESCRIPTION" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding Description}" Foreground="#d6ccc2" Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="10" MinHeight="150" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
+                    <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+                        <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                    </Border>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

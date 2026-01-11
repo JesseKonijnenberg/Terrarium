@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             x:Class="Terrarium.Avalonia.Controls.WipeBoardDialogControl"
+             x:DataType="vm:KanbanBoardViewModel">
+
+    <Grid Background="#CC000000">
+        <Border Background="{StaticResource BgSidebar}" 
+                CornerRadius="12" 
+                Padding="40" 
+                VerticalAlignment="Center" 
+                HorizontalAlignment="Center"
+                BorderBrush="#E57373"
+                BorderThickness="1"
+                MinWidth="400">
+            
+            <StackPanel Spacing="25">
+                <StackPanel Spacing="5" HorizontalAlignment="Center">
+                    <TextBlock Text="⚠️ DANGER ZONE" FontSize="12" FontWeight="Bold" Foreground="#E57373" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Wipe Entire Board?" FontSize="22" FontFamily="Georgia" Foreground="{StaticResource TextMain}" HorizontalAlignment="Center"/>
+                </StackPanel>
+                
+                <TextBlock Text="This will permanently delete all tasks. You cannot undo this action." 
+                           Foreground="{StaticResource TextMuted}" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+                
+                <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
+                    <Button Content="Yes, Delete Everything" 
+                            Background="#E57373" Foreground="White" 
+                            Padding="20,10" FontWeight="Bold" 
+                            Command="{Binding ConfirmDeleteAllCommand}"/>
+                    
+                    <Button Content="Cancel" 
+                            Background="Transparent" 
+                            BorderBrush="{StaticResource BorderColor}" 
+                            BorderThickness="1" Padding="20,10" 
+                            Command="{Binding CancelDeleteAllCommand}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -59,6 +59,26 @@
     <Compile Update="Views\MainWindow.axaml.cs">
       <DependentUpon>MainWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Controls (UI Components)\Kanban\WipeBoardDialogControl.axaml.cs">
+      <DependentUpon>WipeBoardDialogControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls (UI Components)\Kanban\TopBarControl.axaml.cs">
+      <DependentUpon>TopBarControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls (UI Components)\Kanban\TaskCardControl.axaml.cs">
+      <DependentUpon>TaskCardControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls (UI Components)\Kanban\KanbanColumnControl.axaml.cs">
+      <DependentUpon>KanbanColumnControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls (UI Components)\Kanban\TaskDetailControl.axaml.cs">
+      <DependentUpon>TaskDetailControl.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 
