@@ -82,4 +82,6 @@ public partial class TaskItem : ViewModelBase
         var baseColor = Color.Parse(colorStr);
         return new SolidColorBrush(new Color((byte)(255 * opacity), baseColor.R, baseColor.G, baseColor.B));
     }
+    
+    public static TaskPriority[] AllPriorities => (TaskPriority[])Enum.GetValues(typeof(TaskPriority));
 }

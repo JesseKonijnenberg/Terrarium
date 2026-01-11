@@ -6,9 +6,14 @@
              xmlns:controls="using:Terrarium.Avalonia.Controls"
              xmlns:kanban="clr-namespace:Terrarium.Avalonia.Models.Kanban"
              xmlns:behaviors="clr-namespace:Terrarium.Avalonia.Behaviors"
+             xmlns:helpers="clr-namespace:Terrarium.Avalonia.Helpers"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="Terrarium.Avalonia.Views.KanbanBoardView"
              x:DataType="vm:KanbanBoardViewModel">
+    
+    <UserControl.Resources>
+        <helpers:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
+    </UserControl.Resources>
     
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Ctrl+V" 
@@ -49,6 +54,41 @@
         <Style Selector="Button.TaskCard.IsSelected /template/ Border#CardBorder">
             <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
             <Setter Property="BorderThickness" Value="4"/>
+        </Style>
+        
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{StaticResource BgMain}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="ComboBox:pointerover /template/ Border#LayerOnMicaBase">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+            <Setter Property="Background" Value="#1a1a18"/>
+        </Style>
+
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Margin" Value="4,2"/>
+        </Style>
+
+        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BgCard}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
+        </Style>
+
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BgCard}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
         </Style>
     </UserControl.Styles>
 
@@ -131,8 +171,36 @@
                                                 </StackPanel>
                                             </StackPanel>
 
-                                            <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                                            <TextBlock Text="{Binding Priority}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="PRIORITY" 
+                                                       Foreground="{StaticResource TextMuted}" 
+                                                       FontSize="10" 
+                                                       FontWeight="Bold" 
+                                                       Margin="0,15,0,5"/>
+
+                                            <ComboBox ItemsSource="{x:Static kanban:TaskItem.AllPriorities}" 
+                                                      SelectedItem="{Binding Priority}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                                            <Ellipse Width="8" Height="8" VerticalAlignment="Center">
+                                                                <Ellipse.Fill>
+                                                                    <Binding Path=".">
+                                                                        <Binding.Converter>
+                                                                            <StaticResource ResourceKey="PriorityToColorConverter"/>
+                                                                        </Binding.Converter>
+                                                                    </Binding>
+                                                                </Ellipse.Fill>
+                                                                <Ellipse.Effect>
+                                                                    <DropShadowEffect BlurRadius="4" Opacity="0.3" Color="Black"/>
+                                                                </Ellipse.Effect>
+                                                            </Ellipse>
+                                                            <TextBlock Text="{Binding}" 
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
 
                                             <TextBlock Text="Description" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
                                             <TextBox Text="{Binding Description}" Foreground="#d6ccc2" Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="10" MinHeight="100" TextWrapping="Wrap" AcceptsReturn="True"/>
