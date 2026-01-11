@@ -58,7 +58,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Panel>
+    <Panel HorizontalAlignment="Center">
         <Button Classes="UpdateBtn"
                 IsVisible="{Binding ShowStartButton}" 
                 Command="{Binding UpdateCommand}">

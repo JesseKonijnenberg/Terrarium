@@ -39,7 +39,7 @@ public partial class UpdateViewModel : ViewModelBase
     [ObservableProperty]
     private string _updateButtonText = "Check for Updates";
 
-    public bool ShowStartButton => IsUpdateAvailable && !IsUpdating && !IsRestartPending && !IsCancelling;
+    public bool ShowStartButton => !IsUpdating && !IsRestartPending && !IsCancelling;
     public bool ShowProgressPanel => IsUpdating && !IsCancelling;
 
     public UpdateViewModel(IUpdateService updateService)
@@ -95,7 +95,7 @@ public partial class UpdateViewModel : ViewModelBase
         }
     }
 
-    private bool CanUpdate() => IsUpdateAvailable && !IsUpdating;
+    private bool CanUpdate() => !IsUpdating;
 
     [RelayCommand]
     private void CancelUpdate() => _updateCts?.Cancel();
