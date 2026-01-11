@@ -131,6 +131,152 @@ public class SqliteBoardRepositoryTests : IDisposable
         Assert.Equal("task-last", resultTasks[1].Id);
     }
 
+    [Fact]
+    public async Task AddTaskAsync_AfterLoadBoard_ShouldNotThrowConcurrencyException()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+
+        var board = await _repo.LoadBoardAsync(TestWorkspaceId);
+        Assert.NotEmpty(board);
+
+        var newTask = new TaskEntity 
+        { 
+            Id = "new-task", 
+            Title = "New", 
+            Tag = "G", 
+            Description = "", 
+            WorkspaceId = TestWorkspaceId 
+        };
+        
+        await _repo.AddTaskAsync(newTask, colId);
+
+        var saved = await _context.Tasks.FindAsync("new-task");
+        Assert.NotNull(saved);
+    }
+
+    [Fact]
+    public async Task DeleteTasksAsync_AfterLoadBoard_ShouldNotThrowConcurrencyException()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+
+        var ids = new List<string> { "task1", "task2" };
+        await _repo.AddTaskAsync(new TaskEntity { Id = "task1", Title = "T1", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "task2", Title = "T2", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+
+        var board = await _repo.LoadBoardAsync(TestWorkspaceId);
+        Assert.Equal(2, board.First().Tasks.Count);
+
+        await _repo.DeleteTasksAsync(ids);
+
+        var remaining = await _context.Tasks.CountAsync();
+        Assert.Equal(0, remaining);
+    }
+
+    [Fact]
+    public async Task DeleteTasksAsync_ShouldNotRequireSaveChanges()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+
+        await _repo.AddTaskAsync(new TaskEntity { Id = "delete-me", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+
+        await _repo.DeleteTasksAsync(new[] { "delete-me" });
+
+        var newContextOptions = new DbContextOptionsBuilder<TerrariumDbContext>()
+            .UseSqlite(_connection)
+            .Options;
+        using var newContext = new TerrariumDbContext(newContextOptions);
+
+        var count = await newContext.Tasks.CountAsync();
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task LoadBoard_ThenAdd_ThenLoadAgain_ShouldWorkWithoutConflict()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+
+        var board1 = await _repo.LoadBoardAsync(TestWorkspaceId);
+        Assert.Empty(board1.First().Tasks);
+
+        await _repo.AddTaskAsync(
+            new TaskEntity { Id = "new", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, 
+            colId
+        );
+
+        var board2 = await _repo.LoadBoardAsync(TestWorkspaceId);
+        Assert.Single(board2.First().Tasks);
+    }
+
+    [Fact]
+    public async Task MultipleSequentialOperations_ShouldNotCauseTrackingConflicts()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+
+        var board = await _repo.LoadBoardAsync(TestWorkspaceId);
+
+        await _repo.AddTaskAsync(
+            new TaskEntity { Id = "task1", Title = "T1", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, 
+            colId
+        );
+
+        board = await _repo.LoadBoardAsync(TestWorkspaceId);
+
+        var task = new TaskEntity { Id = "task1", Title = "Updated", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId };
+        await _repo.UpdateTaskAsync(task);
+
+        board = await _repo.LoadBoardAsync(TestWorkspaceId);
+
+        await _repo.DeleteTaskAsync("task1");
+
+        var finalCount = await _context.Tasks.CountAsync();
+        Assert.Equal(0, finalCount);
+    }
+
+    [Fact]
+    public async Task LoadBoardAsync_ShouldNotTrackEntities()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+        await _repo.AddTaskAsync(
+            new TaskEntity { Id = "track-test", Title = "T", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, 
+            colId
+        );
+
+        var board = await _repo.LoadBoardAsync(TestWorkspaceId);
+        var loadedTask = board.First().Tasks.First();
+
+        var entry = _context.Entry(loadedTask);
+        Assert.Equal(EntityState.Detached, entry.State);
+    }
+
+    [Fact]
+    public async Task DeleteMultipleTasks_ThenAddNew_ShouldWork()
+    {
+        var colId = Guid.NewGuid().ToString();
+        await CreateColumnAsync(colId);
+        
+        await _repo.AddTaskAsync(new TaskEntity { Id = "old1", Title = "T1", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+        await _repo.AddTaskAsync(new TaskEntity { Id = "old2", Title = "T2", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, colId);
+        
+        await _repo.LoadBoardAsync(TestWorkspaceId);
+        
+        await _repo.DeleteTasksAsync(new[] { "old1", "old2" });
+        
+        await _repo.AddTaskAsync(
+            new TaskEntity { Id = "new", Title = "New", Tag = "G", Description = "", WorkspaceId = TestWorkspaceId }, 
+            colId
+        );
+
+        var tasks = await _context.Tasks.ToListAsync();
+        Assert.Single(tasks);
+        Assert.Equal("new", tasks[0].Id);
+    }
+
     public void Dispose()
     {
         _context.Dispose();

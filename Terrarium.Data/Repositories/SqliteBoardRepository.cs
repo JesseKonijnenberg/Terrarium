@@ -18,6 +18,7 @@ public class SqliteBoardRepository : IBoardRepository
     public async Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null)
     {
         var board = await _context.Columns
+            .AsNoTracking()
             .Where(c => c.WorkspaceId == workspaceId && c.ProjectId == projectId)
             .Include(c => c.Tasks)
             .OrderBy(c => c.Order)
@@ -36,7 +37,7 @@ public class SqliteBoardRepository : IBoardRepository
     public async Task AddTaskAsync(TaskEntity task, string columnId)
     {
         task.ColumnId = columnId;
-        task.Order = 0;
+        
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
     }
@@ -73,14 +74,12 @@ public class SqliteBoardRepository : IBoardRepository
         await _context.Tasks
             .Where(t => taskIds.Contains(t.Id))
             .ExecuteDeleteAsync();
-        await _context.SaveChangesAsync();
     }
 
     /// <inheritdoc />
     public async Task DeleteAllTasksAsync()
     {
         await _context.Tasks.ExecuteDeleteAsync();
-        await _context.SaveChangesAsync();
     }
 
     /// <inheritdoc />

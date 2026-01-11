@@ -71,12 +71,13 @@ public partial class KanbanBoardViewModel : ViewModelBase
     private async Task AddItemAsync(Column targetColumn)
     {
         var newEntity = await _boardService.CreateDefaultTaskEntity(targetColumn.Id, CurrentWorkspaceId, CurrentProjectId);
-        var newTask = new TaskItem(newEntity);
-
-        targetColumn.Tasks.Insert(0, newTask);
-        OpenedTask = newTask;
         
         await _boardService.AddTaskAsync(newEntity, targetColumn.Id, CurrentWorkspaceId, CurrentProjectId);
+        
+        var newTask = new TaskItem(newEntity);
+        targetColumn.Tasks.Insert(0, newTask);
+        
+        OpenedTask = newTask;
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteTask))]

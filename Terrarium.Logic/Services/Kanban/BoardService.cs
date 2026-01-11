@@ -46,6 +46,10 @@ public class BoardService : IBoardService
     {
         task.WorkspaceId = workspaceId;
         task.ProjectId = projectId;
+        task.ColumnId = columnId;
+
+        var currentTasks = _boardCache.FirstOrDefault(c => c.Id == columnId)?.Tasks;
+        task.Order = currentTasks?.Count ?? 0;
 
         await _repository.AddTaskAsync(task, columnId);
 
