@@ -9,28 +9,25 @@ using Terrarium.Core.Models.Hierarchy;
 
 namespace Terrarium.Avalonia.ViewModels;
 
-/// <summary>
-/// The main shell of the application, managing top-level navigation between views.
-/// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IHierarchyService _hierarchyService;
     
     public ObservableCollection<OrganizationEntity> Organizations { get; } = new();
+    public ObservableCollection<WorkspaceEntity> CurrentWorkspaces { get; } = new();
+    public ObservableCollection<ProjectEntity> CurrentProjects { get; } = new();
     
     public KanbanBoardViewModel BoardVm { get; }
     public GardenViewModel GardenVm { get; }
     public SettingsViewModel SettingsVm { get; }
 
-    /// <summary>
-    /// The current view being displayed in the main content area.
-    /// The toolkit generates the 'CurrentPage' property automatically.
-    /// </summary>
-    [ObservableProperty]
-    private ViewModelBase _currentPage;
+    [ObservableProperty] private ViewModelBase _currentPage;
     
-    [ObservableProperty]
-    private WorkspaceEntity? _selectedWorkspace;
+    [ObservableProperty] private OrganizationEntity? _selectedOrganization;
+    [ObservableProperty] private WorkspaceEntity? _selectedWorkspace;
+    [ObservableProperty] private ProjectEntity? _selectedProject;
+
+    public string SelectedOrgInitial => SelectedOrganization?.Name?.FirstOrDefault().ToString() ?? "P";
 
     public MainWindowViewModel(
         KanbanBoardViewModel boardVm,
@@ -42,48 +39,62 @@ public partial class MainWindowViewModel : ViewModelBase
         GardenVm = gardenVm;
         SettingsVm = settingsVm;
         _hierarchyService = hierarchyService;
-        
-        _currentPage = BoardVm; // Default starting page
+        _currentPage = BoardVm;
+
         _ = LoadHierarchyAsync();
     }
 
     [RelayCommand]
-    private void GoToBoard() => CurrentPage = BoardVm;
-
-    [RelayCommand]
-    private void GoToGarden() => CurrentPage = GardenVm;
-
-    [RelayCommand]
-    private void GoToSettings() => CurrentPage = SettingsVm;
-    
-    [RelayCommand]
-    private void SelectWorkspace(WorkspaceEntity workspace)
-    {
-        SelectedWorkspace = workspace;
-    }
-    
     private async Task LoadHierarchyAsync()
     {
         var data = await _hierarchyService.GetUserHierarchyAsync();
         Organizations.Clear();
         foreach (var org in data) Organizations.Add(org);
         
-        // Auto-select the first workspace so the board isn't empty on launch
-        if (SelectedWorkspace == null)
+        // Initial selection cascade
+        SelectedOrganization = Organizations.FirstOrDefault();
+    }
+
+    partial void OnSelectedOrganizationChanged(OrganizationEntity? value)
+    {
+        CurrentWorkspaces.Clear();
+        if (value?.Workspaces != null)
         {
-            SelectedWorkspace = Organizations.FirstOrDefault()?.Workspaces.FirstOrDefault();
+            foreach (var ws in value.Workspaces) CurrentWorkspaces.Add(ws);
         }
+        
+        SelectedWorkspace = CurrentWorkspaces.FirstOrDefault();
+        
+        OnPropertyChanged(nameof(SelectedOrgInitial));
     }
 
     partial void OnSelectedWorkspaceChanged(WorkspaceEntity? value)
     {
-        if (value != null)
+        CurrentProjects.Clear();
+        if (value?.Projects != null)
         {
-            // Update the board's scope
-            BoardVm.CurrentWorkspaceId = value.Id;
-            
-            // Ensure we are looking at the Board page
-            if (CurrentPage != BoardVm) CurrentPage = BoardVm;
+            foreach (var proj in value.Projects) CurrentProjects.Add(proj);
+        }
+        
+        SelectedProject = CurrentProjects.FirstOrDefault();
+    }
+
+    partial void OnSelectedProjectChanged(ProjectEntity? value)
+    {
+        if (value != null && SelectedWorkspace != null)
+        {
+            BoardVm.CurrentWorkspaceId = SelectedWorkspace.Id;
+            BoardVm.CurrentProjectId = value.Id;
+        
+            _ = BoardVm.LoadDataAsync();
         }
     }
+
+    [RelayCommand] private void SelectOrganization(OrganizationEntity org) => SelectedOrganization = org;
+    [RelayCommand] private void SelectWorkspace(WorkspaceEntity ws) => SelectedWorkspace = ws;
+    [RelayCommand] private void SelectProject(ProjectEntity proj) => SelectedProject = proj;
+ 
+    [RelayCommand] private void GoToBoard() => CurrentPage = BoardVm;
+    [RelayCommand] private void GoToGarden() => CurrentPage = GardenVm;
+    [RelayCommand] private void GoToSettings() => CurrentPage = SettingsVm;
 }

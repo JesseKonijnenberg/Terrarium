@@ -254,7 +254,7 @@ public partial class KanbanBoardViewModel : ViewModelBase
         OpenedTask = null;
     }
 
-    private async Task LoadDataAsync()
+    public async Task LoadDataAsync()
     {
         var boardData = await _boardService.LoadBoardAsync(CurrentWorkspaceId, CurrentProjectId);
         
