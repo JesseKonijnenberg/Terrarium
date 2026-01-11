@@ -17,11 +17,13 @@ public partial class UpdateViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowStartButton))]
+    [NotifyCanExecuteChangedFor(nameof(UpdateCommand))]
     private bool _isUpdateAvailable;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowStartButton))]
     [NotifyPropertyChangedFor(nameof(ShowProgressPanel))]
+    [NotifyCanExecuteChangedFor(nameof(UpdateCommand))]
     private bool _isUpdating;
 
     [ObservableProperty]
@@ -39,7 +41,7 @@ public partial class UpdateViewModel : ViewModelBase
     [ObservableProperty]
     private string _updateButtonText = "Check for Updates";
 
-    public bool ShowStartButton => !IsUpdating && !IsRestartPending && !IsCancelling;
+    public bool ShowStartButton => IsUpdateAvailable && !IsUpdating && !IsRestartPending && !IsCancelling;
     public bool ShowProgressPanel => IsUpdating && !IsCancelling;
 
     public UpdateViewModel(IUpdateService updateService)
@@ -95,7 +97,7 @@ public partial class UpdateViewModel : ViewModelBase
         }
     }
 
-    private bool CanUpdate() => !IsUpdating;
+    private bool CanUpdate() => IsUpdateAvailable && !IsUpdating;
 
     [RelayCommand]
     private void CancelUpdate() => _updateCts?.Cancel();
