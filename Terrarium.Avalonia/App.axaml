@@ -5,14 +5,22 @@
              RequestedThemeVariant="Dark">
 
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme/>
+            
     </Application.Styles>
 
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="/Assets/AppStyles.axaml"/>
-            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="BgMain" Color="#141312"/>
+            <SolidColorBrush x:Key="BgSidebar" Color="#1e1c1a"/>
+            <SolidColorBrush x:Key="BgCard" Color="#1e1c1a"/>
+            <SolidColorBrush x:Key="BorderColor" Color="#4a4540"/>
+            <SolidColorBrush x:Key="TextMain" Color="#f5ebe0"/>
+            <SolidColorBrush x:Key="TextMuted" Color="#9a928c"/>
+            <SolidColorBrush x:Key="AccentSage" Color="#b5c18e"/>
+
+            <CornerRadius x:Key="MainCornerRadius">8</CornerRadius>
+            <Thickness x:Key="TaskCardBorderThickness">4,0,0,0</Thickness>
 
             <converters:ObjectToGeometryConverter x:Key="ObjToGeom"/>
         </ResourceDictionary>

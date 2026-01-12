@@ -1,41 +1,57 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+             xmlns:theme="clr-namespace:Terrarium.Avalonia.Models.Theme"
              x:Class="Terrarium.Avalonia.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
-    <Grid Margin="40">
-        <StackPanel Spacing="20">
-            <TextBlock Text="Settings" FontSize="32" FontWeight="Bold" Foreground="{StaticResource TextMain}"/>
-            <Border Background="{StaticResource BorderColor}" Height="1" Margin="0,0,0,20"/>
+    <Grid Margin="0" Background="{DynamicResource BgMain}">
+        <ScrollViewer Padding="40">
+            <StackPanel Spacing="20">
+                <TextBlock Text="Settings" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextMain}"/>
+                <Border Background="{DynamicResource BorderColor}" Height="1" Margin="0,0,0,20"/>
 
-            <StackPanel Spacing="10">
-                <TextBlock Text="ABOUT" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMuted}"/>
+                <StackPanel Spacing="10">
+                    <TextBlock Text="ABOUT" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextMuted}"/>
+                    
+                    <Border Background="{DynamicResource BgSidebar}" CornerRadius="{DynamicResource MainCornerRadius}" Padding="20">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel>
+                                <TextBlock Text="Terrarium" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextMain}"/>
+                                <TextBlock Text="Productivity &amp; Life Management" FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="Current Version:" Foreground="{DynamicResource TextMuted}"/>
+                                <TextBlock Text="{Binding AppVersion}" Foreground="{DynamicResource AccentSage}" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
                 
-                <Border Background="{StaticResource BgSidebar}" CornerRadius="8" Padding="20">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <StackPanel>
-                            <TextBlock Text="Terrarium" FontSize="18" FontWeight="SemiBold"/>
-                            <TextBlock Text="Productivity &amp; Life Management" FontSize="12" Foreground="{StaticResource TextMuted}"/>
-                        </StackPanel>
-                        
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="Current Version:" Foreground="{StaticResource TextMuted}"/>
-                            <TextBlock Text="{Binding AppVersion}" Foreground="{StaticResource AccentSage}" FontWeight="Bold"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <StackPanel Spacing="10" Margin="0,20,0,0">
+                    <TextBlock Text="APPEARANCE" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextMuted}"/>
+                    <Border Background="{DynamicResource BgSidebar}" CornerRadius="{DynamicResource MainCornerRadius}" Padding="20">
+                        <Grid ColumnDefinitions="*, 200">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Application Theme" FontWeight="SemiBold" Foreground="{DynamicResource TextMain}"/>
+                                <TextBlock Text="Switch between light and dark modes" FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+                            </StackPanel>
+                
+                            <ComboBox Grid.Column="1" 
+                                      HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding AvailableThemes}"
+                                      SelectedItem="{Binding SelectedTheme}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="theme:ITheme">
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+                </StackPanel>
             </StackPanel>
-            
-            <StackPanel Spacing="10" Margin="0,20,0,0">
-                <TextBlock Text="GENERAL" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMuted}"/>
-                <Border Background="{StaticResource BgSidebar}" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                         <ToggleSwitch Content="Dark Mode" IsChecked="True" OnContent="On" OffContent="Off"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

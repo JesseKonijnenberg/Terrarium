@@ -14,14 +14,14 @@
     <UserControl.Styles>
         <Style Selector="Button.NavIcon">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Template">
                 <ControlTemplate>
                     <Panel>
                         <Border Name="Indicator" HorizontalAlignment="Left" Width="3" Height="18" 
-                                CornerRadius="0,4,4,0" Background="{StaticResource AccentSage}" IsVisible="False"/>
+                                CornerRadius="0,4,4,0" Background="{DynamicResource AccentSage}" IsVisible="False"/>
                         <Border Background="{TemplateBinding Background}" CornerRadius="10" Margin="8,0">
                             <ContentPresenter Content="{TemplateBinding Content}" 
                                               Foreground="{TemplateBinding Foreground}"
@@ -33,24 +33,24 @@
         </Style>
 
         <Style Selector="Button.NavIcon:pointerover">
-            <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMain}"/>
         </Style>
 
         <Style Selector="Button.NavIcon.active">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
+            <Setter Property="Background" Value="{DynamicResource BgCard}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentSage}"/>
         </Style>
         <Style Selector="Button.NavIcon.active /template/ Border#Indicator">
             <Setter Property="IsVisible" Value="True"/>
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
+    <Border Background="{DynamicResource BgSidebar}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="12,32,12,16">
             
             <c:HierarchySelectorControl Grid.Row="0" DataContext="{Binding .}"/>
 
-            <Separator Grid.Row="1" Background="{StaticResource BorderColor}" Opacity="0.3" Margin="12,0,12,24" Height="1"/>
+            <Separator Grid.Row="1" Background="{DynamicResource BorderColor}" Opacity="0.3" Margin="12,0,12,24" Height="1"/>
 
             <StackPanel Grid.Row="2" Spacing="4">
                 <Button Classes="NavIcon" 

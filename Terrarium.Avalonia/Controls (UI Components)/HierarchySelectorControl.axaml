@@ -25,35 +25,35 @@
             </Setter>
         </Style>
         <Style Selector="Button.HierarchyLabel:pointerover">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
+            <Setter Property="Background" Value="{DynamicResource BgCard}"/>
         </Style>
 
         <Style Selector="Border.ProjectIndent">
             <Setter Property="Margin" Value="18,0,0,0"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1.5,0,0,0"/>
             <Setter Property="Padding" Value="12,0,0,0"/>
         </Style>
 
         <Style Selector="FlyoutPresenter">
-            <Setter Property="Background" Value="{StaticResource BgSidebar}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{DynamicResource BgSidebar}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="MinWidth" Value="200"/>
         </Style>
         
         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter,
                        ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
+            <Setter Property="Background" Value="{DynamicResource BgCard}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentSage}"/>
         </Style>
     </UserControl.Styles>
 
     <StackPanel Spacing="0">
         <Button Width="48" Height="48" CornerRadius="14" 
                 HorizontalAlignment="Left" Margin="10,0,0,28"
-                Background="{StaticResource BgCard}" BorderBrush="{StaticResource AccentSage}" BorderThickness="2">
-            <TextBlock Text="{Binding SelectedOrgInitial}" Foreground="{StaticResource AccentSage}" 
+                Background="{DynamicResource BgCard}" BorderBrush="{DynamicResource AccentSage}" BorderThickness="2">
+            <TextBlock Text="{Binding SelectedOrgInitial}" Foreground="{DynamicResource AccentSage}" 
                        FontWeight="Black" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
@@ -86,7 +86,7 @@
         <Border Classes="ProjectIndent" Margin="12,0,0,32">
             <Button Classes="HierarchyLabel" Padding="8,6" CornerRadius="6">
                 <TextBlock Text="{Binding SelectedProject.Name, FallbackValue='Select Project'}" 
-                           FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                           FontSize="12" Foreground="{DynamicResource TextMuted}"/>
                 <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedLeft">
                         <ListBox ItemsSource="{Binding CurrentProjects}" 

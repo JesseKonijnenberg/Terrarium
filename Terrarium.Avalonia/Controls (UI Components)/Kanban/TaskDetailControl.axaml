@@ -12,33 +12,33 @@
 
     <UserControl.Styles>
         <Style Selector="ComboBox, CalendarDatePicker">
-            <Setter Property="Background" Value="{StaticResource BgMain}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{DynamicResource BgMain}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource MainCornerRadius}"/>
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
-                </Transitions>
-            </Setter>
         </Style>
 
-        <Style Selector="ComboBox:pointerover, CalendarDatePicker:pointerover">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
+        <Style Selector="ComboBox">
+            <Style Selector="^ /template/ Panel#PART_Popup">
+                <Setter Property="Background" Value="{DynamicResource BgSidebar}"/>
+            </Style>
         </Style>
 
         <Style Selector="ComboBoxItem">
             <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Margin" Value="4,2"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource MainCornerRadius}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMain}"/>
         </Style>
 
-        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter,
-                       ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
+        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource BgCardHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMain}"/>
+        </Style>
+
+        <Style Selector="ComboBox:pointerover, CalendarDatePicker:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentSage}"/>
         </Style>
 
         <Style Selector="CalendarDatePicker /template/ TextBox#PART_TextBox">
@@ -46,70 +46,48 @@
             <Setter Property="IsHitTestVisible" Value="False" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="{StaticResource TextMain}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMain}" />
             <Setter Property="VerticalContentAlignment" Value="Center" /> 
         </Style>
         
         <Style Selector="Calendar">
-            <Setter Property="Background" Value="{StaticResource BgSidebar}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{DynamicResource BgSidebar}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource MainCornerRadius}"/>
         </Style>
 
         <Style Selector="CalendarDayButton">
-            <Setter Property="Padding" Value="4"/>
             <Setter Property="MinWidth" Value="32"/>
             <Setter Property="MinHeight" Value="32"/>
-        </Style>
-
-        <Style Selector="CalendarDayButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-        </Style>
-
-        <Style Selector="CalendarDayButton:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentSage}"/>
-            <Setter Property="Foreground" Value="{StaticResource BgMain}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMain}"/>
         </Style>
 
         <Style Selector="CalendarDayButton:today /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentSage}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentSage}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="Background" Value="Transparent"/>
         </Style>
-
-        <Style Selector="CalendarButton">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
-        </Style>
-
-        <Style Selector="CalendarButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BgCard}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentSage}"/>
-        </Style>
-
-        <Style Selector="CalendarButton:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentSage}"/>
-            <Setter Property="Foreground" Value="{StaticResource BgMain}"/>
-        </Style>
+        
     </UserControl.Styles>
     
-    <Grid Background="{StaticResource BgSidebar}" Focusable="True">
+    <Grid Background="{DynamicResource BgSidebar}" Focusable="True">
         <Grid.Effect>
             <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.5" OffsetX="-5"/>
         </Grid.Effect>
 
-        <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+        <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0">
             <Grid RowDefinitions="80, *, Auto">
                 
-                <Border BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
+                <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" Padding="30,0">
                     <Grid ColumnDefinitions="*, Auto, Auto">
-                        <TextBlock Text="DETAIL VIEW" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock Text="DETAIL VIEW" Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                         
                         <Button Grid.Column="1" Content="Delete" FontSize="14" Foreground="#E57373" Background="Transparent" Margin="0,0,15,0"
                                 Command="{Binding $parent[UserControl;1].((vm:KanbanBoardViewModel)DataContext).DeleteTaskCommand}"/>
                         
-                        <Button Grid.Column="2" Content="✕" Foreground="{StaticResource TextMuted}" Background="Transparent" 
+                        <Button Grid.Column="2" Content="✕" Foreground="{DynamicResource TextMuted}" Background="Transparent" 
                                 Command="{Binding $parent[UserControl;1].((vm:KanbanBoardViewModel)DataContext).CloseDetails}"/>
                     </Grid>
                 </Border>
@@ -117,31 +95,28 @@
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30">
                     <StackPanel Spacing="20">
                         
-                        <TextBlock Text="TITLE" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold"/>
-                        <TextBox Text="{Binding Title}" Foreground="{StaticResource TextMain}" Background="Transparent" 
-                                 BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" 
+                        <TextBlock Text="TITLE" Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold"/>
+                        <TextBox Text="{Binding Title}" Foreground="{DynamicResource TextMain}" Background="Transparent" 
+                                 BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" 
                                  FontSize="24" FontFamily="Georgia" TextWrapping="Wrap"/>
                         
                         <StackPanel Orientation="Horizontal" Spacing="20">
-                            <Border Background="{Binding TagBgColor}" CornerRadius="10" Padding="12,2">
+                            <Border Background="{Binding TagBgColor}" CornerRadius="{DynamicResource MainCornerRadius}" Padding="12,2">
                                 <TextBox Text="{Binding Tag}" Foreground="{Binding TagTextColor}" 
                                          Background="Transparent" BorderThickness="0" 
                                          FontWeight="Bold" FontSize="10" Width="60"/>
                             </Border>
     
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                                <TextBlock Text="Due" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+                                <TextBlock Text="Due" Foreground="{DynamicResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
                                 <CalendarDatePicker SelectedDate="{Binding DueDate}" 
                                                     IsTodayHighlighted="True"
                                                     Padding="12,6"
-                                                    BorderThickness="1"
-                                                    Background="{StaticResource BgMain}"
-                                                    Foreground="{StaticResource TextMain}"
                                                     Watermark="No Deadline"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <TextBlock Text="PRIORITY" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <TextBlock Text="PRIORITY" Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
                         <ComboBox ItemsSource="{x:Static kanban:TaskItem.AllPriorities}" 
                                   SelectedItem="{Binding Priority}">
                             <ComboBox.ItemTemplate>
@@ -149,22 +124,22 @@
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <Ellipse Width="8" Height="8" VerticalAlignment="Center"
                                                  Fill="{Binding Converter={StaticResource PriorityToColorConverter}}"/>
-                                        <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding}" FontSize="12" Foreground="{DynamicResource TextMain}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
 
-                        <TextBlock Text="DESCRIPTION" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBox Text="{Binding Description}" Foreground="#d6ccc2" Background="{StaticResource BgMain}" 
-                                 BorderBrush="{StaticResource BorderColor}" BorderThickness="1" Padding="10" 
-                                 MinHeight="150" TextWrapping="Wrap" AcceptsReturn="True"/>
+                        <TextBlock Text="DESCRIPTION" Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding Description}" Foreground="{DynamicResource TextMain}" Background="{DynamicResource BgMain}" 
+                                 BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="{DynamicResource MainCornerRadius}" 
+                                 Padding="10" MinHeight="150" TextWrapping="Wrap" AcceptsReturn="True"/>
                     </StackPanel>
                 </ScrollViewer>
 
-                <Border Grid.Row="2" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
-                    <Border Background="{StaticResource BgMain}" CornerRadius="8" Height="50" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
-                        <TextBlock Text="Type a note..." Foreground="#5c5652" VerticalAlignment="Center" Margin="15,0"/>
+                <Border Grid.Row="2" Background="{DynamicResource BgSidebar}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0" Padding="20">
+                    <Border Background="{DynamicResource BgMain}" CornerRadius="{DynamicResource MainCornerRadius}" Height="50" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1">
+                        <TextBlock Text="Type a note..." Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Margin="15,0"/>
                     </Border>
                 </Border>
                 
