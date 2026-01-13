@@ -16,7 +16,8 @@ public partial class SettingsViewModel : ViewModelBase
         new SageDarkTheme(),
         new ModernLightTheme(),
         new MidnightNordTheme(),
-        new TerrariumLinenTheme()
+        new TerrariumLinenTheme(),
+        new SakuraNightTheme()
         // To add a new theme, just add 'new MyNewTheme(),' here!
     };
 
