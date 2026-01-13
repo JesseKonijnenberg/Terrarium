@@ -1,3 +1,4 @@
+using Terrarium.Core.Events.Theming;
 using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Core.Models.Theming;
@@ -9,6 +10,7 @@ namespace Terrarium.Logic.Services.Theming;
 public class ThemeService : IThemeService
 {
     private readonly IThemeRepository _repository;
+    public event EventHandler<ThemeChangedEventArgs>? ThemeChanged;
 
     public ThemeService(IThemeRepository repository)
     {
@@ -31,6 +33,9 @@ public class ThemeService : IThemeService
         if (org.LockTheme) return false;
 
         org.ActiveThemeId = theme.Id;
+        
+        ThemeChanged?.Invoke(this, new ThemeChangedEventArgs(theme));
+        
         return true;
     }
 }

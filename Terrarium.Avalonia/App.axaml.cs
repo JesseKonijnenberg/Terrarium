@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
+using Terrarium.Core.Interfaces.Data;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Kanban;
@@ -14,6 +15,7 @@ using Terrarium.Core.Models.Data;
 using Terrarium.Data;
 using Terrarium.Data.Contexts;
 using Terrarium.Data.Repositories;
+using Terrarium.Data.Seeding;
 using Terrarium.Logic.Services.Hierarchy;
 using Terrarium.Logic.Services.Kanban;
 using Terrarium.Logic.Services.Theming;
@@ -42,7 +44,13 @@ public partial class App : Application
         using (var scope = Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<TerrariumDbContext>();
+            
             DbInitializer.Initialize(dbContext);
+
+            // Execute Environment-Specific Seeding
+            // This will resolve to DevelopmentSeeder in DEBUG and ProductionSeeder otherwise.
+            var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+            seeder.Seed();
         }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -86,5 +94,11 @@ public partial class App : Application
         services.AddSingleton<KanbanBoardViewModel>();
         services.AddSingleton<GardenViewModel>();
         services.AddSingleton<MainWindowViewModel>();
+        
+#if DEBUG
+        services.AddScoped<IDatabaseSeeder, DevelopmentSeeder>();
+#else
+    services.AddScoped<IDatabaseSeeder, ProductionSeeder>();
+#endif
     }
 }

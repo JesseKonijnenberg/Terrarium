@@ -1,3 +1,4 @@
+using Terrarium.Core.Events.Theming;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Core.Models.Theming;
 
@@ -19,4 +20,6 @@ public interface IThemeService
     /// Updates the theme for an organization if it isn't locked.
     /// </summary>
     bool TrySetOrganizationTheme(OrganizationEntity org, ITheme theme);
+    
+    event EventHandler<ThemeChangedEventArgs>? ThemeChanged;
 }

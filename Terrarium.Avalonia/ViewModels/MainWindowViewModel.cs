@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Terrarium.Avalonia.Helpers.Theme;
 using Terrarium.Avalonia.ViewModels.Core;
+using Terrarium.Core.Events.Theming;
 using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Models.Hierarchy;
@@ -46,6 +47,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _currentPage = BoardVm;
         _themeService = themeService;
         
+        _themeService.ThemeChanged += OnThemeChanged;
+        
         _ = LoadHierarchyAsync();
     }
 
@@ -61,17 +64,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedOrganizationChanged(OrganizationEntity? value)
     {
+        if (value == null) return;
+        
+        var theme = _themeService.GetThemeForOrganization(value);
+        ThemeManager.ApplyTheme(theme);
+        
         CurrentWorkspaces.Clear();
-        if (value?.Workspaces != null)
+        if (value.Workspaces != null)
         {
             foreach (var ws in value.Workspaces) CurrentWorkspaces.Add(ws);
         }
-        
-        if (value != null)
-        {
-            ApplyThemeForOrganization(value);
-        }
-        
+    
         SelectedWorkspace = CurrentWorkspaces.FirstOrDefault();
         OnPropertyChanged(nameof(SelectedOrgInitial));
     }
@@ -96,6 +99,18 @@ public partial class MainWindowViewModel : ViewModelBase
         
             _ = BoardVm.LoadDataAsync();
         }
+    }
+    
+    private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
+    {
+        // Force the UI to re-evaluate bindings and refresh the flyout content
+        OnPropertyChanged(nameof(SelectedOrgInitial));
+        OnPropertyChanged(nameof(SelectedOrganization));
+    
+        // This forces the ListBox in the Flyout to recreate its items with new theme
+        OnPropertyChanged(nameof(Organizations));
+        OnPropertyChanged(nameof(CurrentWorkspaces));
+        OnPropertyChanged(nameof(CurrentProjects));
     }
     
     private void ApplyThemeForOrganization(OrganizationEntity org)
