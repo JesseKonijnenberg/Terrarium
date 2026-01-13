@@ -11,6 +11,8 @@ public class HierarchyService : IHierarchyService
     {
         _repository = repository;
     }
+    
+    public OrganizationEntity? ActiveOrganization { get; set; }
 
     public async Task<List<OrganizationEntity>> GetUserHierarchyAsync()
     {
@@ -32,6 +34,11 @@ public class HierarchyService : IHierarchyService
 
             // Insert at the top so Personal always comes first in the sidebar
             hierarchy.Insert(0, personalOrg);
+        }
+        
+        if (ActiveOrganization == null && hierarchy.Any())
+        {
+            ActiveOrganization = hierarchy.First();
         }
 
         return hierarchy;

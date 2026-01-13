@@ -8,6 +8,7 @@ using Terrarium.Avalonia.Views;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Kanban;
+using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Interfaces.Update;
 using Terrarium.Core.Models.Data;
 using Terrarium.Data;
@@ -15,6 +16,7 @@ using Terrarium.Data.Contexts;
 using Terrarium.Data.Repositories;
 using Terrarium.Logic.Services.Hierarchy;
 using Terrarium.Logic.Services.Kanban;
+using Terrarium.Logic.Services.Theming;
 using Terrarium.Logic.Services.Update;
 
 namespace Terrarium.Avalonia;
@@ -65,7 +67,10 @@ public partial class App : Application
         
         services.AddScoped<IHierarchyRepository, HierarchyRepository>();
         services.AddScoped<IHierarchyService, HierarchyService>();
-
+        
+        services.AddSingleton<IThemeRepository, ThemeRepository>();
+        services.AddSingleton<IThemeService, ThemeService>();
+        
         services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
         services.AddSingleton<IBoardService, BoardService>();
         services.AddTransient<IUpdateService, UpdateService>();

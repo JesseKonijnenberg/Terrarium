@@ -54,11 +54,18 @@ namespace Terrarium.Data.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ActiveThemeId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModifiedUtc")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("LockTheme")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()

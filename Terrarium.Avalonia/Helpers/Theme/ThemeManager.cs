@@ -2,7 +2,9 @@ using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
-using Terrarium.Avalonia.Models.Theme;
+using Terrarium.Core.Models.Theming;
+
+// Ensure this points to your new Core interface
 
 namespace Terrarium.Avalonia.Helpers.Theme;
 
@@ -10,52 +12,57 @@ public static class ThemeManager
 {
     public static void ApplyTheme(ITheme theme)
     {
-        // Important: Get the root resource dictionary
-        var res = Application.Current!.Resources;
+        if (Application.Current == null) return;
+        
+        var res = Application.Current.Resources;
 
-        // 1. Base Variant (Switches internal Fluent control styles)
-        Application.Current.RequestedThemeVariant = theme.BaseVariant;
+        // 1. Map Core 'IsDark' to Avalonia 'ThemeVariant'
+        Application.Current.RequestedThemeVariant = theme.IsDark 
+            ? ThemeVariant.Dark 
+            : ThemeVariant.Light;
 
-        // 2. Explicitly overwrite the keys
-        // We use indexer access to ensure we overwrite existing keys
-        res["BgMain"] = new SolidColorBrush(theme.BackgroundMain);
-        res["BgSidebar"] = new SolidColorBrush(theme.BackgroundSidebar);
-        res["BgCard"] = new SolidColorBrush(theme.BackgroundCard);
-        res["AccentSage"] = new SolidColorBrush(theme.AccentColor);
-        res["TextMain"] = new SolidColorBrush(theme.TextMain);
-        res["TextMuted"] = new SolidColorBrush(theme.TextMuted);
-        res["BorderColor"] = new SolidColorBrush(theme.BorderColor);
-        res["BgCardHover"] = new SolidColorBrush(theme.BackgroundCardHover);
+        // 2. Translate Core Strings to Avalonia Brushes
+        // Using indexer access to overwrite existing keys for live updates
+        res["BgMain"] = CreateBrush(theme.BackgroundMain);
+        res["BgSidebar"] = CreateBrush(theme.BackgroundSidebar);
+        res["BgCard"] = CreateBrush(theme.BackgroundCard);
+        res["AccentSage"] = CreateBrush(theme.AccentColor);
+        res["TextMain"] = CreateBrush(theme.TextMain);
+        res["TextMuted"] = CreateBrush(theme.TextMuted);
+        res["BorderColor"] = CreateBrush(theme.BorderColor);
+        res["BgCardHover"] = CreateBrush(theme.BackgroundCardHover);
 
-        res["MainCornerRadius"] = theme.StandardCornerRadius;
-        res["TaskCardBorderThickness"] = theme.TaskCardBorderThickness;
+        // 3. Translate Core Doubles to Avalonia Layout Objects
+        res["MainCornerRadius"] = new CornerRadius(theme.CornerRadius);
+        res["TaskCardBorderThickness"] = new Thickness(theme.AccentBorderThickness, 0, 0, 0);
 
-        // 3. Update Fluent Theme Palette
+        // 4. Update the internal Fluent Theme palette for system controls
         if (Application.Current.Styles.Count > 0 && Application.Current.Styles[0] is FluentTheme fluent)
         {
             UpdateFluentPalette(fluent, theme);
         }
     }
 
+    private static ISolidColorBrush CreateBrush(string hexColor)
+    {
+        // Safely parses the hex string from Core into an Avalonia Brush
+        return new SolidColorBrush(Color.Parse(hexColor));
+    }
+
     private static void UpdateFluentPalette(FluentTheme fluent, ITheme theme)
     {
-        // We create a new palette resources object based on the theme's requirements
+        var accentColor = Color.Parse(theme.AccentColor);
+        
         var palette = new ColorPaletteResources
         {
-            Accent = theme.AccentColor,
-            // You can map more palette colors here if needed (RegionColor, AltHigh, etc.)
+            Accent = accentColor,
+            // You can map additional palette colors here if needed
         };
 
+        var variant = theme.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
+
         // Clear existing and set the specific palette for the current mode
-        if (theme.BaseVariant == ThemeVariant.Dark)
-        {
-            fluent.Palettes.Remove(ThemeVariant.Dark);
-            fluent.Palettes.Add(ThemeVariant.Dark, palette);
-        }
-        else
-        {
-            fluent.Palettes.Remove(ThemeVariant.Light);
-            fluent.Palettes.Add(ThemeVariant.Light, palette);
-        }
+        fluent.Palettes.Remove(variant);
+        fluent.Palettes.Add(variant, palette);
     }
 }

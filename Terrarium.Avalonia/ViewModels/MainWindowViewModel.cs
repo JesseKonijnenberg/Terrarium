@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Terrarium.Avalonia.Helpers.Theme;
 using Terrarium.Avalonia.ViewModels.Core;
 using Terrarium.Core.Interfaces.Hierarchy;
+using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Models.Hierarchy;
 
 namespace Terrarium.Avalonia.ViewModels;
@@ -12,6 +14,7 @@ namespace Terrarium.Avalonia.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IHierarchyService _hierarchyService;
+    private readonly IThemeService _themeService;
     
     public ObservableCollection<OrganizationEntity> Organizations { get; } = new();
     public ObservableCollection<WorkspaceEntity> CurrentWorkspaces { get; } = new();
@@ -33,14 +36,16 @@ public partial class MainWindowViewModel : ViewModelBase
         KanbanBoardViewModel boardVm,
         GardenViewModel gardenVm,
         SettingsViewModel settingsVm,
-        IHierarchyService hierarchyService)
+        IHierarchyService hierarchyService,
+        IThemeService themeService)
     {
         BoardVm = boardVm;
         GardenVm = gardenVm;
         SettingsVm = settingsVm;
         _hierarchyService = hierarchyService;
         _currentPage = BoardVm;
-
+        _themeService = themeService;
+        
         _ = LoadHierarchyAsync();
     }
 
@@ -51,7 +56,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Organizations.Clear();
         foreach (var org in data) Organizations.Add(org);
         
-        // Initial selection cascade
         SelectedOrganization = Organizations.FirstOrDefault();
     }
 
@@ -63,8 +67,12 @@ public partial class MainWindowViewModel : ViewModelBase
             foreach (var ws in value.Workspaces) CurrentWorkspaces.Add(ws);
         }
         
-        SelectedWorkspace = CurrentWorkspaces.FirstOrDefault();
+        if (value != null)
+        {
+            ApplyThemeForOrganization(value);
+        }
         
+        SelectedWorkspace = CurrentWorkspaces.FirstOrDefault();
         OnPropertyChanged(nameof(SelectedOrgInitial));
     }
 
@@ -88,6 +96,12 @@ public partial class MainWindowViewModel : ViewModelBase
         
             _ = BoardVm.LoadDataAsync();
         }
+    }
+    
+    private void ApplyThemeForOrganization(OrganizationEntity org)
+    {
+        var theme = _themeService.GetThemeForOrganization(org);
+        ThemeManager.ApplyTheme(theme);
     }
 
     [RelayCommand] private void SelectOrganization(OrganizationEntity org) => SelectedOrganization = org;
