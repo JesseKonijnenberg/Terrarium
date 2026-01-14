@@ -101,6 +101,16 @@ public class TerrariumDbContext : DbContext
                 LastModifiedUtc = seedDate 
             }
         );
+        
+        modelBuilder.Entity<ProjectEntity>().HasData(
+            new ProjectEntity
+            {
+                Id = "default-project",
+                Name = "General Tasks",
+                WorkspaceId = "solo-workspace",
+                LastModifiedUtc = seedDate
+            }
+        );
 
         // Seed Default Columns linked to the Workspace (Optional: Can also link to Project)
         modelBuilder.Entity<ColumnEntity>().HasData(

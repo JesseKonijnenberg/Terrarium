@@ -26,8 +26,7 @@ public class KanbanBoardViewModelTests
             .ReturnsAsync(new List<ColumnEntity>());
         
         return new KanbanBoardViewModel(
-            _boardServiceMock.Object,
-            _updateMock.Object); 
+            _boardServiceMock.Object); 
     }
 
     private Column CreateTestColumn(string id, string title)

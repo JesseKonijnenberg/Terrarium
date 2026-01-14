@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Terrarium.Avalonia.Helpers.Theme;
 using Terrarium.Avalonia.Services.Navigation;
 using Terrarium.Avalonia.ViewModels.Core;
+using Terrarium.Core.Interfaces.Context;
 using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Models.Hierarchy;
@@ -18,6 +19,7 @@ public partial class SidebarViewModel : ViewModelBase
     private readonly IHierarchyService _hierarchyService;
     private readonly IThemeService _themeService;
     private readonly KanbanBoardViewModel _boardVm;
+    private readonly IProjectContextService _contextService;
 
     // Collections moved from MainWindow
     public ObservableCollection<OrganizationEntity> Organizations { get; } = new();
@@ -37,13 +39,15 @@ public partial class SidebarViewModel : ViewModelBase
         IHierarchyService hierarchyService,
         IThemeService themeService,
         UpdateViewModel updater,
-        KanbanBoardViewModel boardVm)
+        KanbanBoardViewModel boardVm,
+        IProjectContextService contextService)
     
     {
         _navigationService = navigationService;
         _hierarchyService = hierarchyService;
         _themeService = themeService;
         _boardVm = boardVm;
+        _contextService = contextService;
         Updater = updater;
 
         // Initialize hierarchy
@@ -56,8 +60,20 @@ public partial class SidebarViewModel : ViewModelBase
         var data = await _hierarchyService.GetUserHierarchyAsync();
         Organizations.Clear();
         foreach (var org in data) Organizations.Add(org);
-        
-        SelectedOrganization = Organizations.FirstOrDefault();
+    
+        var initialOrg = Organizations.FirstOrDefault();
+        if (initialOrg != null)
+        {
+            SelectedOrganization = initialOrg;
+            
+            var firstWs = initialOrg.Workspaces.FirstOrDefault();
+            var firstProj = firstWs?.Projects.FirstOrDefault();
+
+            if (firstWs != null && firstProj != null)
+            {
+                _contextService.UpdateContext(initialOrg.Id, firstWs.Id, firstProj.Id);
+            }
+        }
     }
 
     // Logic moved from MainWindow partial methods
@@ -92,12 +108,13 @@ public partial class SidebarViewModel : ViewModelBase
 
     partial void OnSelectedProjectChanged(ProjectEntity? value)
     {
-        if (value != null && SelectedWorkspace != null)
+        if (value != null && SelectedWorkspace != null && SelectedOrganization != null)
         {
-            // Sync board context
-            _boardVm.CurrentWorkspaceId = SelectedWorkspace.Id;
-            _boardVm.CurrentProjectId = value.Id;
-            _ = _boardVm.LoadDataAsync();
+            // Update the central service
+            _contextService.UpdateContext(
+                SelectedOrganization.Id, 
+                SelectedWorkspace.Id, 
+                value.Id);
         }
     }
 

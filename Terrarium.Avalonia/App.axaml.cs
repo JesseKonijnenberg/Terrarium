@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Avalonia.Services.Navigation;
 using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
+using Terrarium.Core.Interfaces.Context;
 using Terrarium.Core.Interfaces.Data;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Hierarchy;
@@ -17,6 +18,7 @@ using Terrarium.Data;
 using Terrarium.Data.Contexts;
 using Terrarium.Data.Repositories;
 using Terrarium.Data.Seeding;
+using Terrarium.Logic.Services.Context;
 using Terrarium.Logic.Services.Hierarchy;
 using Terrarium.Logic.Services.Kanban;
 using Terrarium.Logic.Services.Theming;
@@ -87,6 +89,7 @@ public partial class App : Application
         services.AddSingleton<ITaskParserService, TaskParserService>();
         services.AddSingleton<IGardenService, GardenService>();
         services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
+        services.AddSingleton<IProjectContextService, ProjectContextService>();
 
         // Navigation
         services.AddSingleton<INavigationService, NavigationService>();

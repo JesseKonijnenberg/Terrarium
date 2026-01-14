@@ -19,7 +19,7 @@ public class SqliteBoardRepository : IBoardRepository
     {
         var board = await _context.Columns
             .AsNoTracking()
-            .Where(c => c.WorkspaceId == workspaceId && c.ProjectId == projectId)
+            .Where(c => c.WorkspaceId == workspaceId)
             .Include(c => c.Tasks)
             .OrderBy(c => c.Order)
             .ToListAsync();

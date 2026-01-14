@@ -15,7 +15,6 @@ public class DevelopmentSeeder : IDatabaseSeeder
 
     public void Seed()
     {
-        // Avoid duplicate seeding
         if (_context.Organizations.Any(o => o.Id == "dev-corp-id")) return;
 
         var devOrg = new OrganizationEntity
@@ -28,9 +27,19 @@ public class DevelopmentSeeder : IDatabaseSeeder
             {
                 new WorkspaceEntity 
                 { 
-                    Id = Guid.NewGuid().ToString(), 
+                    Id = "dev-workspace-id", 
                     Name = "Research & Development",
-                    IsPersonal = false
+                    IsPersonal = false,
+                    // ADD PROJECTS HERE
+                    Projects = new List<ProjectEntity>
+                    {
+                        new ProjectEntity 
+                        { 
+                            Id = "default-project-id", 
+                            Name = "Main Project",
+                            Description = "Auto-generated project for development"
+                        }
+                    }
                 }
             }
         };
