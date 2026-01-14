@@ -4,8 +4,6 @@ using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using Terrarium.Core.Models.Theming;
 
-// Ensure this points to your new Core interface
-
 namespace Terrarium.Avalonia.Helpers.Theme;
 
 public static class ThemeManager
@@ -16,12 +14,11 @@ public static class ThemeManager
         
         var res = Application.Current.Resources;
 
-        // 1. Map Core 'IsDark' to Avalonia 'ThemeVariant'
+        // Map Core 'IsDark' to Avalonia 'ThemeVariant'
         Application.Current.RequestedThemeVariant = theme.IsDark 
             ? ThemeVariant.Dark 
             : ThemeVariant.Light;
-
-        // 2. Translate Core Strings to Avalonia Brushes
+        
         // Using indexer access to overwrite existing keys for live updates
         res["BgMain"] = CreateBrush(theme.BackgroundMain);
         res["BgSidebar"] = CreateBrush(theme.BackgroundSidebar);
@@ -31,12 +28,11 @@ public static class ThemeManager
         res["TextMuted"] = CreateBrush(theme.TextMuted);
         res["BorderColor"] = CreateBrush(theme.BorderColor);
         res["BgCardHover"] = CreateBrush(theme.BackgroundCardHover);
-
-        // 3. Translate Core Doubles to Avalonia Layout Objects
+        
         res["MainCornerRadius"] = new CornerRadius(theme.CornerRadius);
         res["TaskCardBorderThickness"] = new Thickness(theme.AccentBorderThickness, 0, 0, 0);
 
-        // 4. Update the internal Fluent Theme palette for system controls
+        // Update the internal Fluent Theme palette for system controls
         if (Application.Current.Styles.Count > 0 && Application.Current.Styles[0] is FluentTheme fluent)
         {
             UpdateFluentPalette(fluent, theme);
@@ -45,7 +41,6 @@ public static class ThemeManager
 
     private static ISolidColorBrush CreateBrush(string hexColor)
     {
-        // Safely parses the hex string from Core into an Avalonia Brush
         return new SolidColorBrush(Color.Parse(hexColor));
     }
 
@@ -56,7 +51,6 @@ public static class ThemeManager
         var palette = new ColorPaletteResources
         {
             Accent = accentColor,
-            // You can map additional palette colors here if needed
         };
 
         var variant = theme.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;

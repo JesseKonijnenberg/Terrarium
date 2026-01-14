@@ -15,25 +15,20 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IHierarchyService _hierarchyService;
 
     public string AppVersion => $"v{Helpers.AppVersion.Get()}";
-
-    // Themes are now resolved through the Service
     public List<ITheme> AvailableThemes { get; }
 
     [ObservableProperty]
     private ITheme _selectedTheme;
-
-    // We check the ActiveOrganization from the HierarchyService
+    
     public bool CanChangeTheme => _hierarchyService.ActiveOrganization?.LockTheme == false;
 
     public SettingsViewModel(IThemeService themeService, IHierarchyService hierarchyService)
     {
         _themeService = themeService;
         _hierarchyService = hierarchyService;
-
-        // 1. Populate the list from the service
+        
         AvailableThemes = _themeService.GetAvailableThemes().ToList();
         
-        // 2. Resolve the theme for the current active organization
         var currentOrg = _hierarchyService.ActiveOrganization;
         if (currentOrg != null)
         {
@@ -41,7 +36,6 @@ public partial class SettingsViewModel : ViewModelBase
         }
         else
         {
-            // Fallback if no org is selected yet
             _selectedTheme = AvailableThemes.FirstOrDefault()!;
         }
     }

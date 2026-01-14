@@ -1,9 +1,8 @@
+using Terrarium.Core.Enums.Theming;
 using Terrarium.Core.Events.Theming;
 using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Core.Models.Theming;
-
-// For IThemeRepository
 
 namespace Terrarium.Logic.Services.Theming;
 
@@ -23,9 +22,7 @@ public class ThemeService : IThemeService
     {
         var theme = _repository.GetThemeById(org.ActiveThemeId);
         
-        // Safety fallback: if a custom theme was deleted from disk, 
-        // we revert to the built-in Sage Dark theme.
-        return theme ?? _repository.GetThemeById("sage-dark")!;
+        return theme ?? _repository.GetThemeById(ThemeIds.SageDark)!;
     }
 
     public bool TrySetOrganizationTheme(OrganizationEntity org, ITheme theme)

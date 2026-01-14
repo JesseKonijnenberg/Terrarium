@@ -103,11 +103,9 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
     {
-        // Force the UI to re-evaluate bindings and refresh the flyout content
         OnPropertyChanged(nameof(SelectedOrgInitial));
         OnPropertyChanged(nameof(SelectedOrganization));
-    
-        // This forces the ListBox in the Flyout to recreate its items with new theme
+        
         OnPropertyChanged(nameof(Organizations));
         OnPropertyChanged(nameof(CurrentWorkspaces));
         OnPropertyChanged(nameof(CurrentProjects));
