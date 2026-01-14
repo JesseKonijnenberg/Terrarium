@@ -4,7 +4,7 @@
              xmlns:c="using:Terrarium.Avalonia.Controls"
              xmlns:helpers="clr-namespace:Terrarium.Avalonia.Helpers"
              x:Class="Terrarium.Avalonia.Controls.SidebarControl"
-             x:DataType="vm:MainWindowViewModel"
+             x:DataType="vm:SidebarViewModel"
              Width="240" HorizontalAlignment="Left">
 
     <UserControl.Resources>
@@ -21,7 +21,9 @@
                 <ControlTemplate>
                     <Panel>
                         <Border Name="Indicator" HorizontalAlignment="Left" Width="3" Height="18" 
-                                CornerRadius="0,4,4,0" Background="{DynamicResource AccentSage}" IsVisible="False"/>
+                                CornerRadius="0,4,4,0" Background="{DynamicResource AccentSage}" 
+                                IsVisible="False"/>
+                    
                         <Border Background="{TemplateBinding Background}" CornerRadius="10" Margin="8,0">
                             <ContentPresenter Content="{TemplateBinding Content}" 
                                               Foreground="{TemplateBinding Foreground}"
@@ -34,12 +36,14 @@
 
         <Style Selector="Button.NavIcon:pointerover">
             <Setter Property="Foreground" Value="{DynamicResource TextMain}"/>
+            <Setter Property="Background" Value="{DynamicResource BgCard}"/>
         </Style>
 
         <Style Selector="Button.NavIcon.active">
             <Setter Property="Background" Value="{DynamicResource BgCard}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentSage}"/>
         </Style>
+    
         <Style Selector="Button.NavIcon.active /template/ Border#Indicator">
             <Setter Property="IsVisible" Value="True"/>
         </Style>
@@ -48,14 +52,14 @@
     <Border Background="{DynamicResource BgSidebar}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="12,32,12,16">
             
-            <c:HierarchySelectorControl Grid.Row="0" DataContext="{Binding .}"/>
+            <c:HierarchySelectorControl Grid.Row="0" DataContext="{Binding}"/>
 
             <Separator Grid.Row="1" Background="{DynamicResource BorderColor}" Opacity="0.3" Margin="12,0,12,24" Height="1"/>
 
             <StackPanel Grid.Row="2" Spacing="4">
                 <Button Classes="NavIcon" 
                         Command="{Binding GoToBoardCommand}"
-                        Classes.active="{Binding CurrentPage, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:KanbanBoardViewModel}}">
+                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:KanbanBoardViewModel}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Path Data="{StaticResource IconLayout}" Stroke="{Binding $parent[Button].Foreground}" 
                               StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
@@ -65,7 +69,7 @@
                 
                 <Button Classes="NavIcon" 
                         Command="{Binding GoToGardenCommand}"
-                        Classes.active="{Binding CurrentPage, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:GardenViewModel}}">
+                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:GardenViewModel}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Path Data="{StaticResource IconLeaf}" Stroke="{Binding $parent[Button].Foreground}" 
                               StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
@@ -75,10 +79,11 @@
             </StackPanel>
 
             <StackPanel Grid.Row="3">
-                <c:UpdateStatusControl DataContext="{Binding BoardVm.Updater}" Margin="0,0,0,12" />
+                <c:UpdateStatusControl DataContext="{Binding Updater}" Margin="0,0,0,12" />
+                
                 <Button Classes="NavIcon" 
                         Command="{Binding GoToSettingsCommand}"
-                        Classes.active="{Binding CurrentPage, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:SettingsViewModel}}">
+                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:SettingsViewModel}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Path Data="{StaticResource IconSettings}" Stroke="{Binding $parent[Button].Foreground}" 
                               StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
@@ -86,7 +91,6 @@
                     </StackPanel>
                 </Button>
             </StackPanel>
-            
         </Grid>
     </Border>
 </UserControl>

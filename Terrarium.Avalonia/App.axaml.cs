@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Terrarium.Avalonia.Services.Navigation;
 using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
 using Terrarium.Core.Interfaces.Data;
@@ -68,32 +69,37 @@ public partial class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
+        // Storage
         var storageOptions = new StorageOptions();
-
         services.AddSingleton(storageOptions);
         services.AddTerrariumData(storageOptions);
-        
+
+        // Core Services
         services.AddScoped<IHierarchyRepository, HierarchyRepository>();
         services.AddScoped<IHierarchyService, HierarchyService>();
-        
         services.AddSingleton<IThemeRepository, ThemeRepository>();
         services.AddSingleton<IThemeService, ThemeService>();
-        
         services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
         services.AddSingleton<IBoardService, BoardService>();
         services.AddTransient<IUpdateService, UpdateService>();
         services.AddSingleton<IBackupService, BackupService>();
         services.AddSingleton<IBoardSerializer>(new BoardSerializer(storageOptions.TemplateFilePath));
-            
         services.AddSingleton<ITaskParserService, TaskParserService>();
-
         services.AddSingleton<IGardenService, GardenService>();
         services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
 
-        services.AddTransient<SettingsViewModel>();
+        // Navigation
+        services.AddSingleton<INavigationService, NavigationService>();
+
+        // View Models
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<SidebarViewModel>();
+        services.AddSingleton<WorkspaceViewModel>();
         services.AddSingleton<KanbanBoardViewModel>();
         services.AddSingleton<GardenViewModel>();
-        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<LandingViewModel>();
+        services.AddTransient<SettingsViewModel>();
+        services.AddSingleton<UpdateViewModel>();
         
 #if DEBUG
         services.AddScoped<IDatabaseSeeder, DevelopmentSeeder>();

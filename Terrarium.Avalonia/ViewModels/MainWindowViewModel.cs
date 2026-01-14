@@ -1,127 +1,35 @@
-﻿using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Terrarium.Avalonia.Helpers.Theme;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Terrarium.Avalonia.Services.Navigation;
 using Terrarium.Avalonia.ViewModels.Core;
-using Terrarium.Core.Events.Theming;
-using Terrarium.Core.Interfaces.Hierarchy;
-using Terrarium.Core.Interfaces.Theming;
-using Terrarium.Core.Models.Hierarchy;
 
 namespace Terrarium.Avalonia.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private readonly IHierarchyService _hierarchyService;
-    private readonly IThemeService _themeService;
-    
-    public ObservableCollection<OrganizationEntity> Organizations { get; } = new();
-    public ObservableCollection<WorkspaceEntity> CurrentWorkspaces { get; } = new();
-    public ObservableCollection<ProjectEntity> CurrentProjects { get; } = new();
-    
-    public KanbanBoardViewModel BoardVm { get; }
-    public GardenViewModel GardenVm { get; }
-    public SettingsViewModel SettingsVm { get; }
+    private readonly INavigationService _navigationService;
 
-    [ObservableProperty] private ViewModelBase _currentPage;
-    
-    [ObservableProperty] private OrganizationEntity? _selectedOrganization;
-    [ObservableProperty] private WorkspaceEntity? _selectedWorkspace;
-    [ObservableProperty] private ProjectEntity? _selectedProject;
+    // These properties drive the TransitioningContentControls in XAML
+    [ObservableProperty] private ViewModelBase? _rootState;
+    [ObservableProperty] private ViewModelBase? _currentContent;
 
-    public string SelectedOrgInitial => SelectedOrganization?.Name?.FirstOrDefault().ToString() ?? "P";
-
-    public MainWindowViewModel(
-        KanbanBoardViewModel boardVm,
-        GardenViewModel gardenVm,
-        SettingsViewModel settingsVm,
-        IHierarchyService hierarchyService,
-        IThemeService themeService)
+    public MainWindowViewModel(INavigationService navigationService)
     {
-        BoardVm = boardVm;
-        GardenVm = gardenVm;
-        SettingsVm = settingsVm;
-        _hierarchyService = hierarchyService;
-        _currentPage = BoardVm;
-        _themeService = themeService;
+        _navigationService = navigationService;
+
+        // Subscribe to navigation changes
+        _navigationService.NavigationChanged += OnNavigationChanged;
+
+        // 1. Set the initial Shell (Landing screen)
+        // _navigationService.SetRoot<LandingViewModel>(); 
         
-        _themeService.ThemeChanged += OnThemeChanged;
-        
-        _ = LoadHierarchyAsync();
+        // FOR NOW: Let's set it to Workspace so you can see your board immediately
+        _navigationService.SetRoot<WorkspaceViewModel>();
+        _navigationService.NavigateContent<KanbanBoardViewModel>(clearHistory: true);
     }
 
-    [RelayCommand]
-    private async Task LoadHierarchyAsync()
+    private void OnNavigationChanged()
     {
-        var data = await _hierarchyService.GetUserHierarchyAsync();
-        Organizations.Clear();
-        foreach (var org in data) Organizations.Add(org);
-        
-        SelectedOrganization = Organizations.FirstOrDefault();
+        RootState = _navigationService.RootState;
+        CurrentContent = _navigationService.CurrentContent;
     }
-
-    partial void OnSelectedOrganizationChanged(OrganizationEntity? value)
-    {
-        if (value == null) return;
-        
-        var theme = _themeService.GetThemeForOrganization(value);
-        ThemeManager.ApplyTheme(theme);
-        
-        CurrentWorkspaces.Clear();
-        if (value.Workspaces != null)
-        {
-            foreach (var ws in value.Workspaces) CurrentWorkspaces.Add(ws);
-        }
-    
-        SelectedWorkspace = CurrentWorkspaces.FirstOrDefault();
-        OnPropertyChanged(nameof(SelectedOrgInitial));
-    }
-
-    partial void OnSelectedWorkspaceChanged(WorkspaceEntity? value)
-    {
-        CurrentProjects.Clear();
-        if (value?.Projects != null)
-        {
-            foreach (var proj in value.Projects) CurrentProjects.Add(proj);
-        }
-        
-        SelectedProject = CurrentProjects.FirstOrDefault();
-    }
-
-    partial void OnSelectedProjectChanged(ProjectEntity? value)
-    {
-        if (value != null && SelectedWorkspace != null)
-        {
-            BoardVm.CurrentWorkspaceId = SelectedWorkspace.Id;
-            BoardVm.CurrentProjectId = value.Id;
-        
-            _ = BoardVm.LoadDataAsync();
-        }
-    }
-    
-    private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
-    {
-        OnPropertyChanged(nameof(SelectedOrgInitial));
-        OnPropertyChanged(nameof(SelectedOrganization));
-        
-        OnPropertyChanged(nameof(Organizations));
-        OnPropertyChanged(nameof(CurrentWorkspaces));
-        OnPropertyChanged(nameof(CurrentProjects));
-    }
-    
-    private void ApplyThemeForOrganization(OrganizationEntity org)
-    {
-        var theme = _themeService.GetThemeForOrganization(org);
-        ThemeManager.ApplyTheme(theme);
-    }
-
-    [RelayCommand] private void SelectOrganization(OrganizationEntity org) => SelectedOrganization = org;
-    [RelayCommand] private void SelectWorkspace(WorkspaceEntity ws) => SelectedWorkspace = ws;
-    [RelayCommand] private void SelectProject(ProjectEntity proj) => SelectedProject = proj;
- 
-    [RelayCommand] private void GoToBoard() => CurrentPage = BoardVm;
-    [RelayCommand] private void GoToGarden() => CurrentPage = GardenVm;
-    [RelayCommand] private void GoToSettings() => CurrentPage = SettingsVm;
 }
