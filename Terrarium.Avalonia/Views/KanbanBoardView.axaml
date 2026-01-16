@@ -53,6 +53,7 @@
             <ScrollViewer HorizontalScrollBarVisibility="Auto" 
                           VerticalScrollBarVisibility="Disabled"
                           IsHitTestVisible="{Binding !IsDetailPanelOpen}"
+                          IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                           behaviors:BoardInteractions.CommandOnPressed="{Binding DeselectAllCommand}">
                 <ItemsControl ItemsSource="{Binding Columns}" Margin="30">
                     <ItemsControl.ItemsPanel>
@@ -67,6 +68,36 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+
+            <Grid IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+        
+                <StackPanel Spacing="20" HorizontalAlignment="Center">
+                    <TextBlock Text="⚠️" 
+                               FontSize="40" 
+                               HorizontalAlignment="Center"
+                               IsVisible="{Binding !IsLoading}"/>
+            
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="18"
+                               Foreground="#888888"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="400"/>
+
+                    <ProgressBar IsIndeterminate="True" 
+                                 MaxWidth="200" 
+                                 Height="4"
+                                 IsVisible="{Binding IsLoading}"/>
+             
+                    <Button Content="Retry" 
+                            HorizontalAlignment="Center"
+                            Command="{Binding LoadDataAsync}"
+                            IsVisible="{Binding !IsLoading}"
+                            Classes="Accent"/>
+                </StackPanel>
+            </Grid>
 
             <Border Background="Black" 
                     Opacity="0.2" 

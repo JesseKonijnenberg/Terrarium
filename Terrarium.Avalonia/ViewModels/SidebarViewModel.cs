@@ -20,8 +20,7 @@ public partial class SidebarViewModel : ViewModelBase
     private readonly IHierarchyService _hierarchyService;
     private readonly IThemeService _themeService;
     private readonly IProjectContextService _contextService;
-
-    // Collections moved from MainWindow
+    
     public ObservableCollection<OrganizationEntity> Organizations { get; } = new();
     public ObservableCollection<WorkspaceEntity> CurrentWorkspaces { get; } = new();
     public ObservableCollection<ProjectEntity> CurrentProjects { get; } = new();
@@ -75,8 +74,7 @@ public partial class SidebarViewModel : ViewModelBase
             SelectedProject = defaultProj;
         });
     }
-
-    // Logic moved from MainWindow partial methods
+    
     partial void OnSelectedOrganizationChanged(OrganizationEntity? value)
     {
         if (value == null) return;

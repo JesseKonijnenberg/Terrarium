@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +20,13 @@ public partial class KanbanBoardViewModel : ViewModelBase
 {
     private readonly IBoardService _boardService;
     private readonly IProjectContextService _contextService;
-
+    
+    [ObservableProperty]
+    private bool _isLoading;
+    
+    [ObservableProperty]
+    private string? _statusMessage;
+    
     [ObservableProperty] 
     private string? _currentWorkspaceId;
 
@@ -70,39 +77,58 @@ public partial class KanbanBoardViewModel : ViewModelBase
     
     public async Task LoadDataAsync()
     {
-        var workspaceId = CurrentWorkspaceId;
-        var projectId = CurrentProjectId;
+        IsLoading = true;
+        StatusMessage = "Loading Board...";
         
-        if (string.IsNullOrEmpty(workspaceId) || string.IsNullOrEmpty(projectId)) 
+        await Dispatcher.UIThread.InvokeAsync(() => Columns.Clear());
+
+        try
         {
-            return;
-        }
-        
-        var board = await _boardService.GetBoardAsync(workspaceId, projectId);
-        
-        var preparedColumns = new List<Column>();
-    
-        if (board?.Columns != null)
-        {
-            foreach (var colEntity in board.Columns)
+            var workspaceId = CurrentWorkspaceId;
+            var projectId = CurrentProjectId;
+            
+            if (string.IsNullOrEmpty(workspaceId) || string.IsNullOrEmpty(projectId))
             {
-                var columnVm = new Column(colEntity);
-                foreach (var taskEntity in colEntity.Tasks) 
+                StatusMessage = "Please select a Project from the sidebar to view the board.";
+                return;
+            }
+
+            var board = await _boardService.GetBoardAsync(workspaceId, projectId);
+            if (board == null)
+            {
+                StatusMessage = "No Kanban board found for this project.";
+                return;
+            }
+            var preparedColumns = new List<Column>();
+
+            if (board?.Columns != null)
+            {
+                foreach (var colEntity in board.Columns)
                 {
-                    columnVm.Tasks.Add(new TaskItem(taskEntity));
+                    var columnVm = new Column(colEntity);
+                    foreach (var taskEntity in colEntity.Tasks)
+                    {
+                        columnVm.Tasks.Add(new TaskItem(taskEntity));
+                    }
+                    preparedColumns.Add(columnVm);
                 }
-                preparedColumns.Add(columnVm);
             }
-        }
-        
-        await Dispatcher.UIThread.InvokeAsync(() => 
-        {
-            Columns.Clear();
-            foreach (var col in preparedColumns)
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Columns.Add(col);
-            }
-        });
+                foreach (var col in preparedColumns) Columns.Add(col);
+            });
+            
+            StatusMessage = null; 
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Unable to load board.\nError: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     [RelayCommand]
