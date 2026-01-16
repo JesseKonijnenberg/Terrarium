@@ -8,7 +8,7 @@ public interface IBoardSerializer
     /// <summary>
     /// Converts a collection of board columns into a formatted string.
     /// </summary>
-    string ToMarkdown(IEnumerable<ColumnEntity> columns);
+    string ToMarkdown(KanbanBoardEntity columns);
 
     /// <summary>
     /// Updates the formatting style based on a predefined format type.

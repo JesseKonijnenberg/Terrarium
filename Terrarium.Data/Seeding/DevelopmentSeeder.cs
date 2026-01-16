@@ -38,8 +38,15 @@ public class DevelopmentSeeder : IDatabaseSeeder
                             Id = "default-project-id", 
                             Name = "Main Project",
                             Description = "Auto-generated project for development"
+                        },
+                        new ProjectEntity 
+                        { 
+                            Id = "default-project-id2", 
+                            Name = "Second Project",
+                            Description = "Auto-generated second project for development"
                         }
                     }
+                    
                 }
             }
         };

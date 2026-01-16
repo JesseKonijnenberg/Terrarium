@@ -12,7 +12,7 @@ namespace Terrarium.Logic.Services.Kanban.Strategies;
 public class TemplateMarkdownStrategy(string templatePath) : IBoardFormattingStrategy
 {
     /// <inheritdoc />
-    public string Serialize(IEnumerable<ColumnEntity> columns)
+    public string Serialize(KanbanBoardEntity board)
     {
         if (!File.Exists(templatePath))
             return "# Error: Template file not found.";
@@ -32,7 +32,7 @@ public class TemplateMarkdownStrategy(string templatePath) : IBoardFormattingStr
         var columnTemplate = colMatch.Groups[1].Value;
         var allColumnsBuilder = new StringBuilder();
 
-        foreach (var col in columns)
+        foreach (var col in board.Columns)
         {
             var currentColText = ProcessColumn(columnTemplate, col);
             allColumnsBuilder.Append(currentColText);

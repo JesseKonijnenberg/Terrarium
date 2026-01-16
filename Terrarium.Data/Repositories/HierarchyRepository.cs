@@ -18,6 +18,7 @@ public class HierarchyRepository : IHierarchyRepository
     {
         return await _context.Organizations
             .Include(o => o.Workspaces)
+            .ThenInclude(w => w.Projects)
             .ToListAsync();
     }
 
@@ -38,6 +39,7 @@ public class HierarchyRepository : IHierarchyRepository
     public async Task<List<WorkspaceEntity>> GetOrphanWorkspacesAsync()
     {
         return await _context.Workspaces
+            .Include(w => w.Projects)
             .Where(w => w.OrganizationId == null)
             .ToListAsync();
     }

@@ -7,18 +7,22 @@ namespace Terrarium.Core.Interfaces.Kanban;
 /// </summary>
 /// <remarks>
 /// This repository abstracts the underlying database technology (e.g., SQLite) 
-/// from the core business logic.
+/// from the core business logic. It now manages the KanbanBoard as a central plugin container.
 /// </remarks>
 public interface IBoardRepository
 {
     /// <summary>
-    /// Loads columns and their tasks for a specific workspace/project.
+    /// Retrieves the Kanban board container for a specific project, 
+    /// including its columns and tasks filtered by the current iteration.
     /// </summary>
-    /// <returns>A list of column entities with nested task collections.</returns>
-    Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null);
+    /// <param name="workspaceId">The ID of the parent workspace.</param>
+    /// <param name="projectId">The ID of the specific project.</param>
+    /// <returns>A KanbanBoardEntity containing columns and iteration-specific tasks, or null if not found.</returns>
+    Task<KanbanBoardEntity?> GetBoardAsync(string workspaceId, string? projectId = null);
 
     /// <summary>
-    /// Persists a new task entity to a specific column.
+    /// Persists a new task entity to a specific column, automatically linking it 
+    /// to the board's current active iteration.
     /// </summary>
     /// <param name="task">The task entity to save.</param>
     /// <param name="columnId">The unique identifier of the parent column.</param>
@@ -43,12 +47,13 @@ public interface IBoardRepository
     Task DeleteTasksAsync(IEnumerable<string> taskIds);
 
     /// <summary>
-    /// Truncates the tasks table, removing all task data while preserving column definitions.
+    /// Scopes deletion to only the tasks belonging to the current active iteration of the project's board.
     /// </summary>
-    Task DeleteAllTasksAsync();
+    /// <param name="projectId">The ID of the project whose active iteration should be cleared.</param>
+    Task DeleteAllTasksInIterationAsync(string projectId);
 
     /// <summary>
-    /// Updates the column association and sort order for a single task.
+    /// Updates the column association and sort order for a single task within its current iteration.
     /// </summary>
     /// <param name="taskId">The unique identifier of the task.</param>
     /// <param name="targetColumnId">The ID of the destination column.</param>

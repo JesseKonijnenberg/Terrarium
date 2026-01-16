@@ -90,7 +90,8 @@ public class TaskParserService : ITaskParserService
             Title = cleanTitle.Trim(),
             Tag = tag,
             Priority = ParsePriority(priorityStr),
-            Description = ""
+            Description = "",
+            ColumnId = string.Empty
         };
     }
 

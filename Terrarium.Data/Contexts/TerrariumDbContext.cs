@@ -5,31 +5,22 @@ using Terrarium.Core.Models.Kanban;
 
 namespace Terrarium.Data.Contexts;
 
-/// <summary>
-/// Represents the database context for the Terrarium application, managing entity sets and database configuration.
-/// </summary>
 public class TerrariumDbContext : DbContext
 {
     public DbSet<OrganizationEntity> Organizations { get; set; }
     public DbSet<WorkspaceEntity> Workspaces { get; set; }
     public DbSet<ProjectEntity> Projects { get; set; }
     public DbSet<IterationEntity> Iterations { get; set; }
+
+    public DbSet<KanbanBoardEntity> KanbanBoards { get; set; } 
     public DbSet<ColumnEntity> Columns { get; set; }
     public DbSet<TaskEntity> Tasks { get; set; }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TerrariumDbContext"/> class with the specified options.
-    /// </summary>
-    /// <param name="options">The options to be used by a <see cref="DbContext"/>.</param>
     public TerrariumDbContext(DbContextOptions<TerrariumDbContext> options)
         : base(options)
     {
     }
     
-    /// <summary>
-    /// AUTOMATIC SYNC METADATA: 
-    /// This interceptor automatically updates LastModifiedUtc before saving to disk.
-    /// </summary>
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker
@@ -44,80 +35,75 @@ public class TerrariumDbContext : DbContext
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Configures the model relationships and seeds initial data.
-    /// </summary>
-    /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Relationships: Task -> Column
-        modelBuilder.Entity<TaskEntity>()
-            .HasOne(t => t.Column)
-            .WithMany(c => c.Tasks)
-            .HasForeignKey(t => t.ColumnId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        modelBuilder.Entity<TaskEntity>()
-            .HasOne(t => t.Workspace)
-            .WithMany() // Or .WithMany(w => w.Tasks) if you add that collection to WorkspaceEntity
-            .HasForeignKey(t => t.WorkspaceId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Relationships: Workspace -> Organization (Nullable for Solo users)
         modelBuilder.Entity<WorkspaceEntity>()
             .HasOne(w => w.Organization)
             .WithMany(o => o.Workspaces)
             .HasForeignKey(w => w.OrganizationId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Relationships: Project -> Workspace
         modelBuilder.Entity<ProjectEntity>()
             .HasOne(p => p.Workspace)
             .WithMany(w => w.Projects)
             .HasForeignKey(p => p.WorkspaceId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        modelBuilder.Entity<ColumnEntity>()
-            .HasOne(c => c.Workspace)
-            .WithMany() // Workspace doesn't necessarily need a List<Column> property
-            .HasForeignKey(c => c.WorkspaceId)
+
+        // Project -> KanbanBoard (One Project can have a Kanban Board "Plugin")
+        modelBuilder.Entity<KanbanBoardEntity>()
+            .HasOne(b => b.Project)
+            .WithMany() 
+            .HasForeignKey(b => b.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        modelBuilder.Entity<ColumnEntity>()
-            .HasOne(c => c.Iteration)
+
+        // KanbanBoard -> Iteration (The "Sprint Switcher")
+        modelBuilder.Entity<KanbanBoardEntity>()
+            .HasOne(b => b.CurrentIteration)
             .WithMany()
-            .HasForeignKey(c => c.IterationId)
+            .HasForeignKey(b => b.CurrentIterationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Column -> KanbanBoard (Columns belong to the Board, not the Project)
+        modelBuilder.Entity<ColumnEntity>()
+            .HasOne(c => c.KanbanBoard)
+            .WithMany(b => b.Columns)
+            .HasForeignKey(c => c.KanbanBoardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Task -> Column
+        modelBuilder.Entity<TaskEntity>()
+            .HasOne(t => t.Column)
+            .WithMany(c => c.Tasks)
+            .HasForeignKey(t => t.ColumnId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Task -> Iteration (For filtering tasks by sprint)
+        modelBuilder.Entity<TaskEntity>()
+            .HasOne(t => t.Iteration)
+            .WithMany()
+            .HasForeignKey(t => t.IterationId)
             .OnDelete(DeleteBehavior.SetNull);
         
         var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        // Seed a Default Personal Workspace
+        
         modelBuilder.Entity<WorkspaceEntity>().HasData(
-            new WorkspaceEntity 
-            { 
-                Id = "solo-workspace", 
-                Name = "Personal Workspace", 
-                IsPersonal = true, 
-                LastModifiedUtc = seedDate 
-            }
+            new WorkspaceEntity { Id = "solo-workspace", Name = "Personal Workspace", IsPersonal = true, OrganizationId = null, LastModifiedUtc = seedDate }
         );
         
         modelBuilder.Entity<ProjectEntity>().HasData(
-            new ProjectEntity
-            {
-                Id = "default-project",
-                Name = "General Tasks",
-                WorkspaceId = "solo-workspace",
-                LastModifiedUtc = seedDate
-            }
+            new ProjectEntity { Id = "default-project", Name = "General Tasks", WorkspaceId = "solo-workspace", LastModifiedUtc = seedDate }
         );
-
-        // Seed Default Columns linked to the Workspace (Optional: Can also link to Project)
+        
+        modelBuilder.Entity<KanbanBoardEntity>().HasData(
+            new KanbanBoardEntity { Id = "main-board", Name = "Development Board", ProjectId = "default-project", LastModifiedUtc = seedDate }
+        );
+        
         modelBuilder.Entity<ColumnEntity>().HasData(
-            new ColumnEntity { Id = "col-1", Title = "Backlog", Order = 0, LastModifiedUtc = seedDate, WorkspaceId = "solo-workspace" },
-            new ColumnEntity { Id = "col-2", Title = "In Progress", Order = 1, LastModifiedUtc = seedDate, WorkspaceId = "solo-workspace" },
-            new ColumnEntity { Id = "col-3", Title = "Review", Order = 2, LastModifiedUtc = seedDate, WorkspaceId = "solo-workspace" },
-            new ColumnEntity { Id = "col-4", Title = "Complete", Order = 3, LastModifiedUtc = seedDate, WorkspaceId = "solo-workspace" }
+            new ColumnEntity { Id = "col-1", Title = "Backlog", Order = 0, KanbanBoardId = "main-board", LastModifiedUtc = seedDate },
+            new ColumnEntity { Id = "col-2", Title = "In Progress", Order = 1, KanbanBoardId = "main-board", LastModifiedUtc = seedDate },
+            new ColumnEntity { Id = "col-3", Title = "Review", Order = 2, KanbanBoardId = "main-board", LastModifiedUtc = seedDate },
+            new ColumnEntity { Id = "col-4", Title = "Complete", Order = 3, KanbanBoardId = "main-board", LastModifiedUtc = seedDate }
         );
     }
 }

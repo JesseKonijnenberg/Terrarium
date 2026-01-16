@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Terrarium.Avalonia.Helpers.Theme;
@@ -18,7 +19,6 @@ public partial class SidebarViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private readonly IHierarchyService _hierarchyService;
     private readonly IThemeService _themeService;
-    private readonly KanbanBoardViewModel _boardVm;
     private readonly IProjectContextService _contextService;
 
     // Collections moved from MainWindow
@@ -26,9 +26,15 @@ public partial class SidebarViewModel : ViewModelBase
     public ObservableCollection<WorkspaceEntity> CurrentWorkspaces { get; } = new();
     public ObservableCollection<ProjectEntity> CurrentProjects { get; } = new();
 
-    [ObservableProperty] private OrganizationEntity? _selectedOrganization;
-    [ObservableProperty] private WorkspaceEntity? _selectedWorkspace;
-    [ObservableProperty] private ProjectEntity? _selectedProject;
+    [ObservableProperty] 
+    [NotifyPropertyChangedFor(nameof(SelectedOrgInitial))]
+    private OrganizationEntity? _selectedOrganization;
+    
+    [ObservableProperty] 
+    private WorkspaceEntity? _selectedWorkspace;
+    
+    [ObservableProperty] 
+    private ProjectEntity? _selectedProject;
 
     public string SelectedOrgInitial => SelectedOrganization?.Name?.FirstOrDefault().ToString() ?? "P";
     
@@ -39,14 +45,12 @@ public partial class SidebarViewModel : ViewModelBase
         IHierarchyService hierarchyService,
         IThemeService themeService,
         UpdateViewModel updater,
-        KanbanBoardViewModel boardVm,
         IProjectContextService contextService)
     
     {
         _navigationService = navigationService;
         _hierarchyService = hierarchyService;
         _themeService = themeService;
-        _boardVm = boardVm;
         _contextService = contextService;
         Updater = updater;
 
@@ -58,22 +62,18 @@ public partial class SidebarViewModel : ViewModelBase
     public async Task LoadHierarchyAsync()
     {
         var data = await _hierarchyService.GetUserHierarchyAsync();
-        Organizations.Clear();
-        foreach (var org in data) Organizations.Add(org);
-    
-        var initialOrg = Organizations.FirstOrDefault();
-        if (initialOrg != null)
+        
+        await Dispatcher.UIThread.InvokeAsync(() => 
         {
-            SelectedOrganization = initialOrg;
+            Organizations.Clear();
+            foreach (var org in data) Organizations.Add(org);
+        
+            var (defaultOrg, defaultWs, defaultProj) = _hierarchyService.GetDefaultSelection(data);
             
-            var firstWs = initialOrg.Workspaces.FirstOrDefault();
-            var firstProj = firstWs?.Projects.FirstOrDefault();
-
-            if (firstWs != null && firstProj != null)
-            {
-                _contextService.UpdateContext(initialOrg.Id, firstWs.Id, firstProj.Id);
-            }
-        }
+            SelectedOrganization = defaultOrg;
+            SelectedWorkspace = defaultWs;
+            SelectedProject = defaultProj;
+        });
     }
 
     // Logic moved from MainWindow partial methods
@@ -92,7 +92,6 @@ public partial class SidebarViewModel : ViewModelBase
         }
     
         SelectedWorkspace = CurrentWorkspaces.FirstOrDefault();
-        OnPropertyChanged(nameof(SelectedOrgInitial));
     }
 
     partial void OnSelectedWorkspaceChanged(WorkspaceEntity? value)

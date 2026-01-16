@@ -37,9 +37,9 @@ public partial class TaskItem : ViewModelBase
     [ObservableProperty]
     private bool _isSelected;
     
-    public string? WorkspaceId => Entity.WorkspaceId;
     public string? ProjectId => Entity.ProjectId;
     public string? IterationId => Entity.IterationId;
+    public string ColumnId => Entity.ColumnId;
 
     public TaskItem(TaskEntity entity)
     {

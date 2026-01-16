@@ -15,19 +15,27 @@ public class SqliteBoardRepository : IBoardRepository
     }
 
     /// <inheritdoc />
-    public async Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null)
+    public async Task<KanbanBoardEntity?> GetBoardAsync(string workspaceId, string? projectId = null)
     {
-        var board = await _context.Columns
-            .AsNoTracking()
-            .Where(c => c.WorkspaceId == workspaceId)
-            .Include(c => c.Tasks)
-            .OrderBy(c => c.Order)
-            .ToListAsync();
+        if (string.IsNullOrEmpty(projectId)) return null;
+        
+        var board = await _context.KanbanBoards
+            .Include(b => b.Columns.OrderBy(c => c.Order))
+            .FirstOrDefaultAsync(b => b.ProjectId == projectId);
 
-        // Explicitly sort tasks in memory to guarantee the order for the UI/Tests
-        foreach (var column in board)
+        if (board == null) return null;
+        
+        var columnIds = board.Columns.Select(c => c.Id).ToList();
+    
+        var tasks = await _context.Tasks
+            .Where(t => columnIds.Contains(t.ColumnId))
+            .Where(t => string.IsNullOrEmpty(board.CurrentIterationId) || t.IterationId == board.CurrentIterationId)
+            .OrderBy(t => t.Order)
+            .ToListAsync();
+        
+        foreach (var column in board.Columns)
         {
-            column.Tasks = column.Tasks.OrderBy(t => t.Order).ToList();
+            column.Tasks = tasks.Where(t => t.ColumnId == column.Id).ToList();
         }
 
         return board;
@@ -36,8 +44,23 @@ public class SqliteBoardRepository : IBoardRepository
     /// <inheritdoc />
     public async Task AddTaskAsync(TaskEntity task, string columnId)
     {
+        if (task == null) throw new ArgumentNullException(nameof(task));
+
+        var iterationId = await _context.Columns
+            .AsNoTracking()
+            .Where(c => c.Id == columnId)
+            .Select(c => c.KanbanBoard.CurrentIterationId)
+            .FirstOrDefaultAsync();
+    
+        var maxOrder = await _context.Tasks
+            .AsNoTracking()
+            .Where(t => t.ColumnId == columnId && t.IterationId == iterationId)
+            .MaxAsync(t => (int?)t.Order) ?? -1;
+
         task.ColumnId = columnId;
-        
+        task.IterationId = iterationId;
+        task.Order = maxOrder + 1;
+
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
     }
@@ -53,6 +76,7 @@ public class SqliteBoardRepository : IBoardRepository
             existingTask.Tag = incomingTask.Tag;
             existingTask.Priority = incomingTask.Priority;
             existingTask.DueDate = incomingTask.DueDate;
+            
             await _context.SaveChangesAsync();
         }
     }
@@ -77,9 +101,22 @@ public class SqliteBoardRepository : IBoardRepository
     }
 
     /// <inheritdoc />
-    public async Task DeleteAllTasksAsync()
+    public async Task DeleteAllTasksInIterationAsync(string projectId)
     {
-        await _context.Tasks.ExecuteDeleteAsync();
+        var board = await _context.KanbanBoards
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.ProjectId == projectId);
+
+        if (board == null) return;
+
+        // Scoped delete: Only touches tasks in the board's columns AND current iteration
+        await _context.Tasks
+            .Where(t => t.IterationId == board.CurrentIterationId &&
+                        _context.Columns
+                            .Where(c => c.KanbanBoardId == board.Id)
+                            .Select(c => c.Id)
+                            .Contains(t.ColumnId))
+            .ExecuteDeleteAsync();
     }
 
     /// <inheritdoc />
@@ -88,17 +125,18 @@ public class SqliteBoardRepository : IBoardRepository
         var task = await _context.Tasks.FindAsync(taskId);
         if (task == null) return;
 
-        // Shift all existing tasks in the target column that are at or below the new index
         var siblings = await _context.Tasks
-            .Where(t => t.ColumnId == targetColumnId && t.Order >= newOrder && t.Id != taskId)
+            .Where(t => t.ColumnId == targetColumnId 
+                     && t.IterationId == task.IterationId 
+                     && t.Order >= newOrder 
+                     && t.Id != taskId)
             .ToListAsync();
 
         foreach (var sibling in siblings)
         {
-            sibling.Order++; // Make room
+            sibling.Order++;
         }
 
-        // Assign the new position
         task.ColumnId = targetColumnId;
         task.Order = newOrder;
 
@@ -108,15 +146,16 @@ public class SqliteBoardRepository : IBoardRepository
     /// <inheritdoc />
     public async Task MoveMultipleTasksAsync(List<string> taskIds, string targetColumnId, int startIndex)
     {
-        foreach (var id in taskIds)
+        var tasks = await _context.Tasks
+            .Where(t => taskIds.Contains(t.Id))
+            .ToListAsync();
+
+        foreach (var task in tasks)
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task != null)
-            {
-                task.ColumnId = targetColumnId;
-                task.Order = startIndex++;
-            }
+            task.ColumnId = targetColumnId;
+            task.Order = startIndex++;
         }
+
         await _context.SaveChangesAsync();
     }
 }

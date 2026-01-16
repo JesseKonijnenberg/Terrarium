@@ -3,18 +3,21 @@ using Terrarium.Core.Models.Context;
 
 namespace Terrarium.Logic.Services.Context;
 
+// In Terrarium.Logic
 public class ProjectContextService : IProjectContextService
 {
-    public ProjectContext? CurrentContext { get; private set; }
+    public ProjectContext CurrentContext { get; private set; } = ProjectContext.Empty();
+    
     public event Action<ProjectContext>? ContextChanged;
 
-    public void UpdateContext(string orgId, string workspaceId, string projectId)
+    public void UpdateContext(string? orgId, string? wsId, string? projId)
     {
-        // Prevent unnecessary updates if the context hasn't actually changed
-        var newContext = new ProjectContext(orgId, workspaceId, projectId);
-        if (newContext == CurrentContext) return;
+        var newContext = new ProjectContext(orgId, wsId, projId);
+        
+        if (CurrentContext == newContext) return;
 
         CurrentContext = newContext;
+        
         ContextChanged?.Invoke(CurrentContext);
     }
 }

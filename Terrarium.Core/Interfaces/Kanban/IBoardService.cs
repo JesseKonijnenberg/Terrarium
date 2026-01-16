@@ -19,12 +19,12 @@ public interface IBoardService
     /// Loads the board for a specific workspace. 
     /// If projectId is provided, it filters for project-specific columns.
     /// </summary>
-    Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null);
+    Task<KanbanBoardEntity?> GetBoardAsync(string workspaceId, string? projectId = null);
 
     /// <summary>
     /// Retrieves the board data currently held in memory.
     /// </summary>
-    List<ColumnEntity> GetCachedBoard();
+    KanbanBoardEntity? GetCachedBoard();
 
     /// <summary>
     /// Persists a new task to the database and updates the local cache.
@@ -49,7 +49,7 @@ public interface IBoardService
     /// <summary>
     /// Wipes all task data from the board while preserving column structure.
     /// </summary>
-    Task WipeBoardAsync();
+    Task WipeBoardAsync(string projectId);
 
     /// <summary>
     /// Moves a task to a new position or column.

@@ -14,7 +14,7 @@ public interface IBoardFormattingStrategy
     /// <summary>
     /// Transforms a collection of columns and tasks into a single formatted string.
     /// </summary>
-    /// <param name="columns">The board data to be serialized.</param>
+    /// <param name="board"></param>
     /// <returns>A string representation of the board state.</returns>
-    string Serialize(IEnumerable<ColumnEntity> columns);
+    string Serialize(KanbanBoardEntity board);
 }

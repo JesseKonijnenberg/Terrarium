@@ -56,4 +56,19 @@ public class HierarchyService : IHierarchyService
 
         return await _repository.AddWorkspaceAsync(workspace);
     }
+    
+    public (OrganizationEntity? Org, WorkspaceEntity? Ws, ProjectEntity? Proj) GetDefaultSelection(List<OrganizationEntity> hierarchy)
+    {
+        var org = hierarchy.FirstOrDefault();
+        if (org == null) return (null, null, null);
+
+        // Find the first workspace that actually has a project
+        var workspaceWithProject = org.Workspaces?.FirstOrDefault(ws => ws.Projects?.Any() == true);
+        
+        // If no workspace has a project, just take the first workspace
+        var ws = workspaceWithProject ?? org.Workspaces?.FirstOrDefault();
+        var proj = ws?.Projects?.FirstOrDefault();
+
+        return (org, ws, proj);
+    }
 }

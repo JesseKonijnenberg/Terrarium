@@ -58,6 +58,8 @@ public class BackupService(
     private async Task Save()
     {
         var board = boardService.GetCachedBoard();
+        if (board == null) return;
+        
         var markdown = serializer.ToMarkdown(board);
         await File.WriteAllTextAsync(storageOptions.BackupFilePath, markdown);
     }

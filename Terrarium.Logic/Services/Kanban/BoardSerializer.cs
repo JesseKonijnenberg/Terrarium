@@ -27,8 +27,8 @@ public class BoardSerializer : IBoardSerializer
     }
     
     /// <inheritdoc />
-    public string ToMarkdown(IEnumerable<ColumnEntity> columns)
+    public string ToMarkdown(KanbanBoardEntity board)
     {
-        return _strategy.Serialize(columns);
+        return _strategy.Serialize(board);
     }
 }

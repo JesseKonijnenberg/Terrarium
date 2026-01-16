@@ -16,7 +16,8 @@ public class BoardService : IBoardService
     private readonly ITaskParserService _taskParserService;
     private readonly IGardenEconomyService _gardenEconomyService;
     
-    private List<ColumnEntity> _boardCache = new();
+    // Cache the whole Board object instead of just the columns
+    private KanbanBoardEntity? _boardCache;
 
     /// <inheritdoc />
     public event EventHandler<BoardChangedEventsArgs>? BoardChanged;
@@ -32,30 +33,30 @@ public class BoardService : IBoardService
     }
 
     /// <inheritdoc />
-    public async Task<List<ColumnEntity>> LoadBoardAsync(string workspaceId, string? projectId = null)
+    public async Task<KanbanBoardEntity?> GetBoardAsync(string workspaceId, string? projectId = null)
     {
-        _boardCache = await _repository.LoadBoardAsync(workspaceId, projectId);
+        // Repository now returns the full Board entity (including filtered Columns/Tasks)
+        _boardCache = await _repository.GetBoardAsync(workspaceId, projectId);
         return _boardCache;
     }
 
     /// <inheritdoc />
-    public List<ColumnEntity> GetCachedBoard() => _boardCache;
+    public KanbanBoardEntity? GetCachedBoard() => _boardCache;
 
     /// <inheritdoc />
     public async Task AddTaskAsync(TaskEntity task, string columnId, string workspaceId, string? projectId = null)
     {
-        task.WorkspaceId = workspaceId;
         task.ProjectId = projectId;
         task.ColumnId = columnId;
-
-        var currentTasks = _boardCache.FirstOrDefault(c => c.Id == columnId)?.Tasks;
-        task.Order = currentTasks?.Count ?? 0;
-
+    
         await _repository.AddTaskAsync(task, columnId);
-
-        var col = _boardCache.FirstOrDefault(c => c.Id == columnId);
-        if (col != null) col.Tasks.Insert(0, task);
-
+        
+        var columnInCache = _boardCache?.Columns.FirstOrDefault(c => c.Id == columnId);
+        if (columnInCache != null)
+        {
+            columnInCache.Tasks.Add(task);
+        }
+    
         NotifyBoardChanged();
     }
 
@@ -72,7 +73,6 @@ public class BoardService : IBoardService
             cachedTask.Tag = task.Tag;
             cachedTask.Priority = task.Priority;
             cachedTask.DueDate = task.DueDate;
-            cachedTask.ColumnId = task.ColumnId;
         }
         NotifyBoardChanged();
     }
@@ -96,16 +96,30 @@ public class BoardService : IBoardService
         await _repository.DeleteTasksAsync(taskIds);
         
         var idSet = new HashSet<string>(taskIds);
-        foreach (var col in _boardCache) col.Tasks.RemoveAll(t => idSet.Contains(t.Id));
+        if (_boardCache != null)
+        {
+            foreach (var col in _boardCache.Columns) 
+            {
+                col.Tasks.RemoveAll(t => idSet.Contains(t.Id));
+            }
+        }
 
         NotifyBoardChanged();
     }
 
     /// <inheritdoc />
-    public async Task WipeBoardAsync()
+    public async Task WipeBoardAsync(string projectId)
     {
-        await _repository.DeleteAllTasksAsync();
-        foreach (var col in _boardCache) col.Tasks.Clear();
+        await _repository.DeleteAllTasksInIterationAsync(projectId);
+        
+        if (_boardCache != null)
+        {
+            foreach (var col in _boardCache.Columns) 
+            {
+                col.Tasks.Clear();
+            }
+        }
+        
         NotifyBoardChanged();
     }
 
@@ -122,7 +136,7 @@ public class BoardService : IBoardService
             
             sourceCol.Tasks.Remove(taskInCache);
 
-            var targetCol = _boardCache.FirstOrDefault(c => c.Id == targetColumnId);
+            var targetCol = _boardCache?.Columns.FirstOrDefault(c => c.Id == targetColumnId);
             if (targetCol != null)
             {
                 index = Math.Clamp(index, 0, targetCol.Tasks.Count);
@@ -139,7 +153,7 @@ public class BoardService : IBoardService
         var ids = taskIds.ToList();
         await _repository.MoveMultipleTasksAsync(ids, targetColumnId, startIndex);
         
-        var targetCol = _boardCache.FirstOrDefault(c => c.Id == targetColumnId);
+        var targetCol = _boardCache?.Columns.FirstOrDefault(c => c.Id == targetColumnId);
         if (targetCol == null) return;
 
         foreach (var id in ids)
@@ -170,8 +184,7 @@ public class BoardService : IBoardService
             Priority = TaskPriority.Low,
             DueDate = DateTime.Now,
             ColumnId = columnId,
-            WorkspaceId = workspaceId, // Hierarchy Link
-            ProjectId = projectId     // Hierarchy Link
+            ProjectId = projectId
         };
     }
 
@@ -208,22 +221,22 @@ public class BoardService : IBoardService
     /// <inheritdoc />
     public async Task<IEnumerable<TaskEntity>> ProcessSmartPasteAsync(string text, string workspaceId, string? projectId = null)
     {
-        // Load the specific board data for the current scope
-        var boardData = await _repository.LoadBoardAsync(workspaceId, projectId);
+        var board = await _repository.GetBoardAsync(workspaceId, projectId);
+        if (board == null) return Enumerable.Empty<TaskEntity>();
+
         var results = _taskParserService.ParseClipboardText(text).ToList();
         var processedTasks = new List<TaskEntity>();
 
         foreach (var result in results)
         {
-            var targetCol = boardData.FirstOrDefault(c => 
+            var targetCol = board.Columns.FirstOrDefault(c => 
                                 result.TargetColumnName.Contains(c.Title, StringComparison.OrdinalIgnoreCase) ||
                                 c.Title.Contains(result.TargetColumnName, StringComparison.OrdinalIgnoreCase))
-                            ?? boardData.FirstOrDefault();
+                            ?? board.Columns.FirstOrDefault();
 
             if (targetCol == null) continue;
 
             result.Task.ColumnId = targetCol.Id;
-            result.Task.WorkspaceId = workspaceId;
             result.Task.ProjectId = projectId;
 
             await _repository.AddTaskAsync(result.Task, targetCol.Id);
@@ -237,8 +250,8 @@ public class BoardService : IBoardService
         => BoardChanged?.Invoke(this, new BoardChangedEventsArgs());
 
     private ColumnEntity? FindColumnContainingTask(string taskId) 
-        => _boardCache.FirstOrDefault(c => c.Tasks.Any(t => t.Id == taskId));
+        => _boardCache?.Columns.FirstOrDefault(c => c.Tasks.Any(t => t.Id == taskId));
 
     private TaskEntity? FindTaskInCache(string taskId)
-        => _boardCache.SelectMany(c => c.Tasks).FirstOrDefault(t => t.Id == taskId);
+        => _boardCache?.Columns.SelectMany(c => c.Tasks).FirstOrDefault(t => t.Id == taskId);
 }
