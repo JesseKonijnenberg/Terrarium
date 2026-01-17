@@ -2,11 +2,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              x:Class="Terrarium.Avalonia.Controls.HierarchySelectorControl"
-             x:DataType="vm:HierarchyViewModel"> <UserControl.Styles>
+             x:DataType="vm:HierarchyViewModel">
+
+    <UserControl.Styles>
         <Style Selector="ContextMenu">
             <Setter Property="Background" Value="{DynamicResource BgCard}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        </Style>
+        
+        <Style Selector="Button.HierarchyBtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource BgCard}"/>
         </Style>
     </UserControl.Styles>
 
@@ -35,9 +41,11 @@
             </Button.Flyout>
         </Button>
 
-        <Button Classes="HierarchyLabel" Margin="0,0,0,4">
-            <TextBlock Text="{Binding SelectedWorkspace.Name, FallbackValue='Select Workspace'}" 
-                       FontSize="14" FontWeight="SemiBold"/>
+        <Button Classes="HierarchyBtn" Margin="0,0,0,4"
+                Background="Transparent" BorderThickness="0"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                Padding="12,10" CornerRadius="8">
+            
             <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
                     <Grid RowDefinitions="*, Auto">
@@ -54,12 +62,26 @@
                     </Grid>
                 </Flyout>
             </Button.Flyout>
+
+            <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="{Binding SelectedWorkspace.Name, FallbackValue='Select Workspace'}" 
+                           FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                
+                <Path Grid.Column="1" Data="M19 9l-7 7-7-7" 
+                      Stroke="{DynamicResource TextMuted}" StrokeThickness="2" 
+                      Width="10" Height="10" Stretch="Uniform" Margin="8,0,0,0"/>
+            </Grid>
         </Button>
 
-        <Border Classes="ProjectIndent" Margin="12,0,0,32">
-            <Button Classes="HierarchyLabel" Padding="8,6" CornerRadius="6">
-                <TextBlock Text="{Binding SelectedProject.Name, FallbackValue='Select Project'}" 
-                           FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+        <Border Margin="18,0,0,32" 
+                BorderBrush="{DynamicResource BorderColor}" 
+                BorderThickness="1.5,0,0,0" 
+                Padding="12,0,0,0">
+            
+            <Button Classes="HierarchyBtn" Padding="8,6" CornerRadius="6"
+                    Background="Transparent" BorderThickness="0"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                
                 <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedLeft">
                         <Grid RowDefinitions="*, Auto">
@@ -94,6 +116,15 @@
                         </Grid>
                     </Flyout>
                 </Button.Flyout>
+
+                <Grid ColumnDefinitions="*, Auto">
+                    <TextBlock Text="{Binding SelectedProject.Name, FallbackValue='Select Project'}" 
+                               FontSize="12" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center"/>
+                    
+                    <Path Grid.Column="1" Data="M19 9l-7 7-7-7" 
+                          Stroke="{DynamicResource TextMuted}" StrokeThickness="2" 
+                          Width="10" Height="10" Stretch="Uniform" Margin="8,0,0,0"/>
+                </Grid>
             </Button>
         </Border>
         
