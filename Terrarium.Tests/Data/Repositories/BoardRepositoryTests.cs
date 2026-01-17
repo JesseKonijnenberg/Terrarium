@@ -114,7 +114,6 @@ public class BoardRepositoryTests : IDisposable
     [Fact]
     public async Task AddTask_WhenTasksAreSelected_ShouldNotInterfereWithInsert()
     {
-        // 1. Setup an existing task that is "selected" in the UI
         var existingTask = new TaskEntity 
         { 
             Id = "selected-1", 
@@ -125,13 +124,13 @@ public class BoardRepositoryTests : IDisposable
         _context.Tasks.Add(existingTask);
         await _context.SaveChangesAsync();
         
-        // 2. Load the board and manually set the existing task state to "Modified"
-        // This simulates the UI selection logic tracking the entity.
+        _context.ChangeTracker.Clear(); 
+        
         var board = await _repo.GetBoardAsync(TestWorkspaceId, TestProjectId);
         var taskToSelect = board!.Columns.First().Tasks.First();
+        
         _context.Entry(taskToSelect).State = EntityState.Modified; 
-
-        // 3. Add a NEW task with required members
+        
         var newTask = new TaskEntity 
         { 
             Id = "added-during-selection", 
@@ -139,7 +138,7 @@ public class BoardRepositoryTests : IDisposable
             ColumnId = "col-1", 
             ProjectId = TestProjectId 
         };
-        
+    
         // ACT
         await _repo.AddTaskAsync(newTask, "col-1");
 

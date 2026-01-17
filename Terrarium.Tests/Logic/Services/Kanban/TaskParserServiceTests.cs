@@ -24,9 +24,9 @@ public class TaskParserServiceTests
         
         var result = _parser.ParseClipboardText(text).First();
 
-        Assert.Equal("Implement Auth", result.Task.Title);
-        Assert.Equal("Security", result.Task.Tag);
-        Assert.Equal(TaskPriority.High, result.Task.Priority);
+        Assert.Equal("Implement Auth", result.Title);
+        Assert.Equal("Security", result.Tag);
+        Assert.Equal(TaskPriority.High, result.Priority);
     }
 
     [Fact]
@@ -36,9 +36,9 @@ public class TaskParserServiceTests
         
         var result = _parser.ParseClipboardText(text).First();
 
-        Assert.Contains("Line 1", result.Task.Description);
-        Assert.Contains("Line 2", result.Task.Description);
-        Assert.Contains(Environment.NewLine, result.Task.Description);
+        Assert.Contains("Line 1", result.Description);
+        Assert.Contains("Line 2", result.Description);
+        Assert.Contains(Environment.NewLine, result.Description);
     }
 
     [Fact]
@@ -63,9 +63,9 @@ public class TaskParserServiceTests
 
         Assert.Equal(2, results.Count);
         Assert.Equal("Backlog", results[0].TargetColumnName);
-        Assert.Equal("Task A", results[0].Task.Title);
+        Assert.Equal("Task A", results[0].Title);
         Assert.Equal("Done", results[1].TargetColumnName);
-        Assert.Equal("Task B", results[1].Task.Title);
+        Assert.Equal("Task B", results[1].Title);
     }
 
     [Theory]
@@ -79,7 +79,7 @@ public class TaskParserServiceTests
         
         var result = _parser.ParseClipboardText(text).First();
 
-        Assert.Equal(expected, result.Task.Priority);
+        Assert.Equal(expected, result.Priority);
     }
 
     [Fact]
@@ -95,6 +95,6 @@ public class TaskParserServiceTests
         var results = _parser.ParseClipboardText(text).ToList();
 
         Assert.Single(results);
-        Assert.Equal("Valid Task", results[0].Task.Title);
+        Assert.Equal("Valid Task", results[0].Title);
     }
 }
