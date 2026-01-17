@@ -20,6 +20,7 @@ public class BoardRepository : IBoardRepository
         if (string.IsNullOrEmpty(projectId)) return null;
 
         var board = await _context.KanbanBoards
+            .AsNoTracking()
             .Include(b => b.Columns.OrderBy(c => c.Order))
             .FirstOrDefaultAsync(b => b.ProjectId == projectId);
 
@@ -28,6 +29,7 @@ public class BoardRepository : IBoardRepository
         var columnIds = board.Columns.Select(c => c.Id).ToList();
 
         var tasks = await _context.Tasks
+            .AsNoTracking()
             .Where(t => columnIds.Contains(t.ColumnId))
             .Where(t => string.IsNullOrEmpty(board.CurrentIterationId) || t.IterationId == board.CurrentIterationId)
             .OrderBy(t => t.Order)

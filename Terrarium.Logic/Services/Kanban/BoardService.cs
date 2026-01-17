@@ -223,25 +223,36 @@ public class BoardService : IBoardService
     {
         var board = await _repository.GetBoardAsync(workspaceId, projectId);
         if (board == null) return Enumerable.Empty<TaskEntity>();
-
+        
         var results = _taskParserService.ParseClipboardText(text).ToList();
         var processedTasks = new List<TaskEntity>();
 
-        foreach (var result in results)
+        foreach (var dto in results)
         {
             var targetCol = board.Columns.FirstOrDefault(c => 
-                                result.TargetColumnName.Contains(c.Title, StringComparison.OrdinalIgnoreCase) ||
-                                c.Title.Contains(result.TargetColumnName, StringComparison.OrdinalIgnoreCase))
+                                c.Title.Contains(dto.TargetColumnName, StringComparison.OrdinalIgnoreCase))
                             ?? board.Columns.FirstOrDefault();
 
             if (targetCol == null) continue;
-
-            result.Task.ColumnId = targetCol.Id;
-            result.Task.ProjectId = projectId;
-
-            await _repository.AddTaskAsync(result.Task, targetCol.Id);
-            processedTasks.Add(result.Task);
+            
+            var newTask = new TaskEntity
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = dto.Title,
+                Description = dto.Description,
+                Tag = dto.Tag,
+                Priority = dto.Priority,
+                DueDate = DateTime.UtcNow,
+                
+                ColumnId = targetCol.Id,
+                ProjectId = projectId,
+            };
+            
+            await _repository.AddTaskAsync(newTask, targetCol.Id);
+            processedTasks.Add(newTask);
         }
+        
+        NotifyBoardChanged();
 
         return processedTasks;
     }

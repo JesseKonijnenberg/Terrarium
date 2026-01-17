@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Terrarium.Core.Enums.Kanban;
 using Terrarium.Core.Interfaces.Kanban;
-using Terrarium.Core.Models.Kanban;
 using Terrarium.Core.Models.Kanban.DTO;
 
 namespace Terrarium.Logic.Services.Kanban;
@@ -21,8 +20,9 @@ public class TaskParserService : ITaskParserService
         if (string.IsNullOrWhiteSpace(text)) yield break;
 
         var lines = text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        TaskEntity? currentTask = null;
-        string currentColumnName = "Backlog"; // Default starting point
+        
+        ParsedTaskResult? currentTaskDto = null;
+        string currentColumnName = "Backlog"; 
 
         foreach (var line in lines)
         {
@@ -32,67 +32,66 @@ public class TaskParserService : ITaskParserService
             var colMatch = ColumnHeaderRegex.Match(trimmedLine);
             if (colMatch.Success)
             {
-                if (currentTask != null)
+                if (currentTaskDto != null)
                 {
-                    yield return new ParsedTaskResult(currentTask, currentColumnName);
-                    currentTask = null;
+                    yield return currentTaskDto with { TargetColumnName = currentColumnName };
+                    currentTaskDto = null;
                 }
 
                 var rawName = colMatch.Groups[1].Value.Trim();
-                    
                 var cleaned = Regex.Replace(rawName, @"[^\w\s]", "").Trim();
                 currentColumnName = Regex.Replace(cleaned, @"\p{M}", "").Trim();
-
                 continue;
             }
 
             var taskMatch = TaskLineRegex.Match(trimmedLine);
             if (taskMatch.Success)
             {
-                if (currentTask != null)
+                if (currentTaskDto != null)
                 {
-                    yield return new ParsedTaskResult(currentTask, currentColumnName);
+                    yield return currentTaskDto with { TargetColumnName = currentColumnName };
                 }
-
-                currentTask = CreateTaskFromLine(taskMatch.Groups[1].Value);
+                
+                currentTaskDto = CreateDtoFromLine(taskMatch.Groups[1].Value, currentColumnName);
                 continue;
             }
 
-            if (currentTask != null && trimmedLine.StartsWith('>'))
+            if (currentTaskDto != null && trimmedLine.StartsWith('>'))
             {
                 var description = trimmedLine.TrimStart('>').Trim();
-                currentTask.Description = string.IsNullOrEmpty(currentTask.Description)
+                var newDesc = string.IsNullOrEmpty(currentTaskDto.Description)
                     ? description
-                    : currentTask.Description + Environment.NewLine + description;
+                    : currentTaskDto.Description + Environment.NewLine + description;
+                
+                currentTaskDto = currentTaskDto with { Description = newDesc };
             }
         }
 
-        if (currentTask != null)
+        if (currentTaskDto != null)
         {
-            yield return new ParsedTaskResult(currentTask, currentColumnName);
+            yield return currentTaskDto with { TargetColumnName = currentColumnName };
         }
     }
 
-    private TaskEntity CreateTaskFromLine(string line)
+    private ParsedTaskResult CreateDtoFromLine(string line, string currentColumnName)
     {
         var tagMatch = TagRegex.Match(line);
         string tag = tagMatch.Success ? tagMatch.Groups[1].Value : "General";
 
         var priorityMatch = PriorityRegex.Match(line);
         string priorityStr = priorityMatch.Success ? priorityMatch.Groups[1].Value : "Normal";
-            
+        
         string cleanTitle = line;
         if (tagMatch.Success) cleanTitle = cleanTitle.Replace(tagMatch.Value, "");
         if (priorityMatch.Success) cleanTitle = cleanTitle.Replace(priorityMatch.Value, "");
-            
-        return new TaskEntity
-        {
-            Title = cleanTitle.Trim(),
-            Tag = tag,
-            Priority = ParsePriority(priorityStr),
-            Description = "",
-            ColumnId = string.Empty
-        };
+        
+        return new ParsedTaskResult(
+            Title: cleanTitle.Trim(),
+            Description: "",
+            Tag: tag,
+            Priority: ParsePriority(priorityStr),
+            TargetColumnName: currentColumnName
+        );
     }
 
     private TaskPriority ParsePriority(string priority)
