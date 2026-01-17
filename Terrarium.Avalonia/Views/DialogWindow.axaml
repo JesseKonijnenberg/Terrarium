@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Terrarium.Avalonia.ViewModels"
+        x:Class="Terrarium.Avalonia.Views.DialogWindow"
+        x:DataType="vm:DialogWindowViewModel"
+        Width="400" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="BorderOnly"
+        Background="{DynamicResource BgSidebar}"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1">
+        <Grid RowDefinitions="Auto, Auto, Auto, Auto" Margin="20">
+            
+            <TextBlock Grid.Row="0" Classes="H3" 
+                       Text="{Binding Title}" Margin="0,0,0,15"/>
+
+            <TextBlock Grid.Row="1" 
+                       Text="{Binding Message}" 
+                       TextWrapping="Wrap" Margin="0,0,0,15"
+                       Foreground="#CCCCCC"/>
+
+            <TextBox Grid.Row="2" 
+                     Text="{Binding InputText}"
+                     IsVisible="{Binding IsInputVisible}" 
+                     Margin="0,0,0,20"/>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Content="{Binding CancelButtonText}" 
+                        Command="{Binding CancelCommand}"
+                        IsVisible="{Binding IsCancelVisible}"/>
+                
+                <Button Content="{Binding OkButtonText}" 
+                        Classes="Accent" 
+                        Command="{Binding OkCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

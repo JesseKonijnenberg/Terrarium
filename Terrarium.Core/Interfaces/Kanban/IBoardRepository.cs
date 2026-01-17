@@ -67,4 +67,10 @@ public interface IBoardRepository
     /// <param name="targetColumnId">The ID of the destination column.</param>
     /// <param name="startIndex">The starting sort order index for the batch.</param>
     Task MoveMultipleTasksAsync(List<string> taskIds, string targetColumnId, int startIndex);
+    
+    /// <summary>
+    /// Creates a new Kanban Board.
+    /// </summary>
+    /// <param name="board">The board to be created</param>
+    Task CreateBoardAsync(KanbanBoardEntity board);
 }

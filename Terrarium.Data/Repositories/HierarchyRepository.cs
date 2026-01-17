@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Terrarium.Core.Interfaces.Hierarchy;
+using Terrarium.Core.Interfaces.Repositories;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Data.Contexts;
 
@@ -20,20 +20,6 @@ public class HierarchyRepository : IHierarchyRepository
             .Include(o => o.Workspaces)
             .ThenInclude(w => w.Projects)
             .ToListAsync();
-    }
-
-    public async Task<WorkspaceEntity> AddWorkspaceAsync(WorkspaceEntity workspace)
-    {
-        _context.Workspaces.Add(workspace);
-        await _context.SaveChangesAsync();
-        return workspace;
-    }
-
-    public async Task<OrganizationEntity> AddOrganizationAsync(OrganizationEntity org)
-    {
-        _context.Organizations.Add(org);
-        await _context.SaveChangesAsync();
-        return org;
     }
     
     public async Task<List<WorkspaceEntity>> GetOrphanWorkspacesAsync()

@@ -2,54 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Terrarium.Avalonia.ViewModels"
              x:Class="Terrarium.Avalonia.Controls.HierarchySelectorControl"
-             x:DataType="vm:SidebarViewModel">
-
-    <UserControl.Styles>
-        <Style Selector="Button.HierarchyLabel">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Center"/>
-                            <Path Grid.Column="1" Data="M19 9l-7 7-7-7" Stroke="{DynamicResource TextMuted}" 
-                                  StrokeThickness="2" Width="10" Height="10" Stretch="Uniform" Margin="8,0,0,0"/>
-                        </Grid>
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.HierarchyLabel:pointerover">
+             x:DataType="vm:HierarchyViewModel"> <UserControl.Styles>
+        <Style Selector="ContextMenu">
             <Setter Property="Background" Value="{DynamicResource BgCard}"/>
-        </Style>
-
-        <Style Selector="Border.ProjectIndent">
-            <Setter Property="Margin" Value="18,0,0,0"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1.5,0,0,0"/>
-            <Setter Property="Padding" Value="12,0,0,0"/>
-        </Style>
-
-        <Style Selector="FlyoutPresenter">
-            <Setter Property="Background" Value="{DynamicResource BgSidebar}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="MinWidth" Value="200"/>
-        </Style>
-        
-        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter,
-                       ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource BgCard}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentSage}"/>
         </Style>
     </UserControl.Styles>
 
     <StackPanel Spacing="0">
+        
         <Button Width="48" Height="48" CornerRadius="14" 
                 HorizontalAlignment="Left" Margin="10,0,0,28"
                 Background="{DynamicResource BgCard}" BorderBrush="{DynamicResource AccentSage}" BorderThickness="2">
@@ -57,11 +19,18 @@
                        FontWeight="Black" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
-                    <ListBox ItemsSource="{Binding Organizations}" SelectedItem="{Binding SelectedOrganization}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate><TextBlock Text="{Binding Name}" Padding="8"/></DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <Grid RowDefinitions="*, Auto">
+                        <ListBox Grid.Row="0" ItemsSource="{Binding Organizations}" SelectedItem="{Binding SelectedOrganization}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Padding="8"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Grid.Row="1" Content="+ New Organization" 
+                                Command="{Binding CreateOrganizationCommand}"
+                                HorizontalAlignment="Stretch" Background="Transparent" Opacity="0.7"/>
+                    </Grid>
                 </Flyout>
             </Button.Flyout>
         </Button>
@@ -71,14 +40,18 @@
                        FontSize="14" FontWeight="SemiBold"/>
             <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
-                    <ListBox ItemsSource="{Binding CurrentWorkspaces}" 
-                             SelectedItem="{Binding SelectedWorkspace}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" Padding="8"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <Grid RowDefinitions="*, Auto">
+                        <ListBox Grid.Row="0" ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Padding="8"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Grid.Row="1" Content="+ New Workspace" 
+                                Command="{Binding CreateWorkspaceCommand}"
+                                HorizontalAlignment="Stretch" Background="Transparent" Opacity="0.7"/>
+                    </Grid>
                 </Flyout>
             </Button.Flyout>
         </Button>
@@ -89,14 +62,36 @@
                            FontSize="12" Foreground="{DynamicResource TextMuted}"/>
                 <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedLeft">
-                        <ListBox ItemsSource="{Binding CurrentProjects}" 
-                                 SelectedItem="{Binding SelectedProject}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" Padding="8" FontSize="13"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                        <Grid RowDefinitions="*, Auto">
+                            <ListBox Grid.Row="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Background="Transparent">
+                                            <Grid.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Delete Project" 
+                                                              Command="{Binding $parent[UserControl].((vm:HierarchyViewModel)DataContext).DeleteProjectCommand}"
+                                                              CommandParameter="{Binding .}"
+                                                              Foreground="#FF5555"/>
+                                                </ContextMenu>
+                                            </Grid.ContextMenu>
+                                            <TextBlock Text="{Binding Name}" Padding="8" FontSize="13"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <Button Grid.Row="1" 
+                                    Command="{Binding CreateProjectCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Background="Transparent" BorderThickness="0" Padding="10,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="+" Foreground="{DynamicResource AccentSage}"/>
+                                    <TextBlock Text="Create New Project..." FontStyle="Italic" Opacity="0.7" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
                     </Flyout>
                 </Button.Flyout>
             </Button>

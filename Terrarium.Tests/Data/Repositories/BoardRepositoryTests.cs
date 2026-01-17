@@ -6,17 +6,17 @@ using Terrarium.Data.Repositories;
 
 namespace Terrarium.Tests.Data.Repositories;
 
-public class SqliteBoardRepositoryTests : IDisposable
+public class BoardRepositoryTests : IDisposable
 {
     private readonly SqliteConnection _connection;
     private readonly TerrariumDbContext _context;
-    private readonly SqliteBoardRepository _repo;
+    private readonly BoardRepository _repo;
     
     private const string TestProjectId = "default-project";
     private const string TestWorkspaceId = "solo-workspace";
     private const string TestBoardId = "main-board";
 
-    public SqliteBoardRepositoryTests()
+    public BoardRepositoryTests()
     {
         // Using a fresh, non-shared memory connection ensures 100% isolation per test.
         _connection = new SqliteConnection("Data Source=:memory:");
@@ -32,7 +32,7 @@ public class SqliteBoardRepositoryTests : IDisposable
         _context.Database.EnsureCreated();
         
         SeedRequiredData();
-        _repo = new SqliteBoardRepository(_context);
+        _repo = new BoardRepository(_context);
     }
 
     private void SeedRequiredData()

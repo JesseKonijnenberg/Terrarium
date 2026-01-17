@@ -3,14 +3,17 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Terrarium.Avalonia.Services;
 using Terrarium.Avalonia.Services.Navigation;
 using Terrarium.Avalonia.ViewModels;
 using Terrarium.Avalonia.Views;
+using Terrarium.Core.Interfaces;
 using Terrarium.Core.Interfaces.Context;
 using Terrarium.Core.Interfaces.Data;
 using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Kanban;
+using Terrarium.Core.Interfaces.Repositories;
 using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Interfaces.Update;
 using Terrarium.Core.Models.Data;
@@ -81,7 +84,7 @@ public partial class App : Application
         services.AddScoped<IHierarchyService, HierarchyService>();
         services.AddSingleton<IThemeRepository, ThemeRepository>();
         services.AddSingleton<IThemeService, ThemeService>();
-        services.AddSingleton<IBoardRepository, SqliteBoardRepository>();
+        services.AddSingleton<IBoardRepository, BoardRepository>();
         services.AddSingleton<IBoardService, BoardService>();
         services.AddTransient<IUpdateService, UpdateService>();
         services.AddSingleton<IBackupService, BackupService>();
@@ -90,6 +93,16 @@ public partial class App : Application
         services.AddSingleton<IGardenService, GardenService>();
         services.AddSingleton<IGardenEconomyService, GardenEconomyService>();
         services.AddSingleton<IProjectContextService, ProjectContextService>();
+        
+        services.AddTransient<IOrganizationService, OrganizationService>();
+        services.AddTransient<IWorkspaceService, WorkspaceService>();
+        services.AddTransient<IProjectService, ProjectService>();
+        services.AddTransient<IDialogService, DialogService>();
+        
+        // Repo
+        services.AddTransient<IOrganizationRepository, OrganizationRepository>();
+        services.AddTransient<IWorkspaceRepository, WorkspaceRepository>();
+        services.AddTransient<IProjectRepository, ProjectRepository>();
 
         // Navigation
         services.AddSingleton<INavigationService, NavigationService>();
@@ -103,6 +116,7 @@ public partial class App : Application
         services.AddSingleton<LandingViewModel>();
         services.AddTransient<SettingsViewModel>();
         services.AddSingleton<UpdateViewModel>();
+        services.AddSingleton<HierarchyViewModel>();
         
 #if DEBUG
         services.AddScoped<IDatabaseSeeder, DevelopmentSeeder>();

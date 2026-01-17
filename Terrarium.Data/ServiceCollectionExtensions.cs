@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
 
         // Register Repositories
         // Always register these as Transient when using EF Core in this setup
-        services.AddTransient<IBoardRepository, SqliteBoardRepository>();
+        services.AddTransient<IBoardRepository, BoardRepository>();
 
         // Future Garden Repository will go here:
         // services.AddTransient<IGardenRepository, SqliteGardenRepository>();

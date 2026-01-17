@@ -245,6 +245,37 @@ public class BoardService : IBoardService
 
         return processedTasks;
     }
+    
+    public async Task<KanbanBoardEntity> CreateBoardAsync(string workspaceId, string projectId)
+    {
+        var newBoard = new KanbanBoardEntity
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = "Main Board",
+            ProjectId = projectId,
+            LastModifiedUtc = DateTime.UtcNow,
+            
+        };
+        newBoard.Columns = CreateDefaultColumns(newBoard);
+        
+        await _repository.CreateBoardAsync(newBoard);
+        
+        _boardCache = newBoard;
+        
+        return newBoard;
+    }
+
+    private List<ColumnEntity> CreateDefaultColumns(KanbanBoardEntity board)
+    {
+        var columns = new List<ColumnEntity>
+        {
+            new ColumnEntity { Id = Guid.NewGuid().ToString(), KanbanBoardId = board.Id, KanbanBoard = board,Title = "Backlog", Order = 0, LastModifiedUtc = DateTime.UtcNow },
+            new ColumnEntity { Id = Guid.NewGuid().ToString(), KanbanBoardId = board.Id, KanbanBoard = board,Title = "To Do", Order = 1, LastModifiedUtc = DateTime.UtcNow },
+            new ColumnEntity { Id = Guid.NewGuid().ToString(), KanbanBoardId = board.Id, KanbanBoard = board,Title = "In Progress", Order = 2, LastModifiedUtc = DateTime.UtcNow },
+            new ColumnEntity { Id = Guid.NewGuid().ToString(), KanbanBoardId = board.Id, KanbanBoard = board,Title = "Done", Order = 3, LastModifiedUtc = DateTime.UtcNow }
+        };
+        return columns;
+    }
 
     private void NotifyBoardChanged() 
         => BoardChanged?.Invoke(this, new BoardChangedEventsArgs());

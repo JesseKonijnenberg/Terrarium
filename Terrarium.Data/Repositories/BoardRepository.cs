@@ -5,11 +5,11 @@ using Terrarium.Data.Contexts;
 
 namespace Terrarium.Data.Repositories;
 
-public class SqliteBoardRepository : IBoardRepository
+public class BoardRepository : IBoardRepository
 {
     private readonly TerrariumDbContext _context;
 
-    public SqliteBoardRepository(TerrariumDbContext context)
+    public BoardRepository(TerrariumDbContext context)
     {
         _context = context;
     }
@@ -18,21 +18,21 @@ public class SqliteBoardRepository : IBoardRepository
     public async Task<KanbanBoardEntity?> GetBoardAsync(string workspaceId, string? projectId = null)
     {
         if (string.IsNullOrEmpty(projectId)) return null;
-        
+
         var board = await _context.KanbanBoards
             .Include(b => b.Columns.OrderBy(c => c.Order))
             .FirstOrDefaultAsync(b => b.ProjectId == projectId);
 
         if (board == null) return null;
-        
+
         var columnIds = board.Columns.Select(c => c.Id).ToList();
-    
+
         var tasks = await _context.Tasks
             .Where(t => columnIds.Contains(t.ColumnId))
             .Where(t => string.IsNullOrEmpty(board.CurrentIterationId) || t.IterationId == board.CurrentIterationId)
             .OrderBy(t => t.Order)
             .ToListAsync();
-        
+
         foreach (var column in board.Columns)
         {
             column.Tasks = tasks.Where(t => t.ColumnId == column.Id).ToList();
@@ -51,7 +51,7 @@ public class SqliteBoardRepository : IBoardRepository
             .Where(c => c.Id == columnId)
             .Select(c => c.KanbanBoard.CurrentIterationId)
             .FirstOrDefaultAsync();
-    
+
         var maxOrder = await _context.Tasks
             .AsNoTracking()
             .Where(t => t.ColumnId == columnId && t.IterationId == iterationId)
@@ -76,7 +76,7 @@ public class SqliteBoardRepository : IBoardRepository
             existingTask.Tag = incomingTask.Tag;
             existingTask.Priority = incomingTask.Priority;
             existingTask.DueDate = incomingTask.DueDate;
-            
+
             await _context.SaveChangesAsync();
         }
     }
@@ -126,10 +126,10 @@ public class SqliteBoardRepository : IBoardRepository
         if (task == null) return;
 
         var siblings = await _context.Tasks
-            .Where(t => t.ColumnId == targetColumnId 
-                     && t.IterationId == task.IterationId 
-                     && t.Order >= newOrder 
-                     && t.Id != taskId)
+            .Where(t => t.ColumnId == targetColumnId
+                        && t.IterationId == task.IterationId
+                        && t.Order >= newOrder
+                        && t.Id != taskId)
             .ToListAsync();
 
         foreach (var sibling in siblings)
@@ -158,4 +158,11 @@ public class SqliteBoardRepository : IBoardRepository
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task CreateBoardAsync(KanbanBoardEntity board)
+    {
+        _context.KanbanBoards.Add(board);
+        await _context.SaveChangesAsync();
+    }
+
 }

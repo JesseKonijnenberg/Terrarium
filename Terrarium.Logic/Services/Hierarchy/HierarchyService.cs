@@ -1,4 +1,5 @@
 using Terrarium.Core.Interfaces.Hierarchy;
+using Terrarium.Core.Interfaces.Repositories;
 using Terrarium.Core.Models.Hierarchy;
 
 namespace Terrarium.Logic.Services.Hierarchy;
@@ -42,19 +43,6 @@ public class HierarchyService : IHierarchyService
         }
 
         return hierarchy;
-    }
-
-    public async Task<WorkspaceEntity> CreateWorkspaceAsync(string name, string? orgId)
-    {
-        var workspace = new WorkspaceEntity 
-        { 
-            Id = Guid.NewGuid().ToString(),
-            Name = name, 
-            OrganizationId = orgId,
-            IsPersonal = orgId == null 
-        };
-
-        return await _repository.AddWorkspaceAsync(workspace);
     }
     
     public (OrganizationEntity? Org, WorkspaceEntity? Ws, ProjectEntity? Proj) GetDefaultSelection(List<OrganizationEntity> hierarchy)

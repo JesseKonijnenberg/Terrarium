@@ -52,7 +52,7 @@
     <Border Background="{DynamicResource BgSidebar}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="12,32,12,16">
             
-            <c:HierarchySelectorControl Grid.Row="0" DataContext="{Binding}"/>
+            <c:HierarchySelectorControl Grid.Row="0" DataContext="{Binding Hierarchy}"/>
 
             <Separator Grid.Row="1" Background="{DynamicResource BorderColor}" Opacity="0.3" Margin="12,0,12,24" Height="1"/>
 
