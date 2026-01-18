@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Avalonia.Services;
@@ -15,6 +16,7 @@ using Terrarium.Core.Interfaces.Garden;
 using Terrarium.Core.Interfaces.Hierarchy;
 using Terrarium.Core.Interfaces.Kanban;
 using Terrarium.Core.Interfaces.Repositories;
+using Terrarium.Core.Interfaces.Services;
 using Terrarium.Core.Interfaces.Theming;
 using Terrarium.Core.Interfaces.Update;
 using Terrarium.Core.Models.Data;
@@ -80,6 +82,10 @@ public partial class App : Application
         var storageOptions = new StorageOptions();
         services.AddSingleton(storageOptions);
         services.AddTerrariumData(storageOptions);
+
+        // Messaging
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddSingleton<ITerrariumEventBus, MvvmEventBus>();
 
         // Core Services
         services.AddScoped<IHierarchyRepository, HierarchyRepository>();

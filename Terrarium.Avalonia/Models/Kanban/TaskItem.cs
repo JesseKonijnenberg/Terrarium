@@ -60,13 +60,28 @@ public partial class TaskItem : ViewModelBase
     public IBrush TagBgColor => GetTagBrush(Tag, 0.3);
     public IBrush TagTextColor => GetTagBrush(Tag, 1.0);
     public IBrush TagBorderColor => GetTagBrush(Tag, 0.5);
-    
 
+    // Callbacks to sync UI changes back to the Entity (One-Way to Source)
     partial void OnTitleChanged(string value) => Entity.Title = value;
     partial void OnDescriptionChanged(string value) => Entity.Description = value;
     partial void OnTagChanged(string value) => Entity.Tag = value;
     partial void OnPriorityChanged(TaskPriority value) => Entity.Priority = value;
     partial void OnDueDateChanged(DateTime value) => Entity.DueDate = value;
+
+    /// <summary>
+    /// Force updates the UI properties to match the current state of the underlying Entity.
+    /// Call this after bulk-updating the Entity from the database.
+    /// </summary>
+    public void RefreshFromEntity()
+    {
+        // We set the properties, which triggers OnPropertyChanged.
+        // (The setters will write back to Entity, which is redundant but harmless here)
+        if (Title != Entity.Title) Title = Entity.Title;
+        if (Description != Entity.Description) Description = Entity.Description;
+        if (Tag != Entity.Tag) Tag = Entity.Tag;
+        if (Priority != Entity.Priority) Priority = Entity.Priority;
+        if (DueDate != Entity.DueDate) DueDate = Entity.DueDate;
+    }
 
     private IBrush GetTagBrush(string? tag, double opacity)
     {
