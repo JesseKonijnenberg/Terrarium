@@ -7,11 +7,11 @@ namespace Terrarium.Data.Repositories;
 
 public class BoardRepository : IBoardRepository
 {
-    private readonly TerrariumDbContext _context;
+    private readonly IDbContextFactory<TerrariumDbContext> _contextFactory;
 
-    public BoardRepository(TerrariumDbContext context)
+    public BoardRepository(IDbContextFactory<TerrariumDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     /// <inheritdoc />
@@ -19,7 +19,8 @@ public class BoardRepository : IBoardRepository
     {
         if (string.IsNullOrEmpty(projectId)) return null;
 
-        var board = await _context.KanbanBoards
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var board = await context.KanbanBoards
             .AsNoTracking()
             .Include(b => b.Columns.OrderBy(c => c.Order))
             .FirstOrDefaultAsync(b => b.ProjectId == projectId);
@@ -28,7 +29,7 @@ public class BoardRepository : IBoardRepository
 
         var columnIds = board.Columns.Select(c => c.Id).ToList();
 
-        var tasks = await _context.Tasks
+        var tasks = await context.Tasks
             .AsNoTracking()
             .Where(t => columnIds.Contains(t.ColumnId))
             .Where(t => string.IsNullOrEmpty(board.CurrentIterationId) || t.IterationId == board.CurrentIterationId)
@@ -48,13 +49,14 @@ public class BoardRepository : IBoardRepository
     {
         if (task == null) throw new ArgumentNullException(nameof(task));
 
-        var iterationId = await _context.Columns
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var iterationId = await context.Columns
             .AsNoTracking()
             .Where(c => c.Id == columnId)
             .Select(c => c.KanbanBoard.CurrentIterationId)
             .FirstOrDefaultAsync();
 
-        var maxOrder = await _context.Tasks
+        var maxOrder = await context.Tasks
             .AsNoTracking()
             .Where(t => t.ColumnId == columnId && t.IterationId == iterationId)
             .MaxAsync(t => (int?)t.Order) ?? -1;
@@ -62,15 +64,19 @@ public class BoardRepository : IBoardRepository
         task.ColumnId = columnId;
         task.IterationId = iterationId;
         task.Order = maxOrder + 1;
+        
+        // Prevent disconnected graph errors
+        task.Column = null!;
 
-        _context.Tasks.Add(task);
-        await _context.SaveChangesAsync();
+        context.Tasks.Add(task);
+        await context.SaveChangesAsync();
     }
 
     /// <inheritdoc />
     public async Task UpdateTaskAsync(TaskEntity incomingTask)
     {
-        var existingTask = await _context.Tasks.FindAsync(incomingTask.Id);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var existingTask = await context.Tasks.FindAsync(incomingTask.Id);
         if (existingTask != null)
         {
             existingTask.Title = incomingTask.Title;
@@ -79,25 +85,27 @@ public class BoardRepository : IBoardRepository
             existingTask.Priority = incomingTask.Priority;
             existingTask.DueDate = incomingTask.DueDate;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
     }
 
     /// <inheritdoc />
     public async Task DeleteTaskAsync(string taskId)
     {
-        var task = await _context.Tasks.FindAsync(taskId);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var task = await context.Tasks.FindAsync(taskId);
         if (task != null)
         {
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            context.Tasks.Remove(task);
+            await context.SaveChangesAsync();
         }
     }
 
     /// <inheritdoc />
     public async Task DeleteTasksAsync(IEnumerable<string> taskIds)
     {
-        await _context.Tasks
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        await context.Tasks
             .Where(t => taskIds.Contains(t.Id))
             .ExecuteDeleteAsync();
     }
@@ -105,29 +113,33 @@ public class BoardRepository : IBoardRepository
     /// <inheritdoc />
     public async Task DeleteAllTasksInIterationAsync(string projectId)
     {
-        var board = await _context.KanbanBoards
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var board = await context.KanbanBoards
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.ProjectId == projectId);
 
         if (board == null) return;
 
         // Scoped delete: Only touches tasks in the board's columns AND current iteration
-        await _context.Tasks
+        var columnIds = await context.Columns
+            .Where(c => c.KanbanBoardId == board.Id)
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        await context.Tasks
             .Where(t => t.IterationId == board.CurrentIterationId &&
-                        _context.Columns
-                            .Where(c => c.KanbanBoardId == board.Id)
-                            .Select(c => c.Id)
-                            .Contains(t.ColumnId))
+                        columnIds.Contains(t.ColumnId))
             .ExecuteDeleteAsync();
     }
 
     /// <inheritdoc />
     public async Task MoveTaskAsync(string taskId, string targetColumnId, int newOrder)
     {
-        var task = await _context.Tasks.FindAsync(taskId);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var task = await context.Tasks.FindAsync(taskId);
         if (task == null) return;
 
-        var siblings = await _context.Tasks
+        var siblings = await context.Tasks
             .Where(t => t.ColumnId == targetColumnId
                         && t.IterationId == task.IterationId
                         && t.Order >= newOrder
@@ -142,13 +154,14 @@ public class BoardRepository : IBoardRepository
         task.ColumnId = targetColumnId;
         task.Order = newOrder;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     /// <inheritdoc />
     public async Task MoveMultipleTasksAsync(List<string> taskIds, string targetColumnId, int startIndex)
     {
-        var tasks = await _context.Tasks
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var tasks = await context.Tasks
             .Where(t => taskIds.Contains(t.Id))
             .ToListAsync();
 
@@ -158,13 +171,18 @@ public class BoardRepository : IBoardRepository
             task.Order = startIndex++;
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     public async Task CreateBoardAsync(KanbanBoardEntity board)
     {
-        _context.KanbanBoards.Add(board);
-        await _context.SaveChangesAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        // Prevent disconnected graph errors
+        board.Project = null!;
+        
+        context.KanbanBoards.Add(board);
+        await context.SaveChangesAsync();
     }
 
 }

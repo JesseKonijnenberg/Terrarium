@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Terrarium.Core.Interfaces.Repositories;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Data.Contexts;
@@ -6,25 +7,35 @@ namespace Terrarium.Data.Repositories;
 
 public class WorkspaceRepository : IWorkspaceRepository
 {
-    private readonly TerrariumDbContext _context;
+    private readonly IDbContextFactory<TerrariumDbContext> _contextFactory;
 
-    public WorkspaceRepository(TerrariumDbContext context) => _context = context;
+    public WorkspaceRepository(IDbContextFactory<TerrariumDbContext> contextFactory) => _contextFactory = contextFactory;
 
-    public async Task<WorkspaceEntity?> GetByIdAsync(string id) => await _context.Workspaces.FindAsync(id);
+    public async Task<WorkspaceEntity?> GetByIdAsync(string id)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Workspaces.AsNoTracking().FirstOrDefaultAsync(w => w.Id == id);
+    }
 
     public async Task AddAsync(WorkspaceEntity entity)
     {
-        _context.Workspaces.Add(entity);
-        await _context.SaveChangesAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        // Prevent disconnected graph errors
+        entity.Organization = null;
+        
+        context.Workspaces.Add(entity);
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(string id)
     {
-        var entity = await _context.Workspaces.FindAsync(id);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var entity = await context.Workspaces.FindAsync(id);
         if (entity != null)
         {
-            _context.Workspaces.Remove(entity);
-            await _context.SaveChangesAsync();
+            context.Workspaces.Remove(entity);
+            await context.SaveChangesAsync();
         }
     }
 }

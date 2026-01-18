@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Avalonia.Services;
 using Terrarium.Avalonia.Services.Navigation;
@@ -49,7 +50,8 @@ public partial class App : Application
             
         using (var scope = Services.CreateScope())
         {
-            var dbContext = scope.ServiceProvider.GetRequiredService<TerrariumDbContext>();
+            var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<TerrariumDbContext>>();
+            using var dbContext = dbContextFactory.CreateDbContext();
             
             DbInitializer.Initialize(dbContext);
 

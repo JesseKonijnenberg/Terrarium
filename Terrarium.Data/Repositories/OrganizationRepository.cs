@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Terrarium.Core.Interfaces.Repositories;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Data.Contexts;
@@ -6,31 +7,34 @@ namespace Terrarium.Data.Repositories;
 
 public class OrganizationRepository : IOrganizationRepository
 {
-    private readonly TerrariumDbContext _context;
+    private readonly IDbContextFactory<TerrariumDbContext> _contextFactory;
 
-    public OrganizationRepository(TerrariumDbContext context)
+    public OrganizationRepository(IDbContextFactory<TerrariumDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     public async Task<OrganizationEntity?> GetByIdAsync(string id)
     {
-        return await _context.Organizations.FindAsync(id);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Organizations.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
     }
 
     public async Task AddAsync(OrganizationEntity entity)
     {
-        _context.Organizations.Add(entity);
-        await _context.SaveChangesAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        context.Organizations.Add(entity);
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(string id)
     {
-        var entity = await _context.Organizations.FindAsync(id);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var entity = await context.Organizations.FindAsync(id);
         if (entity != null)
         {
-            _context.Organizations.Remove(entity);
-            await _context.SaveChangesAsync();
+            context.Organizations.Remove(entity);
+            await context.SaveChangesAsync();
         }
     }
 }

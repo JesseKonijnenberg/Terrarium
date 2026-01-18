@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Terrarium.Core.Interfaces.Data;
 using Terrarium.Core.Models.Hierarchy;
 using Terrarium.Data.Contexts;
@@ -6,16 +7,17 @@ namespace Terrarium.Data.Seeding;
 
 public class DevelopmentSeeder : IDatabaseSeeder
 {
-    private readonly TerrariumDbContext _context;
+    private readonly IDbContextFactory<TerrariumDbContext> _contextFactory;
 
-    public DevelopmentSeeder(TerrariumDbContext context)
+    public DevelopmentSeeder(IDbContextFactory<TerrariumDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     public void Seed()
     {
-        if (_context.Organizations.Any(o => o.Id == "dev-corp-id")) return;
+        using var context = _contextFactory.CreateDbContext();
+        if (context.Organizations.Any(o => o.Id == "dev-corp-id")) return;
 
         var devOrg = new OrganizationEntity
         {
@@ -51,7 +53,7 @@ public class DevelopmentSeeder : IDatabaseSeeder
             }
         };
 
-        _context.Organizations.Add(devOrg);
-        _context.SaveChanges();
+        context.Organizations.Add(devOrg);
+        context.SaveChanges();
     }
 }

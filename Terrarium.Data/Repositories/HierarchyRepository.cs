@@ -7,16 +7,18 @@ namespace Terrarium.Data.Repositories;
 
 public class HierarchyRepository : IHierarchyRepository
 {
-    private readonly TerrariumDbContext _context;
+    private readonly IDbContextFactory<TerrariumDbContext> _contextFactory;
 
-    public HierarchyRepository(TerrariumDbContext context)
+    public HierarchyRepository(IDbContextFactory<TerrariumDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     public async Task<List<OrganizationEntity>> GetFullHierarchyAsync()
     {
-        return await _context.Organizations
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Organizations
+            .AsNoTracking()
             .Include(o => o.Workspaces)
             .ThenInclude(w => w.Projects)
             .ToListAsync();
@@ -24,7 +26,9 @@ public class HierarchyRepository : IHierarchyRepository
     
     public async Task<List<WorkspaceEntity>> GetOrphanWorkspacesAsync()
     {
-        return await _context.Workspaces
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Workspaces
+            .AsNoTracking()
             .Include(w => w.Projects)
             .Where(w => w.OrganizationId == null)
             .ToListAsync();

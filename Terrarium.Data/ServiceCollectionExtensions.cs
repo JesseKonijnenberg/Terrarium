@@ -20,9 +20,9 @@ public static class ServiceCollectionExtensions
     /// <returns>The <see cref="IServiceCollection" /> so that additional calls can be chained.</returns>
     public static IServiceCollection AddTerrariumData(this IServiceCollection services, StorageOptions options)
     {
-        // Register Database Context
-        services.AddDbContext<TerrariumDbContext>(opts =>
-            opts.UseSqlite(options.ConnectionString), ServiceLifetime.Transient);
+        // Register Database Context Factory
+        services.AddDbContextFactory<TerrariumDbContext>(opts =>
+            opts.UseSqlite(options.ConnectionString));
 
         // Register Repositories
         // Always register these as Transient when using EF Core in this setup
