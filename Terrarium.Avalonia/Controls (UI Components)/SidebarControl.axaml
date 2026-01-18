@@ -59,7 +59,7 @@
             <StackPanel Grid.Row="2" Spacing="4">
                 <Button Classes="NavIcon" 
                         Command="{Binding GoToBoardCommand}"
-                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:KanbanBoardViewModel}}">
+                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Nav.CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:KanbanBoardViewModel}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Path Data="{StaticResource IconLayout}" Stroke="{Binding $parent[Button].Foreground}" 
                               StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
@@ -69,7 +69,7 @@
                 
                 <Button Classes="NavIcon" 
                         Command="{Binding GoToGardenCommand}"
-                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:GardenViewModel}}">
+                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Nav.CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:GardenViewModel}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Path Data="{StaticResource IconLeaf}" Stroke="{Binding $parent[Button].Foreground}" 
                               StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
@@ -83,7 +83,7 @@
                 
                 <Button Classes="NavIcon" 
                         Command="{Binding GoToSettingsCommand}"
-                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:SettingsViewModel}}">
+                        Classes.active="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Nav.CurrentContent, Converter={StaticResource IsTypeConverter}, ConverterParameter={x:Type vm:SettingsViewModel}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Path Data="{StaticResource IconSettings}" Stroke="{Binding $parent[Button].Foreground}" 
                               StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>

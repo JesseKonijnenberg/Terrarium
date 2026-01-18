@@ -1,20 +1,24 @@
 using System;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Terrarium.Avalonia.ViewModels.Core;
 
 namespace Terrarium.Avalonia.Services.Navigation;
 
-public class NavigationService : INavigationService
+public partial class NavigationService : ObservableObject, INavigationService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly Stack<ViewModelBase> _contentHistory = new();
 
-    public ViewModelBase? RootState { get; private set; }
-    public ViewModelBase? CurrentContent { get; private set; }
-    public bool CanGoBack => _contentHistory.Count > 0;
+    [ObservableProperty]
+    private ViewModelBase? _rootState;
 
-    public event Action? NavigationChanged;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGoBack))]
+    private ViewModelBase? _currentContent;
+
+    public bool CanGoBack => _contentHistory.Count > 0;
 
     public NavigationService(IServiceProvider serviceProvider)
     {
@@ -29,7 +33,6 @@ public class NavigationService : INavigationService
     {
         var root = _serviceProvider.GetRequiredService<T>();
         RootState = root;
-        NavigationChanged?.Invoke();
     }
 
     /// <summary>
@@ -49,7 +52,6 @@ public class NavigationService : INavigationService
         }
 
         CurrentContent = destination;
-        NavigationChanged?.Invoke();
     }
 
     /// <summary>
@@ -60,7 +62,6 @@ public class NavigationService : INavigationService
         if (_contentHistory.Count > 0)
         {
             CurrentContent = _contentHistory.Pop();
-            NavigationChanged?.Invoke();
         }
     }
 }

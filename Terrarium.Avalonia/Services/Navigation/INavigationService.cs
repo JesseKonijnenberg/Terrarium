@@ -1,9 +1,9 @@
-using System;
+using System.ComponentModel;
 using Terrarium.Avalonia.ViewModels.Core;
 
 namespace Terrarium.Avalonia.Services.Navigation;
 
-public interface INavigationService
+public interface INavigationService : INotifyPropertyChanged
 {
     // The top-level "Frame" (Landing, WorkspaceA, WorkspaceB, Login)
     ViewModelBase? RootState { get; }
@@ -17,6 +17,4 @@ public interface INavigationService
     
     void GoBack();
     bool CanGoBack { get; }
-
-    event Action? NavigationChanged;
 }
