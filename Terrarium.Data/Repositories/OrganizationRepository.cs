@@ -33,7 +33,8 @@ public class OrganizationRepository : IOrganizationRepository
         var entity = await context.Organizations.FindAsync(id);
         if (entity != null)
         {
-            context.Organizations.Remove(entity);
+            entity.IsDeleted = true;
+            entity.LastModifiedUtc = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
     }

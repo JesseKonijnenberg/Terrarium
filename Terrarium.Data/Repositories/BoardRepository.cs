@@ -96,7 +96,8 @@ public class BoardRepository : IBoardRepository
         var task = await context.Tasks.FindAsync(taskId);
         if (task != null)
         {
-            context.Tasks.Remove(task);
+            task.IsDeleted = true;
+            task.LastModifiedUtc = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
     }
@@ -107,7 +108,9 @@ public class BoardRepository : IBoardRepository
         await using var context = await _contextFactory.CreateDbContextAsync();
         await context.Tasks
             .Where(t => taskIds.Contains(t.Id))
-            .ExecuteDeleteAsync();
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(e => e.IsDeleted, true)
+                .SetProperty(e => e.LastModifiedUtc, DateTime.UtcNow));
     }
 
     /// <inheritdoc />
@@ -129,7 +132,9 @@ public class BoardRepository : IBoardRepository
         await context.Tasks
             .Where(t => t.IterationId == board.CurrentIterationId &&
                         columnIds.Contains(t.ColumnId))
-            .ExecuteDeleteAsync();
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(e => e.IsDeleted, true)
+                .SetProperty(e => e.LastModifiedUtc, DateTime.UtcNow));
     }
 
     /// <inheritdoc />

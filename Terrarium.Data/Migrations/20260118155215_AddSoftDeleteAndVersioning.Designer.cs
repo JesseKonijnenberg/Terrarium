@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Terrarium.Data.Contexts;
 
@@ -10,9 +11,11 @@ using Terrarium.Data.Contexts;
 namespace Terrarium.Data.Migrations
 {
     [DbContext(typeof(TerrariumDbContext))]
-    partial class TerrariumDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260118155215_AddSoftDeleteAndVersioning")]
+    partial class AddSoftDeleteAndVersioning
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.1");

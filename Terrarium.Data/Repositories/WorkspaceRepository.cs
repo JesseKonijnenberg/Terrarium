@@ -34,7 +34,8 @@ public class WorkspaceRepository : IWorkspaceRepository
         var entity = await context.Workspaces.FindAsync(id);
         if (entity != null)
         {
-            context.Workspaces.Remove(entity);
+            entity.IsDeleted = true;
+            entity.LastModifiedUtc = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
     }

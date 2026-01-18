@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Terrarium.Core.Models;
 
 public abstract class EntityBase
@@ -9,4 +11,7 @@ public abstract class EntityBase
     
     // Soft Delete (Critical for syncing multiple devices)
     public bool IsDeleted { get; set; } = false;
+    
+    [ConcurrencyCheck] 
+    public int Version { get; set; }
 }

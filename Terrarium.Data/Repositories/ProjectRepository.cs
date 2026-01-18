@@ -34,7 +34,8 @@ public class ProjectRepository : IProjectRepository
         var entity = await context.Projects.FindAsync(id);
         if (entity != null)
         {
-            context.Projects.Remove(entity);
+            entity.IsDeleted = true;
+            entity.LastModifiedUtc = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
     }

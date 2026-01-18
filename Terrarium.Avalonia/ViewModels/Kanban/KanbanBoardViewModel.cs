@@ -221,6 +221,21 @@ public partial class KanbanBoardViewModel : ViewModelBase
         OpenedTask = task;
         SelectionCount = SelectedTaskIds.Count;
     }
+    
+    [RelayCommand]
+    private async Task SaveTaskAsync()
+    {
+        if (OpenedTask == null) return;
+    
+        try 
+        {
+            await _boardService.UpdateTaskAsync(OpenedTask.Entity);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to save: {ex.Message}";
+        }
+    }
 
     public async Task MoveTaskAsync(TaskItem task, Column targetColumn, int index = -1)
     {
@@ -245,12 +260,16 @@ public partial class KanbanBoardViewModel : ViewModelBase
     }
     
     [RelayCommand] 
-    public void CloseDetails() => OpenedTask = null;
+    public async Task CloseDetailsAsync()
+    {
+        await SaveTaskAsync();
+        OpenedTask = null;
+    }
 
     [RelayCommand]
     public void DeselectAll()
     {
-        CloseDetails();
+        OpenedTask = null; 
         SelectedTaskIds.Clear();
         foreach (var t in Columns.SelectMany(c => c.Tasks)) t.IsSelected = false;
         SelectionCount = 0;

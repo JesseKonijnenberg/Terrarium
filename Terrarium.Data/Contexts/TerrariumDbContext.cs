@@ -24,12 +24,21 @@ public class TerrariumDbContext : DbContext
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker
-            .Entries()
-            .Where(e => e.Entity is EntityBase && (e.State == EntityState.Added || e.State == EntityState.Modified));
+            .Entries<EntityBase>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
 
-        foreach (var entityEntry in entries)
+        foreach (var entry in entries)
         {
-            ((EntityBase)entityEntry.Entity).LastModifiedUtc = DateTime.UtcNow;
+            entry.Entity.LastModifiedUtc = DateTime.UtcNow;
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.Version++;
+            }
+            else if (entry.State == EntityState.Added)
+            {
+                entry.Entity.Version = 1;
+            }
         }
 
         return base.SaveChangesAsync(cancellationToken);
@@ -84,6 +93,15 @@ public class TerrariumDbContext : DbContext
             .WithMany()
             .HasForeignKey(t => t.IterationId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        // Global Query Filters for Soft Delete
+        modelBuilder.Entity<OrganizationEntity>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<WorkspaceEntity>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ProjectEntity>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<IterationEntity>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<KanbanBoardEntity>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ColumnEntity>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<TaskEntity>().HasQueryFilter(e => !e.IsDeleted);
         
         var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         
